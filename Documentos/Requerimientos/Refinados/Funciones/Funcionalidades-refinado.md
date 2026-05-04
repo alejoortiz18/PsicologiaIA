@@ -83,6 +83,15 @@ Cada perfil cuenta con sus propios **términos y condiciones**, los cuales deben
 
 ### 4.3 Registro de Profesional
 
+**Paso previo — Tipo de profesional:**
+
+Antes de mostrar el formulario completo, el sistema solicita al profesional indicar su tipo:
+
+- **Psicólogo / Terapeuta** → validación ante **COLPSIC**
+- **Médico / Especialista médico** → validación ante **ReTHUS**
+
+Esta selección determina el organismo de validación y el campo de número de tarjeta que se solicita.
+
 **Datos solicitados:**
 
 - Nombre
@@ -90,13 +99,14 @@ Cada perfil cuenta con sus propios **términos y condiciones**, los cuales deben
 - Número de identificación
 - Alias
 - Celular
-- Número de tarjeta profesional
+- Tipo de profesional *(Psicólogo o Médico)*
+- Número de tarjeta profesional *(según el tipo seleccionado)*
 - Copia PDF de la cédula *(obligatoria)*
 - Copia PDF de la tarjeta profesional *(obligatoria)*
 
 **Proceso:**
 
-1. El profesional completa el formulario y acepta los términos y condiciones.
+1. El profesional selecciona su tipo (Psicólogo / Médico), completa el formulario y acepta los términos y condiciones.
 2. El sistema valida que no exista un registro previo con el mismo número de documento, correo electrónico o número de tarjeta profesional. En caso de duplicado, muestra mensaje de error en modal.
 3. El sistema envía los datos y documentos al correo del sistema para almacenamiento y revisión.
 4. El sistema crea el profesional en estado **Pendiente**.
@@ -106,21 +116,24 @@ Cada perfil cuenta con sus propios **términos y condiciones**, los cuales deben
 6. Una vez confirmado el correo, la cuenta queda en estado **Por validar documentos**.
 7. La vista cuenta con botón **Volver al landing page**.
 
-#### 4.3.1 Validación de Tarjeta Profesional (COLPSIC y perfiles médicos)
+#### 4.3.1 Validación de Tarjeta Profesional
 
-El sistema intentará validar automáticamente el número de tarjeta profesional con el siguiente flujo:
+La validación de la tarjeta profesional es **100% manual**. Los organismos de referencia (COLPSIC para psicólogos/terapeutas y ReTHUS para médicos/especialistas) no disponen de API pública, por lo que el sistema no realiza ninguna consulta automática.
 
-1. **Intento automático**: el sistema consulta la API de COLPSIC (o el organismo equivalente para profesionales del área médica) con el número de tarjeta registrado.
-2. **Si la API responde exitosamente**:
-   - El sistema actualiza el estado del profesional a **Documentos en revisión**.
-   - Se notifica al profesional por correo indicando que sus datos están siendo validados.
-   - Al finalizar la validación, se notifica por correo que la cuenta está habilitada.
-3. **Si la API no está disponible o no retorna respuesta**:
-   - El sistema envía automáticamente un correo al **administrador de la plataforma** con los datos del profesional y sus documentos adjuntos para revisión manual.
-   - El administrador realiza la validación manualmente y habilita o rechaza la cuenta.
-   - En caso de rechazo, el sistema informa al profesional por correo.
+**Organismos de referencia para el administrador:**
 
-> **Nota**: este mismo proceso aplica para profesionales del área médica registrados en la plataforma.
+| Tipo de profesional          | Organismo de validación | Fuente de consulta manual                                                                                   |
+|------------------------------|-------------------------|-------------------------------------------------------------------------------------------------------------|
+| Psicólogo / Terapeuta        | **COLPSIC**             | [Verificación de tarjetas COLPSIC](https://sara.colpsic.org.co/publico/verificacion-tarjetas) |
+| Médico / Especialista médico | **ReTHUS**              | [Consulta pública ReTHUS](https://web.sispro.gov.co/THS/Cliente/ConsultasPublicas/ConsultaPublicaDeTHxIdentificacion.aspx) |
+
+**Flujo de validación manual:**
+
+1. Una vez confirmado el correo, el sistema actualiza el estado del profesional a **Por validar documentos**.
+2. El sistema envía automáticamente un correo al **administrador de la plataforma** con los datos completos del profesional y sus documentos adjuntos.
+3. El administrador consulta manualmente el organismo correspondiente (COLPSIC o ReTHUS) y verifica la tarjeta profesional.
+4. **Si el administrador aprueba**: habilita la cuenta desde el panel de administración; el sistema notifica al profesional por correo que su cuenta está activa y operativa.
+5. **Si el administrador rechaza**: registra el motivo en el sistema; el sistema notifica al profesional por correo con el motivo del rechazo.
 
 ---
 
