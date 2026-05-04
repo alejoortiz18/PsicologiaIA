@@ -1,0 +1,183 @@
+. Arquitectura Técnica
+El perfil profesional utiliza la misma arquitectura en capas MVC (.NET Core 10) que el perfil usuario:
+•	Capa Presentation (Web MVC):
+-	Controladores + vistas
+-	Filtros
+-	DependencyContainer/ ApplicationAccessDependency (public static IServiceCollection AddApplication(this IServiceCollection services)
+    {}
+)
+-	AutoMapper
+•	Capa  Constants:
+-	Paginación
+-	Utilidades para manejo de contantes del sistema tipo static(mensajes, plantillas email ) 
+•	Capa domain
+•	Capa Helpers
+-	Access dependency
+-	Métodos reutilizables en el proyecto
+-	AccessDependency
+
+•	Capa  Infraestructure:
+-	Consultas a la bd
+-	AccesDependecy (public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services, IConfiguration configuration))
+-	Repositories
+
+
+•	Capa Model:
+DTOs, Entity AppDbContext,Enums, Models,
+•	
+________________________________________
+4. Requerimientos Funcionales
+1.	Registro del profesional.
+2.	Carga de documentos requeridos:
+o	Documento de identidad.
+o	Certificado profesional.
+3.	Validación manual por parte del administrador.
+4.	Activación del perfil profesional tras la validación.
+5.	Creación y configuración de salas virtuales (nombre, descripción, cupos, modalidad).
+6.	Definición de precios y tiempos de sesiones.
+7.	Habilitar o deshabilitar de salas.
+8.	Visualización de usuarios inscritos en sus salas.
+9.	Recepción de pagos y control de ingresos.
+10.	Panel de control con métricas y reportes.
+11.	Cierre automático de sesión por inactividad.
+________________________________________
+5. Requerimientos No Funcionales
+•	Seguridad: Validación de identidad y certificaciones antes de habilitar la cuenta.
+•	Integridad: Los documentos se almacenan en el correo del sistema
+•	Rendimiento: Listados de salas y usuarios deben cargar en menos de 2 segundos.
+•	Escalabilidad: Permitir crecimiento de salas y sesiones simultáneas.
+•	Usabilidad: Panel profesional intuitivo y adaptable a pantallas grandes.
+•	Mantenibilidad: Código desacoplado mediante servicios y repositorios.
+________________________________________
+6. Flujo Funcional – Perfil Profesional
+6.1 Registro y Validación
+1.	El profesional selecciona “Registrarse como profesional”.
+2.	Completa formulario de datos básicos + documentos.
+3.	Se genera cuenta inactiva hasta que cargue documentos.
+4.	El sistema envía correo al profesional con enlace de validación.
+5.	El administrador valida la información y habilita la cuenta.
+6.	El sistema manda los datos y adjuntos al correo del sistema
+7.	El administrador del sistema valida los documentos y aprueba
+8.	El sistema manda mensaje de aprobación al profesional y habilita la cuenta
+9.	En correo de aprobación envia enlace con tocken para establecer la contraseña con vencimiento de un día 
+6.2 Creación de Salas
+1.	Desde el panel, el profesional ingresa a “Mis Salas”.
+2.	Da clic en “Crear nueva sala”.
+3.	Configura:
+o	Nombre
+o	Tipo (paga o libre)
+o	Cupo máximo de usuarios
+o	Precio (si aplica)
+o	Descripción
+4.	Guarda y habilita la sala.
+5.	El sistema la hace visible a los usuarios.
+6.3 Gestión de Usuarios en Sala
+1.	Visualiza la lista de usuarios inscritos.
+2.	Puede aceptar, expulsar o bloquear acceso.
+3.	Controla la capacidad máxima en tiempo real.
+6.4 Pagos y Liquidaciones
+1.	Los usuarios pagan acceso a salas pagas.
+2.	El sistema retiene comisión (definida en parámetros globales).
+3.	El profesional visualiza su saldo acumulado y pagos por sesión.
+4.	Puede descargar reportes o comprobantes.
+6.5 Panel de Control Profesional
+•	Muestra:
+o	Ingresos totales.
+o	Usuarios atendidos.
+o	Sesiones realizadas.
+o	Salas activas/inactivas.
+•	Permite edición de perfil profesional.
+6.6 Cierre Automático por Inactividad
+•	Middleware idéntico al del perfil usuario (SessionExpirationMiddleware).
+•	Control configurable desde appsettings.json.
+________________________________________
+________________________________________
+8. Product Backlog (General)
+ID	Funcionalidad	Prioridad	Tipo
+PF-01	Registro profesional	Alta	Core
+PF-02	Carga de documentos	Alta	Core
+PF-03	Validación administrativa	Alta	Control
+PF-04	Activación de cuenta profesional	Alta	Core
+PF-05	Creación de salas	Alta	Funcional
+PF-06	Gestión de usuarios en salas	Media	Funcional
+PF-07	Sistema de pagos y liquidaciones	Alta	Financiera
+PF-08	Reportes de sesiones e ingresos	Media	Analítica
+PF-09	Panel de control profesional	Media	Visual
+PF-10	Seguridad y expiración de sesión	Media	Seguridad
+________________________________________
+9. Planificación por Sprints (Scrum – 10 Sprints)
+Sprint 1 – Estructura del Proyecto y Base de Datos
+•	Reutilizar la arquitectura MVC base.
+•	Crear entidades: Profesional, Documento, Sala, Sesion, Pago.
+•	Migraciones iniciales.
+•	Entregable: estructura técnica lista.
+•	Criterio: conexión establecida y tablas creadas.
+________________________________________
+Sprint 2 – Registro Profesional
+•	Crear AuthController con vista RegistroProfesional.
+•	Captura de datos básicos.
+•	Entregable: formulario funcional.
+•	Criterio: inserción correcta en base de datos.
+________________________________________
+Sprint 3 – Carga de Documentos
+•	Implementar vista DocumentosProfesional.
+•	Subida de archivos (PDF/JPG).
+•	Validación de tipo y tamaño.
+•	Entregable: almacenamiento de documentos en servidor.
+•	Criterio: archivos guardados y asociados al profesional.
+________________________________________
+Sprint 4 – Validación Administrativa
+•	Crear AdministradorController para revisar documentos.
+•	Estado de cuenta: Pendiente / Aprobado / Rechazado.
+•	Entregable: flujo de validación manual completo.
+•	Criterio: solo aprobados acceden al panel profesional.
+________________________________________
+Sprint 5 – Panel Profesional
+•	Crear PerfilProfesionalController y Dashboard.
+•	Mostrar resumen de salas, usuarios, ingresos.
+•	Entregable: panel con datos reales.
+•	Criterio: datos cargados desde BD.
+________________________________________
+Sprint 6 – Creación y Gestión de Salas
+•	Formularios para crear, editar y eliminar salas.
+•	Definir tipo de sala (paga/libre) y cupos máximos.
+•	Entregable: CRUD funcional.
+•	Criterio: salas visibles para usuarios tras publicación.
+________________________________________
+Sprint 7 – Gestión de Usuarios en Sala
+•	Mostrar listado de usuarios inscritos.
+•	Acciones de control (aceptar, bloquear, expulsar).
+•	Entregable: control dinámico de acceso.
+•	Criterio: cupo máximo respetado.
+________________________________________
+Sprint 8 – Módulo de Pagos y Liquidaciones
+•	Implementar lógica de pagos recibidos.
+•	Mostrar reportes de ingresos.
+•	Entregable: integración con pasarela de pago (PayU/MercadoPago).
+•	Criterio: pagos visibles y correctos en panel profesional.
+________________________________________
+Sprint 9 – Reportes e Historial
+•	Filtros por fecha, usuario o sala.
+•	Historial de citas por usuario
+•	Entregable: reportes funcionales.
+•	
+________________________________________
+Sprint 10 – Seguridad y Cierre Automático
+•	Middleware de expiración automática.
+•	Logs de acceso profesional.
+•	Entregable: seguridad final implementada.
+•	Criterio: logout automático y auditoría registrada.
+________________________________________
+10. Consideraciones Finales
+•	Los documentos cargados por los profesionales serán validados manualmente antes de permitir acceso total.
+•	Las salas tendrán un número máximo de usuarios configurable (por ejemplo, 50).
+•	Los pagos a profesionales estarán sujetos a políticas de comisión.
+•	Toda la comunicación (confirmaciones, validaciones, pagos) se notificará vía correo.
+•	Se recomienda almacenar documentos en email del sistema
+•	Se aplicarán validaciones adicionales del lado cliente y servidor.
+•	Se usará Authorize(Roles = "Profesional") para controlar accesos.
+•	Se implementará paginación y filtros en listados de usuarios y salas.
+
+
+

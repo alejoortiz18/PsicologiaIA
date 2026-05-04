@@ -1,0 +1,269 @@
+-tendrá un logo en todo el sitio visible al lado izquierdo superior
+- la pestaña del navegador tendrá el logo- nombre
+________________________________________
+1. la aplicación
+
+•	La aplicación dispondrá de un landing page con opción de login y registro
+
+Landing Page
+-	El landing page tendrá un banner con información e imágenes relevantes sobre la aplicación, los eventos y datos en general de cuantos profesionales cuanta la aplicación, tambien tendrá mensajes de aliento para las personas e incitarlos a ingresar a la aplicación.
+-	Debajo del banner mostrará tarjetas con todas las especialidades psicológicas con que cuenta la aplicación.
+-	Tendrá pie de pagina con información relevante de lo que es el sitio web, 
+-	Tendrá una sesión tipo cinta mostrando en tarjetas los 3 eventos con mas personas inscritas. Con el fin de hacer propaganda y ayudar a esas salas
+-	Tendrá una cinta mas bien angosta en la parte superior del banner que irá moviéndose del lado derecho al izquierdo mostrando e incitando a los usuarios a conocer al profesional que la plataforma decida poder ahí, con el fin de promover a los profesionales
+-	Contará con botón para iniciar sesión
+-	Contará con botón registro
+
+vista Login
+-	logo de la aplicación
+-	El formulario login será en una sola página 
+-	 botón volver atrás que lleva al landin page
+-	Contará con botón restablecer contraseña
+-	Contará con botón crear cuenta
+-	Solicitará al usuario correo para inicio de sesión y contraseña
+-	El sistema validará datos correctos e ingreso al sistema
+-	El sistema solicitará los datos de forma obligatoria.
+-	El sistema validará si la persona es usuario o profesional 
+-	El sistema generará las cookies de inicio de sesión según sea el perfil
+-	Mostrará mensajes genéricos para casos de error de login
+
+Vista Registro
+Para el usuario  y el profesional deben tener el botón de términos y condiciones, si cada uno de los dos perfiles tienen términos y condiciones distintos.
+-	Primero mostrara una opción para elegir si es usuario o profesional para registro
+REGISTRO USUARIO
+-	El sistema solicitará datos personales(Nombre, email, Identificación, alias, celular)
+-	Botón registrar, 
+-	EL sistema valida que no exista ni la cedula ni el correo ya registrados
+-	El sistema muestra mensajes en modal para mostrar de error en caso que existan al registrarse
+-	El sistema crea el usuario en estado pendiente
+-	El sistema enviará correo al usuario para validar el correo registrado con botón o link de comprobar correo + un token valido por 1 hora
+-	El enlace del correo enviará el token a una pagina de crear contraseña.
+-	La página de crear una contraseña recibe el token y lo valida que exista y esté activo
+-	Si el token este activo muestra formulario para etablecer contraseña
+-	Sino este activo muestra mensaje de token inválido y solicita reenvio de token.
+-	Tendrá una opción para volver al landing page
+
+REGISTRO PROFESIONAL
+-	El sistema solicitará datos personales(Nombre, email, Identificación, alias, celular, campo para digitar el N°  Tarjeta profesional, subir copia PDF de la cédula, subir copia PDF tarjeta presional 
+-	Las copias son obligatorias
+-	Botón registrar, 
+-	La aplicación envía los datos del usuario y los documentos al correo del sistema registrado para ser almacenado y ser validado de forma manual en caso de requerirse
+-	EL sistema valida que no exista ni la cedula ni el correo ni el número de tarjeta profesional ya registrados
+-	El sistema muestra mensajes en modal para mostrar de error en caso que existan al registrarse
+-	El sistema crea el usuario en estado pendiente 
+-	El sistema enviará correo al usuario para validar el correo registrado con botón o link de comprobar correo + un token valido por 1 hora
+-	El enlace del correo enviará el token a una pagina de crear contraseña.
+-	La página de crear una contraseña recibe el token y lo valida que exista y esté activo
+-	Si el token este activo muestra formulario para establecer contraseña
+-	Sino este activo muestra mensaje de token inválido y solicita reenvio de token.
+-	Tendrá una opción para volver al landing page
+-	El sistema valida que el correo sea válido y activa la cuenta pero la deja en estado por validar documentos.
+-	El sistema valida ante el COLPSIC que el número este válido y vigente y exista.
+-	El sistema envía al usuario un mensaje al correo informando que sus dtos están siendo validados, y al terminar informará por email que ya puede usar la cuenta.
+-	El sistema habilita la cuenta del profesional
+-	En caso de no ser validado el sistema manda un correo al administrador del sistema información del usuario  para ser revisado manualmente por uno de nuestros personal interno de la app, y adjuntara los datos del usuario
+
+Menú lateral
+-	Home
+-	Ver mis salas 
+-	Profesionales
+Profesionales/especialistas
+Profesionales/psicólogos
+Profesionales/mis mentores
+-	Mis citas
+-	Mi perfil
+-	Mis eventos (solo profesionales)
+-	Calendario (visualizar mis citas)
+Vista visualizar home perfil usuario
+-	Espacio para ver mis eventos registrados e inscritos
+-	Espacio para visualizar mis próximas citas
+-	Ver la fecha en que comienza la sala mas próxima a la sala inscrita
+-	Mis próximas citas
+-	el sistema muestra sesión para ver las salas abiertas que únicamente tienen sesiones vigentes.
+-	Filtrar por categoría de salas
+-	Buscar por nombre usuario.
+-	Buscar por nombre sala
+-	Buscar por fecha en inicio evento
+-	Las tarjetas de las salas contienen información general de la sala(nombre, fecha y hora inicio y fin, cantidad de usuarios registrados, precio o entrada libre, nombre del orador)
+-	En la tarjeta mostrar la cantidad máxima de usuarios permitidos en la aplicación 
+-	En la tarjeta cantidad de usuarios registrados en la sala
+-	En la tarjeta un dedito de me gusta
+-	En la tarjeta ver cantidad de me gusta
+-	Sesión de salas destacadas, las mas solicitadas.
+-	Sesión con las salas que comienzan o se abren hoy
+-	En la tarjeta botón ver mas.
+-	En la tarjeta botón registro
+-	Filtro para ver a los que sigo
+-	En la tarjeta enviar mensaje
+El mensaje se envía de forma privada al profesional.
+Click en la tarjeta boton  “ver mas”
+-	Se abre ventana con toda la información de la tarjeta 
+-	Información de la sala
+-	Información del evento
+-	Información del profesional
+-	Información de usuarios registrados
+-	Información de cantidad cupos libres
+-	Información de fecha y datos del evento
+-	Botón registrar
+-	Botón Información del orador
+Click en registro
+-	Si es pago hace el proceso de pago y registro del usuario a la sala
+-	Si es libre el sistema agrega al usuario al evento y manda registro del evento al email del usuario.
+Click en ver orador
+el perfil del orador tiene tabs
+•	Tab1 CUENTA USUARIO PROFESIONAL
+-	Muestra datos y el perfil del orador, 
+-	Muestra los idiomas que habla el profesional
+-	Cantidad seguidores
+-	Botón seguir o dejar de seguir
+-	Mensaje Sobre mi 
+-	Como trabajo:
+-	Experiencia
+-	Todos los estudios 
+•	Tab2
+-	Muestra sesión de tarjetas con la siguiente información
+-	La tarjeta muestra salas creadas del horador
+-	Muestra botón informativo si esta abierto o cerrado la sala
+-	Muestra precios e información relevante
+-	Muestra botón detalle (abre un modal con los 10 ultimos mensajes creados)
+El modal de mensajes tiene un botón ver mas que abre una pagina ya con todos los mensajes en forma de tabla con paginación mostrando todos lo mensajes creados dirigidos al evento
+-	El sistema permite actualizar, agregar o eliminar únicamente mis comentarios
+•	Tab 3
+-	Muestra todos los mensajes o comentarios creados al profesional
+-	Permite realizar otro comentario
+-	Cada comentario tiene botón editar y botón eliminar
+-	Los mensajes que el usuario logueado haya creado aparecen al lado derecho en azul
+-	Los comentarios de los demas usuarios aparecen en gris al lado izquierdo
+Los comentarios tienen el siguiente comportamiento según quien lo mire
+-	Si el profesional ve sus comentarios puede ver en cada comentario persona quien genera el comentario fecha y hora, botón contactar 
+-	Si los comentarios los ve otra persona únicamente puede ver el mensaje y la fecha y hora
+-	Únicamente el profesional puede responder los comentarios que le hagan
+-	Los comentarios de respuesta se verán de forma mas pequeña como un subcomentario del comentario
+-	Nadie mas puede responder un comentario de otra persona a excepción de los comentarios creados para el mismo.
+NOTA: únicamente los comentarios pueden ser creados para los profesionales, a los usuarios no se les puede realizar comentarios
+Vista mis eventos
+-	Se verán unicamente todos los eventos creados por el usuario logueado.
+Vista perfil usuario
+-	El usuario podrá visualizar un formulario con toda la información personal de el incluyendo el alias.
+-	Tendrá un tab para ver los eventos que se ha registrado, eventos públicos
+-	Tendrá un tab para visualizar su próximas citas, 
+Vista perfil profesional
+Tab1
+-	El profesional tendrá un formulario personalizado para hablar sobre si mismo
+-	Datos personales(Nombre, Email, N° documento) no editables
+-	Pais, ciudad, ocupación, celular, genero, celular, fechaNacimiento, sesión activa, sobre mi, como trabajo, UnidersiadadEgresado, AnnoEgresado, Annos experiencia, FotoPerfilPath, numeroTarjetaProfesional, UsuarioId
+-	Sesion de estudios Pregrado y posgrado
+Nombre, Descripción, Universidad, AnnoEgresado, ProfesionalId
+Nota : campo ciudad va ligado directamente al pais, al filtrar el pais se llena la ciudad con las ciudades, localidades, todo referente a ese pais
+Tab2 
+Sesión de tarjetas de las salas creadas  con sus eventos
+-	Salas con sus sesiones creadas
+-	Cantidad y Usuarios  inscritos a la sla
+-	Detalle del evento
+-	
+Restricciones
+
+-	El perfil profesional no pude tener dos sesiones activas al tiempo.
+-	
+Tab3
+-	Calendario con horarios disponibles y ocupados
+Tab4 
+-	Mis próximos citas con pacientes en privado
+-	Mis próximos eventos publicos
+Vista de citas
+usuario
+-	El usuario podrá visualizar la información de la cita que tiene inscrita
+-	Vera pantalla para ver la cámara del profesional
+-	Podrá tener disponibles botones para activar mi cámara, activar audio, enviar mensaje.
+-	Debajo de la pantalla habrá una sesión para observar el historial de la cita, fecha y hora en que tuvo la cita, podrá ver si la cita fue recibida o cancelada o movida, duración de la cita.
+-	Historial o mensajes o recomendaciónes creados por el profesional hacia el usuario por cada cita.
+-	El usuario puede elegir cuando es una asesoría si mostrar el nombre o el alias
+-	El usuario podrá hacer comentario para registrarlo en la sesión y será de forma privada.
+
+
+
+Profesional
+-	Podrá visualizar cuando el usuario ya está en línea
+-	Podrá abrir la cámara 
+-	Podrá abrir audio
+-	Comenzará el conteo de duración de la cita
+-	Podrá hacer recomendaciones y quedar grabadas en la sesión en forma comentario.
+-	Podrá editar los comentarios
+-	El sistema mostrará la hora y fecha en que hizo el comentario al usuario
+-	Si la cita es asesoría solo abra asesoría sin comentarios si el profesional lo decide.
+-	Si es cita de seguimiento al usuario como cliente entonces podrá tener historial psicológico del usuario.
+-	El sistema gradará las recomendaciones, seguimientos o mas del usuario que el profesional considere.
+-	El profesional dará cierre de la cita
+-	La vista contará con botón cerrar sesión 
+-	La vista contará con modal confirmar cerrar sesión
+-	La vista contará con botón mover cita y mostrará el calendario de cuando lo quiere mover, 
+-	El calendario mostrará únicamente los espacios libres del profesional
+-	Botón confirmar mover cita
+-	Botón agendar otra sesión
+Sistema
+-	El sistema mostrará un mensaje informando al profesional y al usuario que está prohibido enviar números de contacto o correos por esta plataforma.
+-	El sistema detectará las palabras escritas en el chat y al detectar posibles envío de contacto por fuera de la plataforma encriptará los datos para que el usuario o el profesional no los puedan ver
+-	El sistema mandará un mensaje al usuario que cometa falta al violar las políticas de privacidad un mensaje informando quen o puede hacer esas acciones.
+-	El sistema enviará al correo de la plataforma un correo informando dicha novedad.
+-	El sistema al detectar por tercera vez que se incumple la norma de envio de teléfonos o números por chat relacionados a teléfonos de contacto bloqueará al usuario 
+-	El sistema al detectar que es el profesional quien desea detectar al usuario por fuera de la aplicación mostrará un mensaje recordando las prohibiciones generadas por el sistema y que puede conllevar a una multa por parte de la aplicación.
+-	
+
+Vista para conferencia.
+usuario
+-	El usuario podrá ver relog cuanta regresiva de comienzo de la conferencia
+-	El relog al llegar a cero continuará en negativo hasta que el profesional abra la conferencia.
+-	Los usuarios podrán hacer comentarios a la sala
+-	Los usuarios no podrán ver quien hace los comentarios.
+-	El sistema tendrá una advertencia en forma visible al usuario informando que si inclumple las normas de trato podrá ser expulsado de la conferencia son devolución del dinero en caso de ser pago
+Profesional
+-	Podrá abrir la sala
+-	El sistema abre la cámara del profesional
+-	El sistema informa al profesional antes de abrir que se deberá activar la cámara.
+-	El profesional podrá ver los comentarios de los usuarios incluyendo, nombre de quien hizo el comentario, hora y fecha, y botón eliminar comentario.
+-	Opción para expulsar al usuario en caso de incumplir con las normas del buen trato.
+-	El sistema enviará al correo de la aplicación el mensaje que un usuario ha sido expulsado de la sala con información de la sala y quien lo expulso 
+-	El sistema solicitará al profesional las razones por las que está expulsando al usuario 
+-	El profesional podrá bloquear a un usuario
+
+Sistema
+-	El sistema evaluará palabras escritas por el usuario y quitará o encriptará en xxx en mayúscula tapando una palabra obsena o grosera
+-	El sistema advertirá al usuario que no puede utilizar palabras vulgares en el sistema o podría ser expulsado sin retribución del dinero.
+-	A las 3 faltas de utilizar malas palabras de parte de un usuario bloqueará para ese usuario mandar mensajes a la sala
+-	El sistema al detectar una expulsión mandará un correo al sistema informando el evento y los mensajes creados por el usuario.
+-	El usuario bloqueado no podrá ver ni el perfil del profesional que lo creó ni las salas o eventos o cualquier dato relacionado con ese profesional.
+
+Vista calendario
+Usuarios
+-	Podrán visualizar en la parte superior nombre del profesional con botón ver perfil
+-	En el perfil mostrara costos de cita privada
+-	Sesión próximo evento programado + información del evento + botón inscripcion
+-	Calendario con las fechas disponibles del profesional para que el usuario pueda seleccionar y separar su cupo
+-	Botón separar cupo
+-	El calendario mostrará cuales de esas fechas ocupadas son únicamente eventos programados por el profesional + click ver
+-	Al dar click en ver podrá sisualizar si es evento con entrata libre o paga
+-	Botón inscribirse
+-	Al seleccionar un espacio en blanco podrá ver un separar cita en este horario, + botón separar cita + opción y proceso de pagar cita.
+-	
+
+ Flujo posterior al registro
+Luego de registrarse:
+Sistema pregunta:
+¿Qué estás buscando?
+•	Terapia individual 
+•	Conferencias 
+•	Ayuda urgente 
+•	Explorar profesionales 
+•	Solo navegar 
+Esto personaliza recomendaciones futuras.
+
+Configuración inicial de privacidad
+El usuario define:
+Mostrar nombre real al profesional
+Opciones:
+•	Siempre 
+•	Nunca 
+•	Solo cuando yo lo apruebe
+•	Si es obligatorio para citas privadas
+•	Es opcional para citas privadas en modo orientación o 
+

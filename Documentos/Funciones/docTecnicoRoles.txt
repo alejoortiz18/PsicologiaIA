@@ -1,0 +1,195 @@
+Documento Técnico
+Proyecto Trébol – actores de la aplicación
+Versión 1.0 
+Tecnología: .NET Core version 10 
+Base de Datos: SQL Server
+Plataforma: Web MVC
+Documento: Perfil Profesional
+________________________________________
+1. Descripción General del Proyecto
+Trébol es una plataforma digital de atención psicológica que conecta profesionales de la salud mental con usuarios que buscan acompañamiento.
+Este documento describe en detalle el módulo del perfil Profesional, que corresponde al entorno de trabajo de los psicólogos o terapeutas certificados, incluyendo la administración de su perfil, documentos, salas, sesiones, pagos y relación con usuarios.
+Los usuarios podrán tener sesiones de forma anónima o tener una trazabilidad de su estado por parte de un psicólogo o especialista permitiendo registrar sus datos al profesional
+
+La plataforma estará diseñada para permitir a los profesionales ofrecer conferencias abiertas sin costo o pago, tambien permitirá dejar que un profesional pueda informar las fechas de inicio, fecha fin, cantidad de personas permitidas, 
+
+
+________________________________________
+2. Objetivos del Perfil Profesional
+•	Permitir el registro en perfil profesional
+•	El profesional puede crear salas públicas o privadas
+•	El profesional puede recibir solicitud para atención privada y personalizada a través de su calendario y horarios disponibles
+•	Configurar salas y administrar salas virtuales (pagas o gratuitas).
+•	Gestionar las sesiones de atención personalizadas, publicas, privadas
+•	 Control y administración de usuarios inscritos a su sala.
+•	El profesional puede contactar usuarios.
+•	Contactar otros profesionales
+•	Filtrar por cargos a professional o áreas de interes
+•	El profesional puede recibir nuevas solicitudes de atención en forma privada
+•	Un usuario podrá visualizar y separar espacios privados al profesional y el profesional quedará con la agenda auto programada
+•	El profesional podrá mover una agenda programada con permiso del usuario, si el usuario no acepta podrán negociar otro horario o devolución del dinero.
+•	Controlar la capacidad máxima de usuarios por salas y aplicar reglas de pago o permitir acceso libre.
+•	Administrar la cuenta profesional, historial de pagos y facturación.
+•	Ofrecer un panel centralizado con estadísticas de sesiones, ingresos y usuarios atendidos.
+•	Un profesional podrá disponer de su propio calendario y deshabilitar ciertas horas que el disponga, con el fin que un usuario no pueda separarlas.
+•	Un profesional podrá tener un historial de sus pacientes de forma privada
+•	Un profesional podrá compartir la información que el considere, asi que se creará un formulario e historial psicológico con opción de compartir datos.
+•	Mensajería entre profesionales
+•	Un profesional podrá bloquear o desbloquear un usuario.
+•	Un profesional disfrutará de seguidores o admiradores.
+•	El profesional podrá habilitar o deshabilitar control de envío de comentarios o mensajes en salas públicas con el fin de controlar espacios para preguntas.
+•	En las salas públicas el profesional podrá disponer encender o apagar la cámara 
+•	En las salas privadas el sistema le solicitará al profesional se encender la cámara para ser una charla más profesional.
+•	Un profesional para poder separar o crear una sala necesita hacer un pago establecido por la plataforma
+•	El profesional podrá realizar mensajes de texto que los usuarios podrán ver al entrar a su perfil.
+•	El profesional al crear una sala será con el fin de darle una orientación sobre un tema, y los eventos serán sobre el tema, asi si lo desea podrá crear varios eventos sobre un mismo tema.
+•	El profesional podrá visualizar solicitudes de un usuario para mover de fecha una cita.
+•	El profesional podrá poner valor o costo de una hora para cobrar a un usuario por cita por hora
+•	El profesional al trasladar a un paciente a otro podrá compartir una copia con los datos que el profesional considere que va a necesitar su colega
+•	El especialista podrá llevar un registro del historial psicológico incluso medicamentos recetados.
+•	El especialista podrá omitir a un paciente traslados a centros en caso de ser necesario.
+•	El profesional podrá encender o apagar el micrófono
+•	El profesional podrá ver en un panel las citas por mes
+•	El profesional podrá ver cuanto dinero le debe la aplicación
+•	El profesional podrá configurar cuantas bancarias para recibir los pagos
+•	El profesional podrá actualizar información personal excepto nombres, n° de documento,
+•	puede consultar Lista de inscritos ,Cupos restantes ,Pagos realizados ,Cancelaciones o devoluciones 
+
+ 
+3. Objetivos del Perfil usuario
+•	El usuario podrá registrarse sin subir documentos
+•	El usuario podrá ver en home una tabla con tarjetas de perfiles de los usuarios e información
+•	El usuario podrá seguir un profesional
+•	El usuario podrá ingresar al perfil del profesional
+•	El usuario podrá ver todas las salas activas creadas por cada profesional
+•	El usuario podrá ver los eventos abiertos de las salas 
+•	El usuario podrá inscribirse a un evento sea pago o de ingreso libre
+•	El usuario podrá enviar dos mensajes de contacto por primera vez a un profesional, después de la repuesta podrá entablar conversación libre con el profesional.
+•	El usuario podrá observar el calendario con espacios libres del profesional para separar una cita
+•	El usuario para separar una cita tendrá que hacer pago previo.
+•	El usuario podrá elegir si quiere tener una atención psicológica o simplemente asesoría.
+•	El usuario podrá entrar a los eventos y opinar únicamente cuando el profesional habilite el campo de mensajes.
+•	El usuario no podrá ver otros usuarios ni entablar conversación con ellos, únicamente podrá hacerlo hacia otros profesionales.
+•	El usuario podrá seguir un profesional.
+•	El usuario podrá ver a los profesionales a quienes sigue.
+•	El usuario podrá filtrar eventos por tipo
+•	El usuario podrá filtrar a los profesionales a quien sigue
+•	El usuario podrá buscar un profesional por nombre y apellido o por cedula
+•	El usuario podrá filtrar por especialidad
+•	El usuario podrá ver la cantidad de seguidores al profesional
+•	El usuario podrá opinar sobre un evento y un profesional
+•	El usuario al dar click sobre una sala podrá ver los eventos que tiene esa sala
+•	El usuario podrá solicitar al profesional mover una cita que el haya separado.
+•	El usuario podrá recibir solicitudes de un profesional para ser trasladado a otro profesional con especialidad que el necesite
+•	Un usuario podrá tener asesorías utilizando o el nombre o el sobrenombre de ese modo podrá tener una charla de forma anónima.
+•	El usuario tendrá a disposición habilitar o deshabilitar la cámara
+•	El usuario podrá encender o apagar el micrófono
+•	El usuario podrá ver su historial de pagos
+•	El usuario podrá visualizar la cantidad de profesionales con los que ha tenido sesiones.
+•  El usuario ingresa a la aplicación. 
+•  La aplicación muestra el listado de conferencias disponibles. 
+•  El usuario selecciona la conferencia de interés. 
+•  La aplicación muestra: 
+•	Nombre de la conferencia 
+•	Fecha y hora 
+•	Valor de inscripción 
+•	Capacidad máxima de asistentes 
+•	Cupos disponibles 
+•	Información de la sala/evento
+•	Solicitud de inscripción
+•	El usuario selecciona la opción “Inscribirme”. 
+•	La aplicación valida en tiempo real si aún existen cupos disponibles. 
+•	Si NO hay cupos:
+•	La aplicación muestra mensaje:
+“No hay cupos disponibles para esta conferencia.” 
+•	Finaliza el proceso. 
+•	Si SÍ hay cupos:
+•	La aplicación permite continuar al proceso de pago. 
+•	
+
+ 
+
+4. la aplicación
+- La aplicación validará que un usuario nuevo no se registre utilizando número documento o email ya registrados.
+- la aplicación configurará los cookies de inicio de sesión
+- la aplicación solicitará a un usuario inscribirse a una sala paga después de hacer el pago por parte del usuario
+- la aplicación tendrá pasarela de pago.
+- la aplicación muestra salas salas que únicamente tenga eventos abiertos en el home
+- la aplicación registrara el monto pagado del usuario y la sala que desea acceder.
+- la aplicación generará un token automático para registrar el usuario a la sala después de hacer el pago.
+Generación de orden de pago
+12.	La aplicación genera una orden de pago temporal. 
+13.	La aplicación calcula el valor inicial requerido para la inscripción. 
+14.	Se registra: 
+•	ID de transacción 
+•	Valor a pagar 
+•	Estado: Pendiente de pago 
+15.	La aplicación redirecciona al usuario a la pasarela de pago.
+Proceso en pasarela de pago
+16.	El usuario selecciona método de pago: 
+•	Tarjeta crédito 
+•	Tarjeta débito 
+•	PSE 
+•	Transferencia 
+•	Otros medios habilitados 
+17.	El usuario realiza el pago. 
+18.	La pasarela procesa la transacción.
+Respuesta de la pasarela
+La pasarela retorna el resultado a la aplicación.
+
+Si el pago es rechazado
+19.	La aplicación actualiza estado:
+Pago rechazado 
+20.	Se notifica al usuario:
+“El pago no pudo ser procesado.” 
+21.	El usuario puede intentar nuevamente. 
+
+Si el pago es exitoso
+22.	La aplicación actualiza estado:
+Pago aprobado 
+23.	La aplicación vuelve a validar disponibilidad de cupos antes de confirmar inscripción (para evitar sobreventa). 
+
+Si durante el pago se agotaron cupos
+24.	La aplicación: 
+•	Reversa el pago (si aplica) 
+•	O deja saldo pendiente de devolución 
+25.	Se notifica al usuario. 
+26.	Finaliza proceso.
+Si aún hay cupos disponibles
+27.	La aplicación registra automáticamente la inscripción. 
+28.	Reduce en 1 el cupo disponible. 
+29.	Asigna al usuario a la sala/conferencia correspondiente. 
+30.	Genera número o código de inscripción. 
+
+7. Confirmación al usuario
+31.	La aplicación envía correo automático al usuario con: 
+•	Confirmación de inscripción 
+•	Nombre del evento 
+•	Fecha 
+•	Hora 
+•	Sala asignada 
+•	Código de inscripción 
+•	Valor pagado 
+•	Recomendaciones previas al evento 
+
+8. Registro administrativo
+32.	La aplicación guarda trazabilidad de: 
+•	Usuario inscrito 
+•	Pago realizado 
+•	Fecha de inscripción 
+•	Medio de pago 
+•	Estado de inscripción 
+33.	El administrador 
+Estados posibles del proceso
+•	Pendiente de pago 
+•	Pago aprobado 
+•	Pago rechazado 
+•	Inscripción confirmada 
+•	Sin cupos 
+•	Reembolso pendiente 
+•	Inscripción cancelada 
+
+Resultado final esperado
+El usuario realiza el pago inicial → el sistema valida disponibilidad → confirma inscripción automáticamente → asigna cupo → envía correo con la información de acceso a la conferencia.
+
+-	La aplicación 
