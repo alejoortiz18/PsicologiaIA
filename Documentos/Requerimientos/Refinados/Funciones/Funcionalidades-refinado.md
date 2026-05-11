@@ -97,7 +97,6 @@ Esta selección determina el organismo de validación y el campo de número de t
 - Nombre
 - Correo electrónico
 - Número de identificación
-- Alias
 - Celular
 - Tipo de profesional *(Psicólogo o Médico)*
 - Número de tarjeta profesional *(según el tipo seleccionado)*

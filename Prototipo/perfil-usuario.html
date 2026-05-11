@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Mi perfil</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio
+        </a>
+        <div class="nav-item" tabindex="0" role="button">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="citas-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>Mis citas
+        </a>
+        <a href="perfil-usuario.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🗓</span>Calendario
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar">MG</div>
+        <div>
+          <div class="sidebar__user-name">María García</div>
+          <div class="sidebar__user-role">Usuario</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <span class="topbar__title">Mi perfil</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm">MG</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+
+      <!-- Profile header card -->
+      <section style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);margin-bottom:var(--sp-6);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);display:flex;gap:var(--sp-6);align-items:center;flex-wrap:wrap;">
+        <div style="position:relative;display:inline-block;">
+          <div class="avatar avatar-2xl" id="profile-avatar">MG</div>
+          <label for="foto-perfil" style="position:absolute;bottom:0;right:0;background:var(--color-accent);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.875rem;border:2px solid white;" aria-label="Cambiar foto de perfil">✏️</label>
+          <input type="file" id="foto-perfil" accept="image/*" style="display:none;" aria-label="Seleccionar foto de perfil">
+        </div>
+        <div>
+          <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.75rem;margin-bottom:var(--sp-1);">María García López</h1>
+          <div class="text-meta">@luna-verde · Usuario activo desde marzo 2025</div>
+        </div>
+      </section>
+
+      <!-- Edit form -->
+      <section style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);margin-bottom:var(--sp-6);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+        <h2 style="font-size:1.125rem;color:var(--color-primary);font-weight:700;margin-bottom:var(--sp-6);">Información de la cuenta</h2>
+
+        <form id="profile-form" data-validate novalidate>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-5);max-width:720px;">
+
+            <!-- Read-only fields -->
+            <div class="form-group">
+              <label class="form-label">Nombre completo</label>
+              <input type="text" class="form-control" value="María García López" disabled aria-disabled="true" aria-label="Nombre completo (no editable)">
+              <div class="form-hint">No editable. Contacta soporte para cambios.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Correo electrónico</label>
+              <input type="email" class="form-control" value="maria.garcia@correo.com" disabled aria-disabled="true" aria-label="Correo electrónico (no editable)">
+              <div class="form-hint">No editable. Contacta soporte para cambios.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">N.° de identificación</label>
+              <input type="text" class="form-control" value="••••••••90" disabled aria-disabled="true" aria-label="Número de identificación (no editable)">
+            </div>
+
+            <!-- Editable fields -->
+            <div class="form-group">
+              <label for="edit-alias" class="form-label">Alias / Seudónimo <span class="required">*</span></label>
+              <input type="text" id="edit-alias" name="alias" class="form-control" value="Luna Verde" data-required aria-required="true">
+              <div class="form-hint">Visible en la plataforma cuando activas el anonimato.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="edit-celular" class="form-label">Número de celular <span class="required">*</span></label>
+              <input type="tel" id="edit-celular" name="celular" class="form-control" value="3001234567" data-required aria-required="true">
+            </div>
+
+          </div>
+
+          <div style="margin-top:var(--sp-6);">
+            <button type="submit" class="btn btn-primary" id="save-btn" aria-label="Guardar cambios del perfil">
+              <span class="btn-text">Guardar cambios</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Tabs -->
+      <div class="tabs-wrapper" role="tablist" aria-label="Secciones del perfil">
+        <button class="tab-item active" role="tab" aria-selected="true" data-tab="tab-eventos" id="tab-btn-eventos">Eventos inscritos</button>
+        <button class="tab-item" role="tab" aria-selected="false" data-tab="tab-citas" id="tab-btn-citas">Próximas citas</button>
+      </div>
+
+      <!-- TAB: Eventos inscritos -->
+      <div id="tab-eventos" class="tab-content active" role="tabpanel" aria-labelledby="tab-btn-eventos">
+        <div class="table-wrapper">
+          <div class="table-toolbar">
+            <div class="table-search">
+              <span aria-hidden="true">🔍</span>
+              <input type="text" placeholder="Buscar evento..." aria-label="Buscar evento inscrito">
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table aria-label="Eventos inscritos">
+              <thead>
+                <tr>
+                  <th scope="col">Nombre del evento</th>
+                  <th scope="col" class="sortable" aria-sort="descending">Fecha ↓</th>
+                  <th scope="col">Hora</th>
+                  <th scope="col">Orador</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Precio pagado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Mindfulness para el estrés laboral</td>
+                  <td>15 May 2026</td>
+                  <td>6PM</td>
+                  <td>Dra. Valentina Ríos</td>
+                  <td><span class="badge badge-success">Próximo</span></td>
+                  <td>Entrada libre</td>
+                </tr>
+                <tr>
+                  <td>Manejo de la ansiedad en adultos</td>
+                  <td>18 May 2026</td>
+                  <td>2PM</td>
+                  <td>Dr. Jorge Morales</td>
+                  <td><span class="badge badge-success">Próximo</span></td>
+                  <td>$45.000 COP</td>
+                </tr>
+                <tr>
+                  <td>Terapia familiar: comunicación efectiva</td>
+                  <td>22 May 2026</td>
+                  <td>4:30PM</td>
+                  <td>Dra. Carolina López</td>
+                  <td><span class="badge badge-success">Próximo</span></td>
+                  <td>$35.000 COP</td>
+                </tr>
+                <tr>
+                  <td>Duelo y pérdida: sanando el corazón</td>
+                  <td>8 Mar 2026</td>
+                  <td>10AM</td>
+                  <td>Psic. Andrés Vargas</td>
+                  <td><span class="badge badge-muted">Finalizado</span></td>
+                  <td>Entrada libre</td>
+                </tr>
+                <tr>
+                  <td>Regulación emocional básica</td>
+                  <td>12 Feb 2026</td>
+                  <td>5PM</td>
+                  <td>Dra. Ana Ruiz</td>
+                  <td><span class="badge badge-muted">Finalizado</span></td>
+                  <td>$25.000 COP</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--sp-4);flex-wrap:wrap;gap:var(--sp-3);">
+            <span class="text-meta">Mostrando 1–5 de 7 eventos</span>
+            <div class="pagination" role="navigation" aria-label="Paginación de eventos">
+              <button class="pagination__btn" disabled aria-label="Anterior">‹</button>
+              <button class="pagination__btn active" aria-current="page">1</button>
+              <button class="pagination__btn">2</button>
+              <button class="pagination__btn" aria-label="Siguiente">›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Próximas citas -->
+      <div id="tab-citas" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-citas">
+        <div class="table-wrapper">
+          <div style="overflow-x:auto;">
+            <table aria-label="Próximas citas privadas">
+              <thead>
+                <tr>
+                  <th scope="col">Profesional</th>
+                  <th scope="col" class="sortable">Fecha ↑</th>
+                  <th scope="col">Hora</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Dra. Valentina Ríos</td>
+                  <td>20 May 2026</td>
+                  <td>3PM</td>
+                  <td>Asesoría</td>
+                  <td><span class="badge badge-success">Confirmada</span></td>
+                  <td>
+                    <button class="btn btn-primary btn-sm" onclick="window.location.href='citas-usuario.html'" aria-label="Ingresar a cita con Dra. Valentina Ríos">Ingresar</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Dr. Jorge Morales</td>
+                  <td>27 May 2026</td>
+                  <td>10:30AM</td>
+                  <td>Seguimiento</td>
+                  <td><span class="badge badge-warning">Pendiente</span></td>
+                  <td>
+                    <button class="btn btn-secondary btn-sm" aria-label="Ver detalle de cita con Dr. Jorge Morales">Detalle</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal de confirmación de guardado -->
+<div id="save-confirm-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="save-confirm-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon success">💾</div>
+      <div>
+        <div class="modal-title" id="save-confirm-title">¿Guardar cambios?</div>
+        <div class="modal-subtitle">Se actualizarán tus datos de perfil</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>Estás a punto de guardar los cambios en tu perfil. ¿Confirmas?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('save-confirm')">Cancelar</button>
+      <button class="btn btn-primary" id="confirm-save-btn" onclick="confirmSave()">Sí, guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const profileForm = document.getElementById('profile-form');
+  const saveBtn = document.getElementById('save-btn');
+
+  profileForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    openModal('save-confirm');
+  });
+
+  function confirmSave() {
+    closeModal('save-confirm');
+    saveBtn.classList.add('loading');
+    saveBtn.disabled = true;
+    setTimeout(() => {
+      saveBtn.classList.remove('loading');
+      saveBtn.disabled = false;
+      showToast({title:'Perfil actualizado', message:'Tus cambios han sido guardados exitosamente.', type:'success'});
+    }, 1200);
+  }
+
+  // Photo preview
+  document.getElementById('foto-perfil').addEventListener('change', function() {
+    if (this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const av = document.getElementById('profile-avatar');
+        av.textContent = '';
+        av.style.backgroundImage = `url(${e.target.result})`;
+        av.style.backgroundSize = 'cover';
+        av.style.backgroundPosition = 'center';
+      };
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+</script>
+</body>
+</html>

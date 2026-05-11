@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Iniciar sesión</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="auth-layout">
+
+  <!-- LEFT PANEL — Ilustración -->
+  <div class="auth-panel auth-panel--left" aria-hidden="true">
+    <div class="auth-illustration">
+      <div class="auth-illustration__tag">🍀 Bienvenido de vuelta</div>
+      <h1 class="auth-illustration__title">
+        Tu espacio<br>de <em>bienestar</em><br>te espera
+      </h1>
+      <p class="auth-illustration__text">
+        Accede a tus sesiones, conferencias y al equipo de profesionales que acompaña tu crecimiento personal y emocional.
+      </p>
+      <div class="auth-stats">
+        <div>
+          <div class="auth-stat-val">248</div>
+          <div class="auth-stat-lbl">Profesionales</div>
+        </div>
+        <div>
+          <div class="auth-stat-val">12k</div>
+          <div class="auth-stat-lbl">Usuarios activos</div>
+        </div>
+        <div>
+          <div class="auth-stat-val">98%</div>
+          <div class="auth-stat-lbl">Satisfacción</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL — Formulario -->
+  <div class="auth-panel auth-panel--right">
+    <div class="auth-form">
+
+      <a href="index.html" class="auth-form__logo">
+        <div class="auth-form__logo-icon">🍀</div>
+        <span class="auth-form__logo-name">Trébol</span>
+      </a>
+
+      <h2 class="auth-form__title">Iniciar sesión</h2>
+      <p class="auth-form__subtitle">Ingresa tus credenciales para continuar.</p>
+
+      <form id="login-form" data-validate novalidate>
+
+        <div class="form-group">
+          <label for="email" class="form-label">
+            Correo electrónico <span class="required" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="email" id="email" name="email"
+            class="form-control"
+            placeholder="usuario@correo.com"
+            autocomplete="email"
+            data-required data-email
+            aria-required="true"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">
+            Contraseña <span class="required" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="password" id="password" name="password"
+              class="form-control"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              data-required
+              aria-required="true"
+            >
+            <button type="button" class="input-toggle" data-toggle-password="password" aria-label="Mostrar u ocultar contraseña">
+              👁
+            </button>
+          </div>
+        </div>
+
+        <div style="text-align:right;margin-top:-8px;margin-bottom:20px;">
+          <a href="#" class="text-sm" style="color:var(--color-primary-light);">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" id="login-btn">
+          <span class="btn-text">Iniciar sesión</span>
+        </button>
+
+      </form>
+
+      <div class="auth-divider">
+        <span>o</span>
+      </div>
+
+      <div class="auth-footer-link">
+        ¿No tienes cuenta? <a href="registro-seleccion.html">Registrarse</a>
+      </div>
+      <div class="auth-footer-link" style="margin-top:12px;">
+        <a href="index.html" style="color:var(--color-text-muted);font-size:0.8125rem;">← Volver al inicio</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal de error de credenciales -->
+<div id="login-error-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="login-error-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon danger">❌</div>
+      <div>
+        <div class="modal-title" id="login-error-title">Acceso denegado</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('login-error')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Correo o contraseña incorrectos. Por favor verifica tus datos e intenta nuevamente.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('login-error')">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  const loginForm = document.getElementById('login-form');
+  const loginBtn  = document.getElementById('login-btn');
+
+  // Mostrar cuentas de prueba como pista
+  const hint = document.createElement('div');
+  hint.style.cssText = 'margin-top:16px;background:#f0faf4;border:1px solid #c5dfc9;border-radius:10px;padding:12px 16px;font-size:0.8125rem;color:#4a6652;';
+  hint.innerHTML = `
+    <div style="font-weight:700;margin-bottom:6px;color:#1a3c34;">🔑 Cuentas de prueba</div>
+    <div style="display:grid;gap:4px;">
+      <div>👤 <strong>maria@trebol.com</strong> / trebol2026 <em style="opacity:.6">(usuario)</em></div>
+      <div>🩺 <strong>profesional@trebol.com</strong> / trebol2026 <em style="opacity:.6">(profesional)</em></div>
+      <div>⚙️ <strong>alejo@yopmail.com</strong> / trebol2026 <em style="opacity:.6">(administrador)</em></div>
+    </div>`;
+  loginForm.after(hint);
+
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    if (!email || !password) return;
+
+    loginBtn.classList.add('loading');
+    loginBtn.disabled = true;
+
+    setTimeout(() => {
+      loginBtn.classList.remove('loading');
+      loginBtn.disabled = false;
+
+      const cuenta = Auth.login(email, password);
+      if (!cuenta) {
+        openModal('login-error');
+        return;
+      }
+
+      Session.set(cuenta);
+
+      if (cuenta.tipo === 'admin') {
+        window.location.href = 'bandeja-notificaciones.html';
+      } else if (cuenta.tipo === 'profesional') {
+        window.location.href = 'perfil-profesional.html';
+      } else {
+        window.location.href = 'home-usuario.html';
+      }
+    }, 1400);
+  });
+</script>
+</body>
+</html>

@@ -44,6 +44,7 @@ o	Certificado profesional.
 ________________________________________
 5. Requerimientos No Funcionales
 •	Seguridad: Validación de identidad y certificaciones antes de habilitar la cuenta.
+•	Encriptación de contraseñas: Toda contraseña (sin importar el perfil) se almacena con doble encriptación Hash + Salt usando el algoritmo Argon2. El salt queda embebido en el hash (campo PasswordHash). La operación se centraliza en la Capa Helpers. Nunca se almacena texto plano.
 •	Integridad: Los documentos se almacenan en el correo del sistema
 •	Rendimiento: Listados de salas y usuarios deben cargar en menos de 2 segundos.
 •	Escalabilidad: Permitir crecimiento de salas y sesiones simultáneas.

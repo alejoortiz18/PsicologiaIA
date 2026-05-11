@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Psicólogos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- ======================================================
+       SIDEBAR
+       ====================================================== -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>
+          Inicio
+        </a>
+        <div class="nav-item open" data-submenu="submenu-profesionales" tabindex="0" role="button" aria-expanded="true">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div id="submenu-profesionales" class="nav-submenu" style="display:block;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item active" aria-current="page">Psicólogos</a>
+          <a href="mis-mentores.html" class="nav-item">Mis mentores</a>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="citas-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>
+          Mis citas
+        </a>
+        <a href="perfil-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>
+          Mi perfil
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🗓</span>
+          Calendario
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" id="sidebar-avatar">MG</div>
+        <div>
+          <div class="sidebar__user-name" id="sidebar-name">María García</div>
+          <div class="sidebar__user-role">Usuario</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======================================================
+       MAIN CONTENT
+       ====================================================== -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú" style="display:none;">☰</button>
+      <span class="topbar__title">Psicólogos</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm" style="cursor:pointer;" id="topbar-avatar" title="Mi perfil">MG</div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="main-content" id="main-content">
+
+      <!-- Page header -->
+      <div class="page-header mb-6">
+        <nav class="breadcrumb" aria-label="Ruta">
+          <a href="home-usuario.html">Inicio</a>
+          <span class="breadcrumb__sep" aria-hidden="true">›</span>
+          <a href="#">Profesionales</a>
+          <span class="breadcrumb__sep" aria-hidden="true">›</span>
+          <span>Psicólogos</span>
+        </nav>
+        <h1 style="color:var(--color-primary);">Psicólogos</h1>
+        <p style="color:var(--color-text-secondary);margin-top:4px;">
+          Psicólogos y terapeutas certificados ante COLPSIC.
+        </p>
+      </div>
+
+      <!-- Stats rápidas -->
+      <div class="stats-grid mb-6" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">🧠</div>
+          <div>
+            <div class="stat-card__label">Psicólogos</div>
+            <div class="stat-card__value" id="count-total">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">✓</div>
+          <div>
+            <div class="stat-card__label">Verificados COLPSIC</div>
+            <div class="stat-card__value" id="count-verified">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">❤️</div>
+          <div>
+            <div class="stat-card__label">Que sigues</div>
+            <div class="stat-card__value" id="count-following">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="prof-filter-bar" role="search">
+        <div class="filter-search">
+          <input type="search" id="filter-search" placeholder="Buscar por nombre, especialidad o bio…"
+            aria-label="Buscar psicólogos" oninput="applyFilters()">
+        </div>
+        <select id="filter-especialidad" onchange="applyFilters()" aria-label="Filtrar por especialidad">
+          <option value="">Todas las especialidades</option>
+          <option>Psicología clínica</option>
+          <option>Psicología infantil</option>
+          <option>Neuropsicología</option>
+          <option>Terapia de pareja</option>
+          <option>Psicología positiva</option>
+          <option>Coaching clínico</option>
+        </select>
+        <select id="filter-ciudad" onchange="applyFilters()" aria-label="Filtrar por ciudad">
+          <option value="">Todas las ciudades</option>
+          <option>Bogotá</option>
+          <option>Medellín</option>
+          <option>Cali</option>
+          <option>Barranquilla</option>
+          <option>Pereira</option>
+        </select>
+        <select id="filter-orden" onchange="applyFilters()" aria-label="Ordenar por">
+          <option value="seguidores">Mayor popularidad</option>
+          <option value="calificacion">Mejor calificación</option>
+          <option value="tarifa-asc">Menor tarifa</option>
+          <option value="tarifa-desc">Mayor tarifa</option>
+          <option value="nombre">Nombre A–Z</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="resetFilters()">Limpiar</button>
+      </div>
+
+      <!-- Resultados -->
+      <div id="results-info" style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:var(--sp-4);"></div>
+
+      <div class="prof-cards-list" id="prof-list" aria-live="polite" aria-label="Lista de psicólogos">
+        <div class="skeleton-card" style="height:140px;border-radius:var(--radius-lg);background:var(--color-surface-alt);"></div>
+        <div class="skeleton-card" style="height:140px;border-radius:var(--radius-lg);background:var(--color-surface-alt);"></div>
+        <div class="skeleton-card" style="height:140px;border-radius:var(--radius-lg);background:var(--color-surface-alt);"></div>
+      </div>
+
+      <!-- Paginación -->
+      <div id="pagination-wrap" class="pagination" style="margin-top:var(--sp-8);" role="navigation" aria-label="Páginas de resultados"></div>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  const USUARIO_ID = 'u001';
+  let allProfs = [];
+  let filtered  = [];
+  let currentPage = 1;
+  const PAGE_SIZE = 10;
+
+  function init() {
+    const sesion = Session.get();
+    if (sesion) {
+      document.getElementById('sidebar-name').textContent = sesion.nombre;
+      document.getElementById('sidebar-avatar').textContent = sesion.avatar;
+      document.getElementById('topbar-avatar').textContent = sesion.avatar;
+      document.getElementById('topbar-avatar').title = sesion.nombre;
+    }
+
+    allProfs = Profesionales.getPsicologos().filter(p => p.estado === 'activo');
+
+    document.getElementById('count-total').textContent = allProfs.length;
+    document.getElementById('count-verified').textContent = allProfs.filter(p => p.verificado).length;
+    document.getElementById('count-following').textContent =
+      allProfs.filter(p => Mentores.esMentor(USUARIO_ID, p.id)).length;
+
+    applyFilters();
+    initSidebar();
+  }
+
+  function applyFilters() {
+    const q            = document.getElementById('filter-search').value.toLowerCase();
+    const especialidad = document.getElementById('filter-especialidad').value;
+    const ciudad       = document.getElementById('filter-ciudad').value;
+    const orden        = document.getElementById('filter-orden').value;
+
+    filtered = allProfs.filter(p => {
+      const matchQ = !q ||
+        p.nombre.toLowerCase().includes(q) ||
+        (p.especialidad || '').toLowerCase().includes(q) ||
+        (p.bio || '').toLowerCase().includes(q);
+      const matchEsp  = !especialidad || p.especialidad === especialidad;
+      const matchCity = !ciudad || p.ciudad === ciudad;
+      return matchQ && matchEsp && matchCity;
+    });
+
+    filtered.sort((a, b) => {
+      if (orden === 'seguidores')    return b.seguidores - a.seguidores;
+      if (orden === 'calificacion')  return b.calificacion - a.calificacion;
+      if (orden === 'tarifa-asc')    return a.tarifaHora - b.tarifaHora;
+      if (orden === 'tarifa-desc')   return b.tarifaHora - a.tarifaHora;
+      if (orden === 'nombre')        return a.nombre.localeCompare(b.nombre, 'es');
+      return 0;
+    });
+
+    currentPage = 1;
+    renderList();
+    renderPagination();
+  }
+
+  function resetFilters() {
+    document.getElementById('filter-search').value = '';
+    document.getElementById('filter-especialidad').value = '';
+    document.getElementById('filter-ciudad').value = '';
+    document.getElementById('filter-orden').value = 'seguidores';
+    applyFilters();
+  }
+
+  function renderList() {
+    const list = document.getElementById('prof-list');
+    const info = document.getElementById('results-info');
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const page  = filtered.slice(start, start + PAGE_SIZE);
+
+    info.textContent = filtered.length === 0
+      ? 'No se encontraron psicólogos con esos criterios.'
+      : `Mostrando ${start + 1}–${Math.min(start + page.length, filtered.length)} de ${filtered.length} psicólogo${filtered.length !== 1 ? 's' : ''}`;
+
+    if (page.length === 0) {
+      list.innerHTML = `
+        <div style="text-align:center;padding:var(--sp-16);color:var(--color-text-muted);">
+          <div style="font-size:3rem;margin-bottom:var(--sp-4);">🔍</div>
+          <div style="font-size:1rem;font-weight:600;margin-bottom:8px;">Sin resultados</div>
+          <div>Intenta con otros filtros o amplía la búsqueda.</div>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = page.map(p => renderProfCard(p, USUARIO_ID)).join('');
+  }
+
+  function renderPagination() {
+    const wrap = document.getElementById('pagination-wrap');
+    const total = Math.ceil(filtered.length / PAGE_SIZE);
+    if (total <= 1) { wrap.innerHTML = ''; return; }
+
+    let html = '';
+    html += `<button class="pagination__btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">‹</button>`;
+    for (let i = 1; i <= total; i++) {
+      if (i === 1 || i === total || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        html += `<button class="pagination__btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+      } else if (i === currentPage - 2 || i === currentPage + 2) {
+        html += `<span class="pagination__dots">…</span>`;
+      }
+    }
+    html += `<button class="pagination__btn" ${currentPage === total ? 'disabled' : ''} onclick="goPage(${currentPage + 1})">›</button>`;
+    wrap.innerHTML = html;
+  }
+
+  function goPage(p) {
+    currentPage = p;
+    renderList();
+    renderPagination();
+    document.getElementById('prof-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  const _origToggle = window.toggleMentor;
+  window.toggleMentor = function(id, btn) {
+    _origToggle(id, btn);
+    document.getElementById('count-following').textContent =
+      allProfs.filter(p => Mentores.esMentor(USUARIO_ID, p.id)).length;
+  };
+
+  init();
+</script>
+</body>
+</html>

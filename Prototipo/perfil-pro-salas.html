@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Mi perfil · Salas y eventos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="#" class="nav-item"><span class="nav-item__icon">🏠</span>Inicio</a>
+        <a href="mis-eventos.html" class="nav-item"><span class="nav-item__icon">🎪</span>Mis eventos</a>
+        <div class="nav-item" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="false">
+          <span class="nav-item__icon">👥</span>Profesionales<span class="nav-toggle">▾</span>
+        </div>
+        <div id="submenu-colegas" class="nav-submenu" style="display:none;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-colegas.html" class="nav-item">Mis colegas</a>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="perfil-profesional.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon">👤</span>Mi perfil
+        </a>
+        <a href="perfil-pro-citas.html" class="nav-item"><span class="nav-item__icon">📅</span>Citas</a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" id="sidebar-avatar" style="background:var(--color-primary);">VR</div>
+        <div>
+          <div class="sidebar__user-name" id="sidebar-name">Dra. Valentina Ríos</div>
+          <div class="sidebar__user-role">Profesional</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú" style="display:none;">☰</button>
+      <span class="topbar__title">Mi perfil profesional</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm" id="topbar-avatar" style="background:var(--color-primary);">VR</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Profile header -->
+      <section style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6) var(--sp-8);margin-bottom:var(--sp-5);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);display:flex;gap:var(--sp-6);align-items:center;flex-wrap:wrap;">
+        <div class="avatar avatar-2xl" id="pro-avatar" style="background:var(--color-primary);">VR</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:4px;">
+            <h1 id="pro-nombre" style="font-family:var(--font-display);color:var(--color-primary);font-size:1.625rem;">Dra. Valentina Ríos</h1>
+            <span class="badge badge-success" style="font-size:0.75rem;">✓ Verificada</span>
+          </div>
+          <div class="text-meta" style="margin-bottom:var(--sp-4);">Psicóloga Clínica · Tarjeta COLPSIC: <strong>PSI-0001234</strong></div>
+          <div style="display:flex;gap:var(--sp-8);">
+            <div style="text-align:center;"><div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">1 248</div><div class="text-meta">Seguidores</div></div>
+            <div style="text-align:center;"><div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">28</div><div class="text-meta">Salas</div></div>
+            <div style="text-align:center;"><div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">3</div><div class="text-meta">Citas próximas</div></div>
+          </div>
+        </div>
+        <a href="perfil-orador.html" class="btn btn-secondary btn-sm">👁 Ver perfil público</a>
+      </section>
+
+      <!-- Horizontal tabs -->
+      <nav class="prof-tabs-bar" aria-label="Secciones del perfil" style="margin-bottom:var(--sp-5);">
+        <ul class="prof-tabs-bar__list" role="tablist">
+          <li><a href="perfil-profesional.html" class="prof-tab-link"><span class="tab-icon">👤</span>Información personal</a></li>
+          <li><a href="perfil-pro-salas.html" class="prof-tab-link active" aria-current="page"><span class="tab-icon">🎪</span>Salas y eventos<span class="tab-badge">28</span></a></li>
+          <li><a href="perfil-pro-calendario.html" class="prof-tab-link"><span class="tab-icon">🗓</span>Calendario</a></li>
+          <li><a href="perfil-pro-citas.html" class="prof-tab-link"><span class="tab-icon">📅</span>Citas<span class="tab-badge">3</span></a></li>
+          <li><a href="perfil-pro-kpi.html" class="prof-tab-link"><span class="tab-icon">📊</span>Indicadores</a></li>
+        </ul>
+      </nav>
+
+      <!-- ── TAB CONTENT: Salas y eventos ── -->
+
+      <!-- Stats strip -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);margin-bottom:var(--sp-6);">
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);border:1px solid var(--color-border-light);text-align:center;">
+          <div style="font-size:1.75rem;font-weight:700;color:var(--color-primary);">28</div>
+          <div class="text-meta">Salas totales</div>
+        </div>
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);border:1px solid var(--color-border-light);text-align:center;">
+          <div style="font-size:1.75rem;font-weight:700;color:#2D6A4F;">5</div>
+          <div class="text-meta">Abiertas</div>
+        </div>
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);border:1px solid var(--color-border-light);text-align:center;">
+          <div style="font-size:1.75rem;font-weight:700;color:var(--color-text-secondary);">18</div>
+          <div class="text-meta">Cerradas</div>
+        </div>
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);border:1px solid var(--color-border-light);text-align:center;">
+          <div style="font-size:1.75rem;font-weight:700;color:var(--color-primary);">5</div>
+          <div class="text-meta">Próximas</div>
+        </div>
+      </div>
+
+      <!-- Filter + action bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);flex-wrap:wrap;margin-bottom:var(--sp-5);">
+        <div class="prof-filter-bar" style="flex:1;max-width:520px;">
+          <input type="search" class="form-control" placeholder="Buscar sala..." id="sala-search" oninput="filterSalas()">
+          <select class="form-control" id="sala-estado" onchange="filterSalas()" style="max-width:160px;">
+            <option value="">Todos los estados</option>
+            <option value="abierta">Abierta</option>
+            <option value="proxima">Próxima</option>
+            <option value="cerrada">Cerrada</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('nueva-sala')">
+          + Nueva sala
+        </button>
+      </div>
+
+      <!-- Salas table -->
+      <div style="background:var(--color-surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);overflow:hidden;">
+        <div style="overflow-x:auto;">
+          <table id="salas-table" aria-label="Mis salas y eventos">
+            <thead>
+              <tr>
+                <th scope="col">Sala</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Asistentes</th>
+                <th scope="col">Tarifa</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="salas-tbody">
+              <tr data-estado="abierta">
+                <td>
+                  <div style="font-weight:600;color:var(--color-primary);">Mindfulness para el estrés laboral</div>
+                  <div class="text-meta" style="font-size:0.8125rem;">Sala pública · Psicología clínica</div>
+                </td>
+                <td><span class="badge badge-success"><span class="badge-dot"></span>Abierta</span></td>
+                <td>15 May 2026<br><small class="text-meta">6PM</small></td>
+                <td>342 / 400</td>
+                <td><span class="badge badge-muted">Libre</span></td>
+                <td style="display:flex;gap:var(--sp-2);align-items:center;">
+                  <button class="btn btn-primary btn-sm" onclick="window.location.href='mis-eventos.html'">Gestionar</button>
+                  <button class="btn btn-ghost btn-sm" onclick="showToast({title:'Link copiado',type:'success'})">🔗</button>
+                </td>
+              </tr>
+              <tr data-estado="proxima">
+                <td>
+                  <div style="font-weight:600;color:var(--color-primary);">Duelo y proceso de sanación</div>
+                  <div class="text-meta" style="font-size:0.8125rem;">Sala pública · Psicología del duelo</div>
+                </td>
+                <td><span class="badge badge-info">Próxima</span></td>
+                <td>3 Jun 2026<br><small class="text-meta">5PM</small></td>
+                <td>87 / 150</td>
+                <td>$25 000</td>
+                <td style="display:flex;gap:var(--sp-2);align-items:center;">
+                  <button class="btn btn-secondary btn-sm" onclick="window.location.href='mis-eventos.html'">Gestionar</button>
+                  <button class="btn btn-ghost btn-sm" onclick="showToast({title:'Link copiado',type:'success'})">🔗</button>
+                </td>
+              </tr>
+              <tr data-estado="proxima">
+                <td>
+                  <div style="font-weight:600;color:var(--color-primary);">Ansiedad y técnicas de respiración</div>
+                  <div class="text-meta" style="font-size:0.8125rem;">Sala pública · Ansiedad</div>
+                </td>
+                <td><span class="badge badge-info">Próxima</span></td>
+                <td>10 Jun 2026<br><small class="text-meta">7PM</small></td>
+                <td>210 / 300</td>
+                <td><span class="badge badge-muted">Libre</span></td>
+                <td style="display:flex;gap:var(--sp-2);align-items:center;">
+                  <button class="btn btn-secondary btn-sm" onclick="window.location.href='mis-eventos.html'">Gestionar</button>
+                  <button class="btn btn-ghost btn-sm" onclick="showToast({title:'Link copiado',type:'success'})">🔗</button>
+                </td>
+              </tr>
+              <tr data-estado="cerrada">
+                <td>
+                  <div style="font-weight:600;color:var(--color-primary);">Regulación emocional en el trabajo</div>
+                  <div class="text-meta" style="font-size:0.8125rem;">Sala pública · Estrés laboral</div>
+                </td>
+                <td><span class="badge badge-muted">Cerrada</span></td>
+                <td>2 Abr 2026<br><small class="text-meta">7PM</small></td>
+                <td>200 / 200</td>
+                <td>$30 000</td>
+                <td style="display:flex;gap:var(--sp-2);align-items:center;">
+                  <button class="btn btn-ghost btn-sm" onclick="showToast({title:'Sala cerrada. Puedes duplicarla.',type:'info'})">Duplicar</button>
+                  <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="confirmDelete('Regulación emocional en el trabajo')">🗑</button>
+                </td>
+              </tr>
+              <tr data-estado="cerrada">
+                <td>
+                  <div style="font-weight:600;color:var(--color-primary);">Autocuidado para profesionales de la salud</div>
+                  <div class="text-meta" style="font-size:0.8125rem;">Sala pública · Bienestar</div>
+                </td>
+                <td><span class="badge badge-muted">Cerrada</span></td>
+                <td>12 Mar 2026<br><small class="text-meta">6PM</small></td>
+                <td>180 / 200</td>
+                <td><span class="badge badge-muted">Libre</span></td>
+                <td style="display:flex;gap:var(--sp-2);align-items:center;">
+                  <button class="btn btn-ghost btn-sm" onclick="showToast({title:'Sala cerrada. Puedes duplicarla.',type:'info'})">Duplicar</button>
+                  <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="confirmDelete('Autocuidado para profesionales de la salud')">🗑</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Nueva sala -->
+<div id="nueva-sala-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="nueva-sala-title">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-icon primary">🎪</div>
+      <div><div class="modal-title" id="nueva-sala-title">Crear nueva sala</div></div>
+      <button class="modal-close" onclick="closeModal('nueva-sala')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="nueva-sala-form" novalidate>
+        <div style="display:flex;flex-direction:column;gap:var(--sp-4);">
+          <div class="form-group">
+            <label class="form-label">Nombre de la sala <span class="required">*</span></label>
+            <input type="text" class="form-control" placeholder="Ej: Técnicas de mindfulness para el trabajo" required>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);">
+            <div class="form-group">
+              <label class="form-label">Fecha <span class="required">*</span></label>
+              <input type="date" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hora <span class="required">*</span></label>
+              <input type="time" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Capacidad máxima</label>
+              <input type="number" class="form-control" value="100" min="10" max="5000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tarifa (COP)</label>
+              <input type="number" class="form-control" value="0" min="0" step="5000" placeholder="0 = libre">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-control" rows="3" placeholder="Describe el tema y metodología de la sesión..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Categoría</label>
+            <select class="form-control">
+              <option>Ansiedad</option><option>Estrés laboral</option><option>Duelo</option>
+              <option>Terapia de pareja</option><option>Psicología infantil</option><option>Bienestar</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('nueva-sala')">Cancelar</button>
+      <button class="btn btn-primary" onclick="crearSala()"><span class="btn-text">Crear sala</span></button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  (function() {
+    const s = Session.get();
+    if (s && s.tipo === 'profesional') {
+      const av = s.avatar || s.nombre.charAt(0);
+      ['sidebar-avatar','topbar-avatar','pro-avatar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = av;
+      });
+      const sn = document.getElementById('sidebar-name');
+      if (sn) sn.textContent = s.nombre;
+      const pn = document.getElementById('pro-nombre');
+      if (pn) pn.textContent = s.nombre;
+    }
+  })();
+
+  function filterSalas() {
+    const q = document.getElementById('sala-search').value.toLowerCase();
+    const estado = document.getElementById('sala-estado').value;
+    document.querySelectorAll('#salas-tbody tr').forEach(tr => {
+      const nombre = tr.querySelector('td:first-child').textContent.toLowerCase();
+      const trEstado = tr.dataset.estado || '';
+      const matchQ = !q || nombre.includes(q);
+      const matchE = !estado || trEstado === estado;
+      tr.style.display = (matchQ && matchE) ? '' : 'none';
+    });
+  }
+
+  function confirmDelete(nombre) {
+    showConfirm({
+      title: 'Eliminar sala',
+      message: `¿Estás segura de que deseas eliminar "${nombre}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      danger: true,
+      onConfirm: () => showToast({title:'Sala eliminada',type:'success'})
+    });
+  }
+
+  function crearSala() {
+    const btn = document.querySelector('#nueva-sala-backdrop .btn-primary');
+    btn.classList.add('loading'); btn.disabled = true;
+    setTimeout(() => {
+      btn.classList.remove('loading'); btn.disabled = false;
+      closeModal('nueva-sala');
+      showToast({title:'Sala creada', message:'La sala se publicó correctamente.', type:'success'});
+    }, 1200);
+  }
+
+  initSidebar();
+</script>
+</body>
+</html>

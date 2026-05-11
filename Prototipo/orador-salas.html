@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Salas · Dra. Valentina Ríos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio
+        </a>
+        <div class="nav-item active" tabindex="0" role="button">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div class="nav-submenu" style="display:block;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-mentores.html" class="nav-item">Mis mentores</a>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="citas-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>Mis citas
+        </a>
+        <a href="perfil-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🗓</span>Calendario
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar">MG</div>
+        <div>
+          <div class="sidebar__user-name">María García</div>
+          <div class="sidebar__user-role">Usuario</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="btn btn-ghost btn-sm" onclick="history.back()" aria-label="Volver">← Volver</button>
+      <span class="topbar__title">Perfil del orador</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm">MG</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+
+      <!-- Profile header -->
+      <section class="profile-header" aria-label="Información del profesional" style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);margin-bottom:var(--sp-6);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+        <div style="display:flex;gap:var(--sp-6);align-items:flex-start;flex-wrap:wrap;">
+          <div class="avatar avatar-2xl">VR</div>
+          <div style="flex:1;min-width:240px;">
+            <div style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-2);">
+              <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.75rem;">Dra. Valentina Ríos</h1>
+              <span class="badge badge-success">Verificada</span>
+            </div>
+            <div class="text-meta" style="margin-bottom:var(--sp-3);">Psicóloga Clínica · Especialista TCC y Mindfulness</div>
+            <div class="tag-list" style="margin-bottom:var(--sp-4);">
+              <span class="badge badge-primary">TCC</span>
+              <span class="badge badge-primary">Mindfulness</span>
+              <span class="badge badge-primary">Ansiedad</span>
+              <span class="badge badge-primary">Estrés laboral</span>
+              <span class="badge badge-primary">Adultos</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-6);flex-wrap:wrap;">
+              <div style="text-align:center;">
+                <div style="font-size:1.5rem;font-weight:700;color:var(--color-primary);" id="seguidores-count">1 248</div>
+                <div class="text-meta">Seguidores</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:1.5rem;font-weight:700;color:var(--color-primary);">28</div>
+                <div class="text-meta">Salas creadas</div>
+              </div>
+              <div style="text-align:center;">
+                <div style="font-size:1.5rem;font-weight:700;color:var(--color-primary);">12</div>
+                <div class="text-meta">Años de experiencia</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-3);align-items:flex-end;">
+            <button class="btn btn-primary follow-btn" id="follow-btn" data-following="false"
+              aria-label="Seguir a Dra. Valentina Ríos" aria-pressed="false">
+              + Seguir
+            </button>
+            <button class="btn btn-secondary" aria-label="Enviar mensaje a Dra. Valentina Ríos">
+              💬 Mensaje
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Horizontal tab nav -->
+      <nav class="prof-tabs-bar" aria-label="Secciones del perfil">
+        <ul class="prof-tabs-bar__list" role="list">
+          <li><a href="perfil-orador.html" class="prof-tab-link"><span class="tab-icon">👤</span> Cuenta</a></li>
+          <li><a href="orador-salas.html" class="prof-tab-link active" aria-current="page"><span class="tab-icon">🎪</span> Salas creadas <span class="tab-badge">28</span></a></li>
+          <li><a href="orador-comentarios.html" class="prof-tab-link"><span class="tab-icon">💬</span> Comentarios</a></li>
+          <li><a href="orador-calendario.html" class="prof-tab-link"><span class="tab-icon">🗓</span> Calendario</a></li>
+        </ul>
+      </nav>
+
+      <!-- Salas creadas -->
+      <div id="tab-salas">
+
+        <!-- Stats strip -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);margin-bottom:var(--sp-6);">
+          <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+            <div style="font-size:1.75rem;font-weight:700;color:var(--color-primary);">28</div>
+            <div class="text-meta">Salas totales</div>
+          </div>
+          <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+            <div style="font-size:1.75rem;font-weight:700;color:var(--color-accent);">2</div>
+            <div class="text-meta">Abiertas</div>
+          </div>
+          <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+            <div style="font-size:1.75rem;font-weight:700;color:var(--color-text-secondary);">24</div>
+            <div class="text-meta">Finalizadas</div>
+          </div>
+          <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+            <div style="font-size:1.75rem;font-weight:700;color:#E67E22;">2</div>
+            <div class="text-meta">Próximas</div>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div style="display:flex;gap:var(--sp-3);align-items:center;margin-bottom:var(--sp-5);flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;position:relative;">
+            <span style="position:absolute;left:var(--sp-3);top:50%;transform:translateY(-50%);opacity:.5;">🔍</span>
+            <input type="search" id="search-salas" class="form-control" placeholder="Buscar sala…"
+              style="padding-left:2.4rem;" oninput="filterSalas()" aria-label="Buscar sala">
+          </div>
+          <select class="form-control" id="filter-estado" onchange="filterSalas()" style="width:180px;" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option value="abierta">Abierta</option>
+            <option value="proxima">Próxima</option>
+            <option value="finalizada">Finalizada</option>
+          </select>
+        </div>
+
+        <!-- Rooms grid -->
+        <div class="rooms-grid" id="salas-grid">
+
+          <article class="room-card" data-estado="abierta" data-nombre="Mindfulness para el estrés laboral">
+            <div class="room-card__banner" style="background:linear-gradient(135deg,#1A3C34,#2D6A4F);">
+              <div class="room-card__banner-text">Mindfulness para el<br>estrés laboral</div>
+            </div>
+            <div class="room-card__body">
+              <div class="room-card__speaker">
+                <span class="badge badge-success" style="font-size:.7rem;">🔴 En vivo</span>
+              </div>
+              <div class="room-card__speaker">📅 10 May 2026 · 6PM</div>
+              <div class="room-card__meta">
+                <span class="room-card__meta-item">👥 342/400</span>
+                <span class="room-card__meta-item">Entrada libre</span>
+              </div>
+            </div>
+            <div class="room-card__footer">
+              <button class="btn btn-secondary btn-sm" onclick="openModal('sala-detail')">Detalle</button>
+              <button class="btn btn-primary btn-sm" onclick="window.location.href='inscripcion-pago.html'">Ingresar</button>
+            </div>
+          </article>
+
+          <article class="room-card" data-estado="proxima" data-nombre="Regulación emocional en el trabajo">
+            <div class="room-card__banner" style="background:linear-gradient(135deg,#2D6A4F,#52B788);">
+              <div class="room-card__banner-text">Regulación emocional<br>en el trabajo</div>
+            </div>
+            <div class="room-card__body">
+              <div class="room-card__speaker">
+                <span class="badge badge-warning" style="font-size:.7rem;">🟡 Próxima</span>
+              </div>
+              <div class="room-card__speaker">📅 3 Jun 2026 · 7PM</div>
+              <div class="room-card__meta">
+                <span class="room-card__meta-item">👥 145/200</span>
+                <span class="room-card__meta-item">$30.000</span>
+              </div>
+            </div>
+            <div class="room-card__footer">
+              <button class="btn btn-secondary btn-sm" onclick="openModal('sala-detail')">Detalle</button>
+              <button class="btn btn-primary btn-sm" onclick="window.location.href='inscripcion-pago.html'">Registrarse</button>
+            </div>
+          </article>
+
+          <article class="room-card" data-estado="finalizada" data-nombre="Duelo y resiliencia">
+            <div class="room-card__banner" style="background:linear-gradient(135deg,#4a4a6a,#6b6b9b);">
+              <div class="room-card__banner-text">Duelo y resiliencia:<br>herramientas prácticas</div>
+            </div>
+            <div class="room-card__body">
+              <div class="room-card__speaker">
+                <span class="badge badge-muted" style="font-size:.7rem;">⚫ Finalizada</span>
+              </div>
+              <div class="room-card__speaker">📅 22 Abr 2026 · 5PM</div>
+              <div class="room-card__meta">
+                <span class="room-card__meta-item">👥 387/400</span>
+                <span class="room-card__meta-item">$25.000</span>
+              </div>
+            </div>
+            <div class="room-card__footer">
+              <button class="btn btn-secondary btn-sm" onclick="openModal('sala-detail')">Detalle</button>
+              <button class="btn btn-primary btn-sm" disabled style="opacity:.45;cursor:not-allowed;">Finalizada</button>
+            </div>
+          </article>
+
+          <article class="room-card" data-estado="finalizada" data-nombre="Vínculos afectivos sanos">
+            <div class="room-card__banner" style="background:linear-gradient(135deg,#1a3a5c,#2d6a8f);">
+              <div class="room-card__banner-text">Vínculos afectivos<br>sanos en adultos</div>
+            </div>
+            <div class="room-card__body">
+              <div class="room-card__speaker">
+                <span class="badge badge-muted" style="font-size:.7rem;">⚫ Finalizada</span>
+              </div>
+              <div class="room-card__speaker">📅 5 Abr 2026 · 6PM</div>
+              <div class="room-card__meta">
+                <span class="room-card__meta-item">👥 210/250</span>
+                <span class="room-card__meta-item">Entrada libre</span>
+              </div>
+            </div>
+            <div class="room-card__footer">
+              <button class="btn btn-secondary btn-sm" onclick="openModal('sala-detail')">Detalle</button>
+              <button class="btn btn-primary btn-sm" disabled style="opacity:.45;cursor:not-allowed;">Finalizada</button>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Empty state (hidden by default) -->
+        <div id="salas-empty" style="display:none;text-align:center;padding:var(--sp-16);color:var(--color-text-secondary);">
+          <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎪</div>
+          <p style="font-size:1rem;">No se encontraron salas con ese filtro.</p>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Detalle de sala -->
+<div id="sala-detail-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="sala-detail-title">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="sala-detail-title">Mindfulness para el estrés laboral</div>
+        <div class="modal-subtitle">Últimos 10 mensajes de la sala</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('sala-detail')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="comments-feed">
+        <div class="comment comment--other"><div class="comment__avatar">U1</div><div class="comment__body"><div class="comment__bubble"><p>¿Cuándo se comparten las grabaciones?</p></div><div class="comment__meta">15 May 2026 · 6:45PM</div></div></div>
+        <div class="comment comment--other"><div class="comment__avatar">U2</div><div class="comment__body"><div class="comment__bubble"><p>Excelente sesión, aprendí muchísimo sobre la respiración diafragmática.</p></div><div class="comment__meta">15 May 2026 · 7:12PM</div></div></div>
+        <div class="comment comment--other"><div class="comment__avatar">U3</div><div class="comment__body"><div class="comment__bubble"><p>¿Habrá una parte 2 de esta conferencia?</p></div><div class="comment__meta">15 May 2026 · 7:30PM</div></div></div>
+        <div class="comment comment--reply"><div class="comment__avatar" style="background:var(--color-primary);">VR</div><div class="comment__body"><div class="comment__bubble" style="background:var(--color-surface-alt);border:1px solid var(--color-border);"><div style="font-size:0.75rem;color:var(--color-accent);font-weight:600;margin-bottom:4px;">↳ Dra. Valentina Ríos</div><p>Sí, la parte 2 será el 3 de junio. ¡No se la pierdan!</p></div><div class="comment__meta">15 May 2026 · 7:45PM</div></div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('sala-detail')">Cerrar</button>
+      <button class="btn btn-primary" onclick="window.location.href='inscripcion-pago.html'">Registrarse en la sala</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // Follow button handler
+  document.getElementById('follow-btn').addEventListener('click', function() {
+    const following = this.dataset.following === 'true';
+    const counter = document.getElementById('seguidores-count');
+    let current = parseInt(counter.textContent.replace(/\s/g,'').replace(',',''));
+    if (following) {
+      this.dataset.following = 'false';
+      this.textContent = '+ Seguir';
+      this.setAttribute('aria-pressed','false');
+      this.classList.remove('btn-secondary');
+      this.classList.add('btn-primary');
+      counter.textContent = (current - 1).toLocaleString('es-CO');
+      showToast({title:'Dejaste de seguir a Dra. Valentina Ríos', type:'info'});
+    } else {
+      this.dataset.following = 'true';
+      this.textContent = '✓ Siguiendo';
+      this.setAttribute('aria-pressed','true');
+      this.classList.remove('btn-primary');
+      this.classList.add('btn-secondary');
+      counter.textContent = (current + 1).toLocaleString('es-CO');
+      showToast({title:'Ahora sigues a Dra. Valentina Ríos', type:'success'});
+    }
+  });
+
+  // Filter salas
+  function filterSalas() {
+    const q = document.getElementById('search-salas').value.toLowerCase();
+    const estado = document.getElementById('filter-estado').value.toLowerCase();
+    const cards = document.querySelectorAll('#salas-grid .room-card');
+    let visible = 0;
+    cards.forEach(card => {
+      const nombre = card.dataset.nombre.toLowerCase();
+      const cardEstado = card.dataset.estado.toLowerCase();
+      const matchQ = !q || nombre.includes(q);
+      const matchEstado = !estado || cardEstado === estado;
+      card.style.display = (matchQ && matchEstado) ? '' : 'none';
+      if (matchQ && matchEstado) visible++;
+    });
+    document.getElementById('salas-empty').style.display = visible === 0 ? 'block' : 'none';
+  }
+
+  // Init sidebar toggle
+  if (typeof initSidebar === 'function') initSidebar();
+</script>
+</body>
+</html>

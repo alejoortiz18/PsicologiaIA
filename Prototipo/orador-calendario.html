@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Calendario · Dra. Valentina Ríos</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .tcal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);flex-wrap:wrap;padding:var(--sp-4) var(--sp-5);border-bottom:1px solid var(--color-border-light);}
+    .tcal-view-pills{display:flex;gap:2px;background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:3px;}
+    .tcal-vpill{padding:5px 18px;border-radius:var(--radius-md);font-size:.83rem;font-weight:600;border:none;background:transparent;color:var(--color-text-secondary);cursor:pointer;transition:all .15s;}
+    .tcal-vpill.active{background:var(--color-primary);color:#fff;}
+    .tcal-nav-group{display:flex;align-items:center;gap:var(--sp-2);}
+    .tcal-nav-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--color-border);background:transparent;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+    .tcal-nav-btn:hover{background:var(--color-primary);color:#fff;border-color:var(--color-primary);}
+    .tcal-nav-title{font-size:.95rem;font-weight:700;color:var(--color-primary);min-width:210px;text-align:center;}
+    .tcal-legend{display:flex;gap:var(--sp-5);align-items:center;flex-wrap:wrap;padding:var(--sp-3) var(--sp-5);border-bottom:1px solid var(--color-border-light);background:#fafbfc;}
+    .tcal-legend-item{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:500;color:var(--color-text-secondary);}
+    .tcal-lswatch{width:28px;height:14px;border-radius:3px;flex-shrink:0;}
+    /* Weekly grid */
+    .tcal-scroll{overflow-x:auto;}
+    .tcal-grid{display:grid;grid-template-columns:58px repeat(5,1fr);min-width:620px;}
+    .tcal-corner{background:#f5f6f7;border-bottom:2px solid var(--color-border-light);border-right:1px solid var(--color-border-light);}
+    .tcal-dhdr{padding:var(--sp-3) var(--sp-2);text-align:center;background:#f5f6f7;border-bottom:2px solid var(--color-border-light);border-right:1px solid #e8e8e8;user-select:none;}
+    .tcal-dhdr:last-child{border-right:none;}
+    .tcal-dhdr.today-col{background:var(--color-primary);color:#fff;}
+    .tcal-dhdr.off-col{opacity:.55;background:#f0f0f0;}
+    .tcal-dhdr__abbr{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.8;}
+    .tcal-dhdr__num{font-size:1.5rem;font-weight:800;line-height:1.1;margin:2px 0;}
+    .tcal-dhdr__sub{font-size:.62rem;font-weight:500;opacity:.75;}
+    .tcal-tlbl{font-size:.67rem;color:var(--color-text-muted);text-align:right;padding:5px 8px 0;border-right:1px solid var(--color-border-light);border-bottom:1px solid #f0f0f0;background:#fafbfc;white-space:nowrap;}
+    .tcal-slot{min-height:64px;border-right:1px solid #efefef;border-bottom:1px solid #f0f0f0;position:relative;transition:background .1s;}
+    .tcal-slot:last-child{border-right:none;}
+    .tcal-slot.free{cursor:pointer;}
+    .tcal-slot.free:hover,.tcal-slot.free:focus{background:rgba(82,183,136,.13);outline:none;}
+    .tcal-slot.free:hover .tcal-hint{opacity:1;}
+    .tcal-hint{opacity:0;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--color-primary);gap:3px;pointer-events:none;transition:opacity .1s;}
+    .tcal-slot.off{background:#f7f8f9;cursor:default;}
+    .tcal-slot.past{background:#f2f2f2;opacity:.5;cursor:default;}
+    .tcal-evt{position:absolute;inset:3px;border-radius:5px;padding:5px 8px;font-size:.72rem;font-weight:600;line-height:1.3;overflow:hidden;pointer-events:none;}
+    .tcal-evt.occupied{background:#FFE0B2;border-left:3px solid #FB8C00;color:#5D2E0C;}
+    .tcal-evt.my-booking{background:#C8E6C9;border-left:3px solid #2D6A4F;color:#1B5E20;}
+    /* Monthly */
+    .tcal-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+    .tcal-mhdr{text-align:center;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);padding:var(--sp-1) 0;}
+    .tcal-mday{border-radius:var(--radius-sm);padding:var(--sp-2) var(--sp-1);text-align:center;font-size:.82rem;font-weight:600;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;cursor:default;transition:all .1s;}
+    .tcal-mday.avail{background:#E8F5E9;color:#1B5E20;cursor:pointer;}
+    .tcal-mday.avail:hover{background:#A5D6A7;}
+    .tcal-mday.occupied{background:#FFF3E0;color:#BF360C;}
+    .tcal-mday.off{background:#f5f5f5;color:#bbb;}
+    .tcal-mday.past{opacity:.38;}
+    .tcal-mday.today-cell{outline:2px solid var(--color-primary);outline-offset:-2px;}
+    .tcal-mday__sub{font-size:.6rem;font-weight:500;}
+    /* Daily */
+    .tcal-daily{display:flex;flex-direction:column;}
+    .tcal-drow{display:grid;grid-template-columns:58px 1fr;border-bottom:1px solid #f0f0f0;min-height:64px;}
+    .tcal-drow__lbl{font-size:.68rem;color:var(--color-text-muted);text-align:right;padding:5px 8px 0;background:#fafbfc;border-right:1px solid var(--color-border-light);}
+    .tcal-drow__cell{position:relative;}
+    .tcal-drow__cell.free{cursor:pointer;}
+    .tcal-drow__cell.free:hover{background:rgba(82,183,136,.13);}
+    .tcal-drow__cell.off{background:#f7f8f9;}
+    .tcal-drow__cell.past{background:#f2f2f2;opacity:.5;cursor:default;}
+    .tcal-drow-evt{margin:4px;border-radius:5px;padding:8px 12px;font-size:.82rem;font-weight:600;}
+    .tcal-drow-evt.free-lbl{background:#E8F5E9;border-left:3px solid var(--color-accent);color:var(--color-primary);}
+    .tcal-drow-evt.occ-lbl{background:#FFE0B2;border-left:3px solid #FB8C00;color:#5D2E0C;}
+    .tcal-drow-evt.my-lbl{background:#C8E6C9;border-left:3px solid #2D6A4F;color:#1B5E20;}
+    .tcal-empty{text-align:center;padding:var(--sp-14) var(--sp-8);}
+    .tcal-empty__icon{font-size:2.5rem;margin-bottom:var(--sp-3);}
+    .tcal-empty__msg{font-size:.95rem;font-weight:600;color:var(--color-text-secondary);margin-bottom:var(--sp-5);}
+    /* Price breakdown */
+    .price-row{display:flex;align-items:center;justify-content:space-between;font-size:.875rem;margin-bottom:var(--sp-2);}
+    .price-total{font-size:1.1rem;font-weight:800;color:var(--color-primary);border-top:1px solid var(--color-border-light);padding-top:var(--sp-3);margin-top:var(--sp-2);}
+  </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="app-layout">
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">&#x1F340;</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-usuario.html" class="nav-item"><span class="nav-item__icon">&#x1F3E0;</span>Inicio</a>
+        <div class="nav-item active" tabindex="0" role="button" aria-expanded="true">
+          <span class="nav-item__icon">&#x1F465;</span>Profesionales<span class="nav-toggle">&#x25BE;</span>
+        </div>
+        <div class="nav-submenu" style="display:block;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-mentores.html" class="nav-item">Mis mentores</a>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="citas-usuario.html" class="nav-item"><span class="nav-item__icon">&#x1F4C5;</span>Mis citas</a>
+        <a href="perfil-usuario.html" class="nav-item"><span class="nav-item__icon">&#x1F464;</span>Mi perfil</a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" id="sidebar-avatar">MG</div>
+        <div>
+          <div class="sidebar__user-name" id="sidebar-name">María García</div>
+          <div class="sidebar__user-role">Usuario</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="btn btn-ghost btn-sm" onclick="history.back()">&#x2190; Volver</button>
+      <span class="topbar__title">Perfil del orador</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">&#x1F514;</button>
+        <div class="avatar avatar-sm" id="topbar-avatar">MG</div>
+      </div>
+    </header>
+    <main class="main-content" id="main-content">
+      <!-- Profile header -->
+      <section aria-label="Información del profesional" style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);margin-bottom:var(--sp-6);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+        <div style="display:flex;gap:var(--sp-6);align-items:flex-start;flex-wrap:wrap;">
+          <div class="avatar avatar-2xl">VR</div>
+          <div style="flex:1;min-width:240px;">
+            <div style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-2);">
+              <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.75rem;">Dra. Valentina Ríos</h1>
+              <span class="badge badge-success">Verificada</span>
+            </div>
+            <div class="text-meta" style="margin-bottom:var(--sp-3);">Psicóloga Clínica · Especialista TCC y Mindfulness</div>
+            <div style="margin-bottom:var(--sp-4);display:flex;gap:var(--sp-2);flex-wrap:wrap;">
+              <span class="badge badge-primary">TCC</span>
+              <span class="badge badge-primary">Mindfulness</span>
+              <span class="badge badge-primary">Ansiedad</span>
+              <span class="badge badge-primary">Estrés laboral</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-6);flex-wrap:wrap;">
+              <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--color-primary);">1 248</div><div class="text-meta">Seguidores</div></div>
+              <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--color-primary);">28</div><div class="text-meta">Salas</div></div>
+              <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:700;color:var(--color-primary);">12</div><div class="text-meta">Años exp.</div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-3);align-items:flex-end;">
+            <button class="btn btn-secondary">+ Seguir</button>
+            <button class="btn btn-secondary">&#x1F4AC; Mensaje</button>
+          </div>
+        </div>
+      </section>
+      <!-- Tab nav -->
+      <nav class="prof-tabs-bar" aria-label="Secciones del perfil">
+        <ul class="prof-tabs-bar__list" role="list">
+          <li><a href="perfil-orador.html" class="prof-tab-link"><span class="tab-icon">&#x1F464;</span> Cuenta</a></li>
+          <li><a href="orador-salas.html" class="prof-tab-link"><span class="tab-icon">&#x1F3AA;</span> Salas creadas <span class="tab-badge">28</span></a></li>
+          <li><a href="orador-comentarios.html" class="prof-tab-link"><span class="tab-icon">&#x1F4AC;</span> Comentarios</a></li>
+          <li><a href="orador-calendario.html" class="prof-tab-link active" aria-current="page"><span class="tab-icon">&#x1F5D3;</span> Calendario</a></li>
+        </ul>
+      </nav>
+      <!-- Info banner -->
+      <div id="info-banner" style="background:var(--color-accent-pale);border:1px solid var(--color-accent-light);border-radius:var(--radius-lg);padding:var(--sp-4) var(--sp-5);margin-bottom:var(--sp-5);display:flex;gap:var(--sp-3);align-items:flex-start;">
+        <span style="font-size:1.2rem;flex-shrink:0;">&#x1F4CB;</span>
+        <div style="font-size:.875rem;color:var(--color-primary);line-height:1.6;">
+          <strong>Agenda una cita privada con Dra. Valentina Ríos</strong><br>
+          Selecciona un horario libre en el calendario. Los bloques naranjas están ocupados; los espacios en blanco son libres — haz clic para agendar.<br>
+          Horario: <strong>Lun–Jue 8:00–18:00 · Vie 8:00–14:00</strong> · Sesiones de 1 hora.
+        </div>
+        <button class="btn btn-ghost btn-icon btn-sm" style="flex-shrink:0;" onclick="document.getElementById('info-banner').remove()" aria-label="Cerrar">&#x2715;</button>
+      </div>
+      <!-- Calendar panel -->
+      <div style="background:var(--color-surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);overflow:hidden;">
+        <div class="tcal-toolbar">
+          <div class="tcal-view-pills" role="group" aria-label="Vista del calendario">
+            <button class="tcal-vpill" data-view="mensual" onclick="setView('mensual')" aria-pressed="false">Mes</button>
+            <button class="tcal-vpill active" data-view="semanal" onclick="setView('semanal')" aria-pressed="true">Semana</button>
+            <button class="tcal-vpill" data-view="diario" onclick="setView('diario')" aria-pressed="false">Día</button>
+          </div>
+          <div class="tcal-nav-group">
+            <button class="tcal-nav-btn" onclick="navigate(-1)" aria-label="Anterior">&#x2039;</button>
+            <div class="tcal-nav-title" id="tcal-nav-title">Cargando&hellip;</div>
+            <button class="tcal-nav-btn" onclick="navigate(1)" aria-label="Siguiente">&#x203A;</button>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="goToday()">Hoy</button>
+        </div>
+        <div class="tcal-legend" aria-label="Leyenda">
+          <div class="tcal-legend-item"><div class="tcal-lswatch" style="background:rgba(82,183,136,.18);border:1px solid #A5D6A7;"></div>Disponible — clic para agendar</div>
+          <div class="tcal-legend-item"><div class="tcal-lswatch" style="background:#FFE0B2;border-left:3px solid #FB8C00;"></div>Ocupado</div>
+          <div class="tcal-legend-item"><div class="tcal-lswatch" style="background:#C8E6C9;border-left:3px solid #2D6A4F;"></div>Mi cita reservada</div>
+          <div class="tcal-legend-item"><div class="tcal-lswatch" style="background:#f2f2f2;border:1px solid #ddd;"></div>No disponible</div>
+        </div>
+        <div id="tcal-content" role="region" aria-live="polite" aria-label="Calendario de disponibilidad"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Seleccionar tipo y ver precio -->
+<div id="booking-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="bk-title">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-icon primary">&#x1F5D3;</div>
+      <div>
+        <div class="modal-title" id="bk-title">Agendar cita privada</div>
+        <div class="modal-subtitle">Dra. Valentina Ríos &middot; Psicóloga Clínica</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('booking')" aria-label="Cerrar">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-3);background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-4);margin-bottom:var(--sp-5);">
+        <div><div class="text-meta" style="font-size:.72rem;margin-bottom:2px;">&#x1F4C5; Fecha</div><div style="font-weight:700;font-size:.9rem;" id="bk-date">&mdash;</div></div>
+        <div><div class="text-meta" style="font-size:.72rem;margin-bottom:2px;">&#x1F550; Hora</div><div style="font-weight:700;font-size:.9rem;" id="bk-time">&mdash;</div></div>
+        <div><div class="text-meta" style="font-size:.72rem;margin-bottom:2px;">&#x23F1; Duración</div><div style="font-weight:700;font-size:.9rem;">1 hora</div></div>
+      </div>
+      <form id="booking-form" onsubmit="return false;">
+        <div class="form-group">
+          <label class="form-label" for="bk-tipo">Tipo de sesión</label>
+          <select class="form-control" id="bk-tipo" onchange="updatePrice()">
+            <option value="asesoria">Asesoría inicial &mdash; $90.000</option>
+            <option value="seguimiento">Seguimiento &mdash; $80.000</option>
+            <option value="evaluacion">Evaluación psicológica &mdash; $120.000</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="bk-motivo">Motivo <span style="font-weight:400;color:var(--color-text-muted);">(opcional)</span></label>
+          <textarea class="form-control" id="bk-motivo" rows="2" placeholder="Describe brevemente lo que deseas trabajar…" maxlength="300" style="resize:none;"></textarea>
+          <div style="text-align:right;font-size:.72rem;color:var(--color-text-muted);margin-top:2px;" id="bk-motivo-count">0 / 300</div>
+        </div>
+        <div style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-4);margin-bottom:var(--sp-4);">
+          <div class="price-row"><span>Sesión (<span id="bk-tipo-label">Asesoría inicial</span>)</span><span id="bk-price-session">$90.000</span></div>
+          <div class="price-row" style="color:var(--color-text-muted);"><span>Plataforma Trébol</span><span>$5.000</span></div>
+          <div class="price-row price-total"><span>Total a pagar</span><span id="bk-price-total">$95.000</span></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:var(--sp-3);font-size:.82rem;color:var(--color-text-secondary);">
+          <span>&#x1F512;</span>
+          <span>Tu nombre solo es visible para la profesional. La cita aparecerá en <strong>Mis citas</strong> tras el pago.</span>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('booking')">Cancelar</button>
+      <button class="btn btn-primary" id="bk-pay-btn" onclick="goToPay()">&#x1F512; Ir a pagar <span id="bk-pay-total">$95.000</span> &#x2192;</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  /* ======== DATOS ======== */
+  const WORK_SCHEDULE = {1:{from:8,to:18},2:{from:8,to:18},3:{from:8,to:18},4:{from:8,to:18},5:{from:8,to:14}};
+  const DAY_STATES = {'2026-4-4':'bloqueado','2026-4-7':'ocupado','2026-4-11':'bloqueado','2026-4-15':'ocupado','2026-4-18':'bloqueado','2026-4-19':'ocupado','2026-4-20':'ocupado','2026-4-25':'bloqueado','2026-4-27':'ocupado'};
+  const BOOKED_HOURS = {'2026-4-12':[9,11,14],'2026-4-13':[8,10,15,17],'2026-4-14':[9,14,16],'2026-4-21':[10,11,15],'2026-4-22':[8,10],'2026-4-26':[9,13,16],'2026-4-28':[8,11,14,17],'2026-4-29':[8,12]};
+  const PRICES = {asesoria:{label:'Asesoría inicial',price:90000},seguimiento:{label:'Seguimiento',price:80000},evaluacion:{label:'Evaluación psicológica',price:120000}};
+  const SERVICE_FEE = 5000;
+  const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const DAYS_SH = ['Lun','Mar','Mié','Jue','Vie'];
+  const DAYS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const TODAY = new Date(2026,4,10);
+  let currentView='semanal', viewYear=2026, viewMonth=4;
+  let viewWeekStart=new Date(2026,4,11), viewDay=new Date(2026,4,12);
+  let pendingBook=null, myBookings=[];
+
+  /* ======== HELPERS ======== */
+  const dk=(y,m,d)=>`${y}-${m}-${d}`;
+  const fmt2=n=>String(n).padStart(2,'0');
+  const fmtTime=h=>`${fmt2(h)}:00`;
+  const fmtCOP=n=>'$'+n.toLocaleString('es-CO');
+
+  function getDayStatus(y,m,d){
+    const date=new Date(y,m,d),dow=date.getDay();
+    if(!WORK_SCHEDULE[dow])return 'off';
+    if(date<=TODAY)return 'past';
+    const st=DAY_STATES[dk(y,m,d)];
+    if(st==='bloqueado')return 'off';
+    if(st==='ocupado')return 'occupied';
+    return 'available';
+  }
+
+  function freeSlots(y,m,d){
+    const dow=new Date(y,m,d).getDay(),work=WORK_SCHEDULE[dow];
+    if(!work)return 0;
+    const booked=BOOKED_HOURS[dk(y,m,d)]||[];
+    let n=0;
+    for(let h=work.from;h<work.to;h++){
+      if(!booked.includes(h)&&!myBookings.some(b=>b.y===y&&b.m===m&&b.d===d&&b.h===h))n++;
+    }
+    return n;
+  }
+
+  function getSlotStatus(y,m,d,h){
+    const date=new Date(y,m,d),dow=date.getDay(),work=WORK_SCHEDULE[dow];
+    if(!work||h<work.from||h>=work.to)return 'off';
+    if(date<=TODAY)return 'past';
+    const st=DAY_STATES[dk(y,m,d)];
+    if(st==='bloqueado')return 'off';
+    if(st==='ocupado')return 'booked';
+    if(myBookings.some(b=>b.y===y&&b.m===m&&b.d===d&&b.h===h))return 'my-booking';
+    if((BOOKED_HOURS[dk(y,m,d)]||[]).includes(h))return 'booked';
+    return 'free';
+  }
+
+  /* ======== NAVEGACIÓN ======== */
+  function setView(v){
+    currentView=v;
+    document.querySelectorAll('.tcal-vpill').forEach(btn=>{
+      const on=btn.dataset.view===v;
+      btn.classList.toggle('active',on);
+      btn.setAttribute('aria-pressed',String(on));
+    });
+    render();
+  }
+
+  function navigate(dir){
+    if(currentView==='mensual'){
+      viewMonth+=dir;
+      if(viewMonth>11){viewMonth=0;viewYear++;}
+      if(viewMonth<0){viewMonth=11;viewYear--;}
+    }else if(currentView==='semanal'){
+      const d=new Date(viewWeekStart);d.setDate(d.getDate()+dir*7);viewWeekStart=d;
+    }else{
+      const d=new Date(viewDay);d.setDate(d.getDate()+dir);viewDay=d;
+    }
+    render();
+  }
+
+  function goToday(){
+    viewYear=TODAY.getFullYear();viewMonth=TODAY.getMonth();
+    const dow=TODAY.getDay(),mon=new Date(TODAY);
+    mon.setDate(TODAY.getDate()-(dow===0?6:dow-1));
+    viewWeekStart=mon;viewDay=new Date(TODAY);render();
+  }
+
+  function jumpToWeek(y,m,d){
+    const date=new Date(y,m,d),dow=date.getDay(),mon=new Date(date);
+    mon.setDate(date.getDate()-(dow===0?6:dow-1));
+    viewWeekStart=mon;setView('semanal');
+  }
+
+  function render(){
+    if(currentView==='semanal')renderWeekly();
+    else if(currentView==='diario')renderDaily();
+    else renderMonthly();
+  }
+
+  /* ======== RENDER SEMANAL (Teams-style) ======== */
+  function renderWeekly(){
+    const days=[];
+    for(let i=0;i<5;i++){const d=new Date(viewWeekStart);d.setDate(d.getDate()+i);days.push(d);}
+    const y0=days[0],y4=days[4];
+    const sep=' – ';
+    const title=y0.getMonth()===y4.getMonth()
+      ?`${y0.getDate()}${sep}${y4.getDate()} de ${MONTHS[y0.getMonth()]} ${y0.getFullYear()}`
+      :`${y0.getDate()} ${MONTHS[y0.getMonth()]}${sep}${y4.getDate()} ${MONTHS[y4.getMonth()]} ${y4.getFullYear()}`;
+    document.getElementById('tcal-nav-title').textContent=title;
+
+    let html='<div class="tcal-scroll"><div class="tcal-grid">';
+    html+='<div class="tcal-corner" style="min-height:72px;"></div>';
+
+    days.forEach((d,i)=>{
+      const dow=d.getDay(),isToday=d.toDateString()===TODAY.toDateString();
+      const dayStatus=getDayStatus(d.getFullYear(),d.getMonth(),d.getDate());
+      const isPast=d<=TODAY,work=WORK_SCHEDULE[dow];
+      const free=(!isPast&&dayStatus==='available')?freeSlots(d.getFullYear(),d.getMonth(),d.getDate()):0;
+      let cls='tcal-dhdr';
+      if(isToday)cls+=' today-col';
+      else if(!work||dayStatus==='off')cls+=' off-col';
+      const sub=isPast?'Pasado':(!work||dayStatus==='off')?'No disponible':dayStatus==='occupied'?'Sin espacios':free>0?`${free} libre${free>1?'s':''}`:'Sin espacios';
+      const subColor=(free>0&&!isToday)?'#2D6A4F':'inherit';
+      html+=`<div class="${cls}"><div class="tcal-dhdr__abbr">${DAYS_SH[i]}</div><div class="tcal-dhdr__num">${d.getDate()}</div><div class="tcal-dhdr__sub" style="color:${subColor}">${sub}</div></div>`;
+    });
+
+    for(let h=8;h<18;h++){
+      html+=`<div class="tcal-tlbl">${fmtTime(h)}</div>`;
+      days.forEach(d=>{
+        const y=d.getFullYear(),m=d.getMonth(),dd=d.getDate();
+        const status=getSlotStatus(y,m,dd,h);
+        let cls='tcal-slot',inner='',attrs='';
+        if(status==='free'){
+          cls+=' free';
+          inner=`<div class="tcal-hint">+ Agendar ${fmtTime(h)}</div>`;
+          attrs=`onclick="openBooking(${y},${m},${dd},${h})" tabindex="0" role="button" aria-label="Disponible ${fmtTime(h)}" onkeydown="if(event.key==='Enter'||event.key===' ')openBooking(${y},${m},${dd},${h})"`;
+        }else if(status==='booked'){
+          cls+=' booked';
+          inner=`<div class="tcal-evt occupied">Ocupado<br><small style="font-weight:400">${fmtTime(h)}–${fmtTime(h+1)}</small></div>`;
+        }else if(status==='my-booking'){
+          cls+=' booked';
+          inner=`<div class="tcal-evt my-booking">✓ Mi cita<br><small style="font-weight:400">${fmtTime(h)}–${fmtTime(h+1)}</small></div>`;
+        }else if(status==='past'){cls+=' past';}
+        else{cls+=' off';}
+        html+=`<div class="${cls}" ${attrs}>${inner}</div>`;
+      });
+    }
+    html+='</div></div>';
+    html+=`<div style="padding:var(--sp-3) var(--sp-5);font-size:.78rem;color:var(--color-text-muted);border-top:1px solid var(--color-border-light);text-align:center;">Haz clic en un espacio libre para ver el precio y agendar &middot; Usa &lsaquo; &rsaquo; para navegar entre semanas</div>`;
+    document.getElementById('tcal-content').innerHTML=html;
+  }
+
+  /* ======== RENDER MENSUAL ======== */
+  function renderMonthly(){
+    document.getElementById('tcal-nav-title').textContent=`${MONTHS[viewMonth]} ${viewYear}`;
+    const firstDow=new Date(viewYear,viewMonth,1).getDay();
+    const daysInMonth=new Date(viewYear,viewMonth+1,0).getDate();
+    const offset=firstDow===0?6:firstDow-1;
+    const DAB=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+    let html=`<div style="padding:var(--sp-5) var(--sp-6);"><div class="tcal-month-grid" style="margin-bottom:var(--sp-4);">`;
+    DAB.forEach(d=>{html+=`<div class="tcal-mhdr">${d}</div>`;});
+    for(let i=0;i<offset;i++)html+='<div class="tcal-mday off"></div>';
+    for(let d=1;d<=daysInMonth;d++){
+      const status=getDayStatus(viewYear,viewMonth,d);
+      const isToday=(viewYear===TODAY.getFullYear()&&viewMonth===TODAY.getMonth()&&d===TODAY.getDate());
+      let cls='tcal-mday',sub='',extra='';
+      if(status==='available'){
+        const free=freeSlots(viewYear,viewMonth,d);
+        cls+=' avail';
+        sub=`<span class="tcal-mday__sub">${free} libre${free!==1?'s':''}</span>`;
+        extra=`onclick="jumpToWeek(${viewYear},${viewMonth},${d})" role="button" tabindex="0"`;
+      }else if(status==='occupied'){cls+=' occupied';sub='<span class="tcal-mday__sub">Sin espacios</span>';}
+      else if(status==='past'){cls+=' off past';}
+      else{cls+=' off';}
+      if(isToday)cls+=' today-cell';
+      html+=`<div class="${cls}" ${extra}><span>${d}</span>${sub}</div>`;
+    }
+    html+=`</div><p style="font-size:.78rem;color:var(--color-text-muted);text-align:center;">Haz clic en un día verde para abrir esa semana</p></div>`;
+    document.getElementById('tcal-content').innerHTML=html;
+  }
+
+  /* ======== RENDER DIARIO ======== */
+  function renderDaily(){
+    const y=viewDay.getFullYear(),m=viewDay.getMonth(),d=viewDay.getDate(),dow=viewDay.getDay();
+    const work=WORK_SCHEDULE[dow],dayStatus=getDayStatus(y,m,d);
+    document.getElementById('tcal-nav-title').textContent=`${DAYS_FULL[dow]}, ${d} de ${MONTHS[m]} ${y}`;
+    const nav=`<div style="display:flex;gap:var(--sp-2);padding:var(--sp-3) var(--sp-5);border-bottom:1px solid var(--color-border-light);">
+      <button class="btn btn-ghost btn-sm" onclick="navigate(-1)">← Anterior</button>
+      <button class="btn btn-ghost btn-sm" onclick="navigate(1)">Siguiente →</button>
+    </div>`;
+    if(!work||dayStatus==='off'){
+      document.getElementById('tcal-content').innerHTML=nav+`<div class="tcal-empty"><div class="tcal-empty__icon">🚫</div><div class="tcal-empty__msg">${!work?`La profesional no atiende los ${DAYS_FULL[dow]}s`:'Este día no está disponible'}</div></div>`;
+      return;
+    }
+    if(dayStatus==='occupied'){
+      document.getElementById('tcal-content').innerHTML=nav+`<div class="tcal-empty"><div class="tcal-empty__icon">⏰</div><div class="tcal-empty__msg">Todos los horarios están ocupados</div></div>`;
+      return;
+    }
+    let html=nav+'<div class="tcal-daily">';
+    for(let h=work.from;h<work.to;h++){
+      const status=getSlotStatus(y,m,d,h);
+      let cellCls='tcal-drow__cell',inner='',attrs='';
+      if(status==='free'){
+        cellCls+=' free';
+        inner=`<div class="tcal-drow-evt free-lbl" style="display:flex;justify-content:space-between;align-items:center;"><span>${fmtTime(h)} – ${fmtTime(h+1)} &middot; Disponible</span><span class="badge badge-success" style="font-size:.72rem;">Agendar →</span></div>`;
+        attrs=`onclick="openBooking(${y},${m},${d},${h})" role="button" tabindex="0"`;
+      }else if(status==='my-booking'){
+        cellCls+=' booked';inner=`<div class="tcal-drow-evt my-lbl">✓ Mi cita · ${fmtTime(h)} – ${fmtTime(h+1)}</div>`;
+      }else if(status==='booked'){
+        cellCls+=' booked';inner=`<div class="tcal-drow-evt occ-lbl">Ocupado · ${fmtTime(h)} – ${fmtTime(h+1)}</div>`;
+      }else if(status==='past'){cellCls+=' past';}
+      else{cellCls+=' off';}
+      html+=`<div class="tcal-drow"><div class="tcal-drow__lbl">${fmtTime(h)}</div><div class="${cellCls}" ${attrs}>${inner}</div></div>`;
+    }
+    html+='</div>';
+    document.getElementById('tcal-content').innerHTML=html;
+  }
+
+  /* ======== FLUJO DE AGENDADO ======== */
+  function openBooking(y,m,d,h){
+    pendingBook={y,m,d,h};
+    const dow=new Date(y,m,d).getDay();
+    document.getElementById('bk-date').textContent=`${DAYS_FULL[dow]}, ${d} de ${MONTHS[m]} ${y}`;
+    document.getElementById('bk-time').textContent=`${fmtTime(h)} – ${fmtTime(h+1)}`;
+    document.getElementById('bk-tipo').value='asesoria';
+    document.getElementById('bk-motivo').value='';
+    document.getElementById('bk-motivo-count').textContent='0 / 300';
+    updatePrice();
+    openModal('booking');
+  }
+
+  function updatePrice(){
+    const tipo=document.getElementById('bk-tipo').value;
+    const info=PRICES[tipo]||PRICES.asesoria;
+    const total=info.price+SERVICE_FEE;
+    document.getElementById('bk-tipo-label').textContent=info.label;
+    document.getElementById('bk-price-session').textContent=fmtCOP(info.price);
+    document.getElementById('bk-price-total').textContent=fmtCOP(total);
+    document.getElementById('bk-pay-total').textContent=fmtCOP(total);
+  }
+
+  function goToPay(){
+    if(!pendingBook)return;
+    const tipo=document.getElementById('bk-tipo').value;
+    const motivo=document.getElementById('bk-motivo').value.trim();
+    const info=PRICES[tipo]||PRICES.asesoria;
+    const dow=new Date(pendingBook.y,pendingBook.m,pendingBook.d).getDay();
+    const data={
+      ...pendingBook,tipo,tipoLabel:info.label,motivo,
+      price:info.price,total:info.price+SERVICE_FEE,
+      profName:'Dra. Valentina Ríos',profSpec:'Psicóloga Clínica',
+      dateLabel:`${DAYS_FULL[dow]}, ${pendingBook.d} de ${MONTHS[pendingBook.m]} ${pendingBook.y}`,
+      timeLabel:`${fmtTime(pendingBook.h)} – ${fmtTime(pendingBook.h+1)}`
+    };
+    sessionStorage.setItem('pendingAppointment',JSON.stringify(data));
+    closeModal('booking');
+    window.location.href='pago-cita.html';
+  }
+
+  /* ======== RETORNO DEL PAGO ======== */
+  function checkPaymentReturn(){
+    const params=new URLSearchParams(window.location.search);
+    if(params.get('paid')!=='1')return;
+    const confirmed=JSON.parse(sessionStorage.getItem('confirmedAppointment')||'null');
+    if(confirmed){
+      const{y,m,d,h}=confirmed;
+      const k=dk(y,m,d);
+      if(!BOOKED_HOURS[k])BOOKED_HOURS[k]=[];
+      BOOKED_HOURS[k].push(h);
+      myBookings.push({y,m,d,h});
+      sessionStorage.removeItem('confirmedAppointment');
+      const dow=new Date(y,m,d).getDay(),mon=new Date(y,m,d);
+      mon.setDate(mon.getDate()-(dow===0?6:dow-1));
+      viewWeekStart=mon;currentView='semanal';
+      window.history.replaceState({},'','orador-calendario.html');
+      setTimeout(()=>{
+        if(typeof showToast==='function')
+          showToast({title:'¡Cita confirmada y pagada! 🎉',message:`${MONTHS[m]} ${d} · ${fmtTime(h)}–${fmtTime(h+1)} · Dra. Valentina Ríos`,type:'success'});
+      },400);
+    }else{window.history.replaceState({},'','orador-calendario.html');}
+  }
+
+  /* ======== INIT ======== */
+  (function init(){
+    const s=typeof Session!=='undefined'?Session.get():null;
+    if(s){
+      const initials=s.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      ['sidebar-avatar','topbar-avatar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=initials;});
+      const sn=document.getElementById('sidebar-name');if(sn)sn.textContent=s.alias||s.nombre;
+    }
+    const ta=document.getElementById('bk-motivo');
+    if(ta)ta.addEventListener('input',()=>{document.getElementById('bk-motivo-count').textContent=`${ta.value.length} / 300`;});
+    if(typeof initSidebar==='function')initSidebar();
+    checkPaymentReturn();
+    setView(currentView);
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Plataforma de Salud Mental</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ======================================================
+     TICKER BAR — Profesional destacado
+     ====================================================== -->
+<div class="ticker-bar" aria-label="Profesional destacado">
+  <div class="ticker-track" aria-live="off">
+    <!-- Duplicado para loop infinito -->
+    <div class="ticker-item">🍀 <strong>Dra. Valentina Ríos</strong> · Psicóloga Clínica · 12 años de experiencia · <span class="ticker-sep">|</span></div>
+    <div class="ticker-item">🎓 Especialista en Terapia Cognitivo-Conductual y manejo de ansiedad <span class="ticker-sep">|</span></div>
+    <div class="ticker-item">📅 Próxima conferencia: <strong>Mindfulness para el estrés laboral</strong> · 15 May 2026 · 6PM <span class="ticker-sep">|</span></div>
+    <div class="ticker-item">🍀 <strong>Dra. Valentina Ríos</strong> · Psicóloga Clínica · 12 años de experiencia · <span class="ticker-sep">|</span></div>
+    <div class="ticker-item">🎓 Especialista en Terapia Cognitivo-Conductual y manejo de ansiedad <span class="ticker-sep">|</span></div>
+    <div class="ticker-item">📅 Próxima conferencia: <strong>Mindfulness para el estrés laboral</strong> · 15 May 2026 · 6PM <span class="ticker-sep">|</span></div>
+  </div>
+</div>
+
+<!-- ======================================================
+     PUBLIC NAVIGATION
+     ====================================================== -->
+<nav class="public-nav" role="navigation" aria-label="Navegación principal">
+  <a href="index.html" class="public-nav__brand" aria-label="Trébol — Inicio">
+    <div class="public-nav__logo" aria-hidden="true">🍀</div>
+    <span class="public-nav__name">Trébol</span>
+  </a>
+
+  <div class="public-nav__spacer"></div>
+
+  <nav class="public-nav__actions">
+    <a href="login.html" class="btn btn-secondary btn-sm">Iniciar sesión</a>
+    <a href="registro-seleccion.html" class="btn btn-primary btn-sm">Registrarse</a>
+  </nav>
+</nav>
+
+<!-- ======================================================
+     HERO SECTION
+     ====================================================== -->
+<section class="hero" aria-label="Bienvenido a Trébol">
+  <div class="hero__content fade-in-up">
+    <div class="hero__tag">🍀 Plataforma de Salud Mental</div>
+    <h1 class="hero__title">
+      Tu bienestar mental<br>
+      merece <em>atención real</em>
+    </h1>
+    <p class="hero__subtitle">
+      Conectamos personas con psicólogos y terapeutas certificados. Conferencias en vivo, sesiones privadas y una comunidad profesional comprometida con tu bienestar.
+    </p>
+    <div class="hero__actions">
+      <a href="registro-seleccion.html" class="btn btn-accent btn-lg">Comenzar ahora</a>
+      <a href="login.html" class="btn btn-secondary btn-lg" style="background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3);color:white;">Ya tengo cuenta</a>
+    </div>
+    <div class="hero__stats fade-in-up-2">
+      <div>
+        <div class="hero__stat-value">248</div>
+        <div class="hero__stat-label">Profesionales activos</div>
+      </div>
+      <div>
+        <div class="hero__stat-value">1,340</div>
+        <div class="hero__stat-label">Eventos realizados</div>
+      </div>
+      <div>
+        <div class="hero__stat-value">12k+</div>
+        <div class="hero__stat-label">Usuarios registrados</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     ESPECIALIDADES
+     ====================================================== -->
+<section class="public-section alt" aria-label="Especialidades disponibles">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">Especialidades</span>
+      <h2 class="section-title">Encuentra el apoyo que necesitas</h2>
+      <p class="section-subtitle">Profesionales certificados en múltiples áreas de la salud mental, listos para acompañarte.</p>
+    </div>
+    <div class="specialty-grid" role="list">
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">🧠</div>
+        <div class="specialty-card__name">Psicología Clínica</div>
+        <div class="specialty-card__count">68 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">💆</div>
+        <div class="specialty-card__name">Terapia Cognitivo-Conductual</div>
+        <div class="specialty-card__count">52 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">👨‍👩‍👧</div>
+        <div class="specialty-card__name">Psicología Familiar</div>
+        <div class="specialty-card__count">34 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">🌿</div>
+        <div class="specialty-card__name">Mindfulness</div>
+        <div class="specialty-card__count">29 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">😰</div>
+        <div class="specialty-card__name">Ansiedad y Estrés</div>
+        <div class="specialty-card__count">45 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">💔</div>
+        <div class="specialty-card__name">Duelo y Pérdida</div>
+        <div class="specialty-card__count">22 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">🧒</div>
+        <div class="specialty-card__name">Psicología Infantil</div>
+        <div class="specialty-card__count">31 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">🏃</div>
+        <div class="specialty-card__name">Psicología Deportiva</div>
+        <div class="specialty-card__count">18 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">💼</div>
+        <div class="specialty-card__name">Psicología Organizacional</div>
+        <div class="specialty-card__count">24 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">🎨</div>
+        <div class="specialty-card__name">Arteterapia</div>
+        <div class="specialty-card__count">11 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">💊</div>
+        <div class="specialty-card__name">Neuropsicología</div>
+        <div class="specialty-card__count">15 profesionales</div>
+      </div>
+      <div class="specialty-card" role="listitem">
+        <div class="specialty-card__icon">🌈</div>
+        <div class="specialty-card__name">Psicología Positiva</div>
+        <div class="specialty-card__count">27 profesionales</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     TOP 3 EVENTOS
+     ====================================================== -->
+<section class="public-section" aria-label="Eventos más populares">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">🔥 Más solicitados</span>
+      <h2 class="section-title">Eventos destacados</h2>
+      <p class="section-subtitle">Los 3 eventos con mayor número de inscritos activos en la plataforma.</p>
+    </div>
+    <div class="events-ribbon" role="list">
+
+      <!-- Evento #1 -->
+      <article class="event-highlight-card" role="listitem">
+        <div class="event-highlight-card__rank" aria-label="Posición 1">1</div>
+        <div class="event-highlight-card__cover" style="background: linear-gradient(135deg, #1A3C34 0%, #2D6A4F 100%);">
+          <div class="event-highlight-card__cover-text">Mindfulness para el estrés laboral</div>
+        </div>
+        <div class="event-highlight-card__body">
+          <div class="d-flex items-center gap-2" style="margin-bottom:8px;">
+            <div class="avatar avatar-sm" style="font-size:0.65rem;">VR</div>
+            <span class="text-sm text-secondary">Dra. Valentina Ríos</span>
+            <span class="badge badge-success" style="margin-left:auto;">Abierta</span>
+          </div>
+          <div class="event-highlight-card__meta">
+            <span>📅 15 May 2026</span>
+            <span>🕕 6PM</span>
+            <span>👥 342 inscritos</span>
+          </div>
+          <div class="d-flex items-center justify-between">
+            <span class="room-card__price free">Entrada libre</span>
+            <span class="text-meta">50 cupos restantes</span>
+          </div>
+        </div>
+        <div class="event-highlight-card__footer">
+          <span class="text-meta">Categoría: Bienestar</span>
+          <a href="login.html" class="btn btn-primary btn-sm">Ver evento</a>
+        </div>
+      </article>
+
+      <!-- Evento #2 -->
+      <article class="event-highlight-card" role="listitem">
+        <div class="event-highlight-card__rank" aria-label="Posición 2">2</div>
+        <div class="event-highlight-card__cover" style="background: linear-gradient(135deg, #1565C0 0%, #1976D2 100%);">
+          <div class="event-highlight-card__cover-text">Manejo de la ansiedad en adultos</div>
+        </div>
+        <div class="event-highlight-card__body">
+          <div class="d-flex items-center gap-2" style="margin-bottom:8px;">
+            <div class="avatar avatar-sm" style="background:#1565C0;font-size:0.65rem;">JM</div>
+            <span class="text-sm text-secondary">Dr. Jorge Morales</span>
+            <span class="badge badge-success" style="margin-left:auto;">Abierta</span>
+          </div>
+          <div class="event-highlight-card__meta">
+            <span>📅 18 May 2026</span>
+            <span>🕑 2PM</span>
+            <span>👥 289 inscritos</span>
+          </div>
+          <div class="d-flex items-center justify-between">
+            <span class="room-card__price">$45.000 COP</span>
+            <span class="text-meta">12 cupos restantes</span>
+          </div>
+        </div>
+        <div class="event-highlight-card__footer">
+          <span class="text-meta">Categoría: Clínica</span>
+          <a href="login.html" class="btn btn-primary btn-sm">Ver evento</a>
+        </div>
+      </article>
+
+      <!-- Evento #3 -->
+      <article class="event-highlight-card" role="listitem">
+        <div class="event-highlight-card__rank" aria-label="Posición 3">3</div>
+        <div class="event-highlight-card__cover" style="background: linear-gradient(135deg, #6A1B4D 0%, #8B2252 100%);">
+          <div class="event-highlight-card__cover-text">Terapia familiar: comunicación efectiva</div>
+        </div>
+        <div class="event-highlight-card__body">
+          <div class="d-flex items-center gap-2" style="margin-bottom:8px;">
+            <div class="avatar avatar-sm" style="background:#6A1B4D;font-size:0.65rem;">CL</div>
+            <span class="text-sm text-secondary">Dra. Carolina López</span>
+            <span class="badge badge-success" style="margin-left:auto;">Abierta</span>
+          </div>
+          <div class="event-highlight-card__meta">
+            <span>📅 22 May 2026</span>
+            <span>🕟 4:30PM</span>
+            <span>👥 201 inscritos</span>
+          </div>
+          <div class="d-flex items-center justify-between">
+            <span class="room-card__price">$35.000 COP</span>
+            <span class="text-meta">28 cupos restantes</span>
+          </div>
+        </div>
+        <div class="event-highlight-card__footer">
+          <span class="text-meta">Categoría: Familiar</span>
+          <a href="login.html" class="btn btn-primary btn-sm">Ver evento</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================
+     CTA SECTION
+     ====================================================== -->
+<section style="background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-primary-light) 100%);padding:var(--sp-16) var(--sp-8);">
+  <div class="container text-center">
+    <h2 style="font-family:var(--font-display);font-size:clamp(1.5rem,3vw,2.25rem);color:white;margin-bottom:var(--sp-4);">
+      ¿Eres profesional de la salud mental?
+    </h2>
+    <p style="color:rgba(255,255,255,0.75);font-size:1.0625rem;margin-bottom:var(--sp-8);max-width:560px;margin-left:auto;margin-right:auto;">
+      Únete a Trébol y llega a miles de personas que buscan apoyo profesional. Crea salas, dicta conferencias y gestiona tus citas privadas.
+    </p>
+    <a href="registro-seleccion.html" class="btn btn-accent btn-lg">Registrarme como profesional</a>
+  </div>
+</section>
+
+<!-- ======================================================
+     FOOTER
+     ====================================================== -->
+<footer class="public-footer" role="contentinfo">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand-name">🍀 Trébol</div>
+      <p style="font-size:0.9rem;line-height:1.75;max-width:300px;margin-bottom:var(--sp-4);">
+        Plataforma de salud mental que conecta personas con profesionales certificados en Colombia y Latinoamérica.
+      </p>
+      <div class="tag-list">
+        <span class="badge badge-primary">Telepsicología</span>
+        <span class="badge badge-primary">COLPSIC</span>
+        <span class="badge badge-primary">Certificados</span>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Plataforma</div>
+      <a href="#" class="footer-link">Cómo funciona</a>
+      <a href="#" class="footer-link">Buscar profesionales</a>
+      <a href="#" class="footer-link">Salas activas</a>
+      <a href="#" class="footer-link">Conferencias</a>
+    </div>
+    <div>
+      <div class="footer-col-title">Para profesionales</div>
+      <a href="registro-seleccion.html" class="footer-link">Registrarme</a>
+      <a href="#" class="footer-link">Verificación COLPSIC</a>
+      <a href="#" class="footer-link">Crear salas</a>
+      <a href="#" class="footer-link">Ingresos</a>
+    </div>
+    <div>
+      <div class="footer-col-title">Legal</div>
+      <a href="#" class="footer-link">Términos y condiciones</a>
+      <a href="#" class="footer-link">Política de privacidad</a>
+      <a href="#" class="footer-link">Protección de datos</a>
+      <a href="#" class="footer-link">Contacto</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Trébol. Todos los derechos reservados.</span>
+    <span>Hecho con 🍀 para el bienestar mental</span>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>

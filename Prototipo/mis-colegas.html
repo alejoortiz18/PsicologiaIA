@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Mis colegas</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .colega-tip {
+      background: var(--color-accent-pale);
+      border: 1px solid var(--color-accent-light);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-4) var(--sp-5);
+      margin-bottom: var(--sp-6);
+      display: flex;
+      gap: var(--sp-4);
+      align-items: flex-start;
+    }
+    .colega-tip__icon { font-size: 1.5rem; flex-shrink: 0; }
+    .colega-tip__text { font-size: 0.875rem; color: var(--color-primary); line-height: 1.6; }
+    .colega-tip__text strong { font-weight: 700; }
+
+    .colega-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-xl);
+      padding: var(--sp-5);
+      display: flex;
+      gap: var(--sp-4);
+      align-items: flex-start;
+      transition: box-shadow .18s;
+      box-shadow: var(--shadow-sm);
+    }
+    .colega-card:hover { box-shadow: var(--shadow-md); }
+    .colega-card__avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .colega-card__body { flex: 1; min-width: 0; }
+    .colega-card__name { font-weight: 700; font-size: 1rem; color: var(--color-text-primary); margin-bottom: 2px; }
+    .colega-card__role { font-size: .82rem; color: var(--color-text-secondary); margin-bottom: var(--sp-2); }
+    .colega-card__tags { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+    .colega-card__shared {
+      font-size: .8rem;
+      color: var(--color-accent);
+      font-weight: 600;
+      display: flex; align-items: center; gap: var(--sp-2);
+      margin-bottom: var(--sp-3);
+    }
+    .colega-card__actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+    .colega-card__status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .78rem; color: var(--color-text-muted);
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-text-muted); }
+    .status-dot.online { background: #27ae60; }
+    .status-dot.busy   { background: #e67e22; }
+
+    .empty-state {
+      text-align: center;
+      padding: var(--sp-16) var(--sp-8);
+      color: var(--color-text-muted);
+    }
+    .empty-state__icon { font-size: 4rem; margin-bottom: var(--sp-4); }
+    .empty-state__title { font-size: 1.25rem; font-weight: 700; color: var(--color-text-secondary); margin-bottom: var(--sp-2); }
+
+    .colega-list { display: flex; flex-direction: column; gap: var(--sp-4); }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio
+        </a>
+        <a href="mis-eventos.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🎪</span>Mis eventos
+        </a>
+        <div class="nav-item open" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="true">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div id="submenu-colegas" class="nav-submenu" style="display:block;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-colegas.html" class="nav-item active" aria-current="page">Mis colegas</a>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section__label">Mi gestión</div>
+        <a href="citas-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>Mis citas
+        </a>
+        <a href="perfil-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+        <a href="perfil-pro-calendario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🗓</span>Calendario
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" id="sidebar-avatar">VR</div>
+        <div>
+          <div class="sidebar__user-name" id="sidebar-name">Dra. Valentina Ríos</div>
+          <div class="sidebar__user-role">Profesional</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-sm topbar__menu-btn" aria-label="Abrir menú">☰</button>
+      <span class="topbar__title">Mis colegas</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm" id="topbar-avatar">VR</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+
+      <!-- Page header -->
+      <div class="page-header mb-6">
+        <nav class="breadcrumb" aria-label="Ruta">
+          <a href="home-profesional.html">Inicio</a>
+          <span class="breadcrumb__sep" aria-hidden="true">›</span>
+          <a href="#">Profesionales</a>
+          <span class="breadcrumb__sep" aria-hidden="true">›</span>
+          <span>Mis colegas</span>
+        </nav>
+        <h1 style="color:var(--color-primary);">Mis colegas</h1>
+        <p style="color:var(--color-text-secondary);margin-top:4px;">
+          Profesionales vinculados — comparte pacientes, coordina derivaciones y trabaja en equipo.
+        </p>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid mb-6" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">🤝</div>
+          <div>
+            <div class="stat-card__label">Colegas vinculados</div>
+            <div class="stat-card__value" id="count-total">3</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">👤</div>
+          <div>
+            <div class="stat-card__label">Pacientes compartidos</div>
+            <div class="stat-card__value" id="count-pacientes">5</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">🔀</div>
+          <div>
+            <div class="stat-card__label">Derivaciones activas</div>
+            <div class="stat-card__value" id="count-deriv">2</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tip -->
+      <div class="colega-tip">
+        <div class="colega-tip__icon">💡</div>
+        <div class="colega-tip__text">
+          <strong>¿Qué son los colegas?</strong><br>
+          Son los profesionales con quienes tienes una colaboración activa dentro de Trébol — ya sea compartiendo el seguimiento de un paciente, realizando derivaciones o coordinando sesiones conjuntas. Puedes vincular a un colega desde su perfil público o enviándole una solicitud de vinculación.
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="prof-filter-bar" role="search" style="margin-bottom:var(--sp-5);">
+        <div class="filter-search">
+          <input type="search" id="filter-search" placeholder="Buscar colega…"
+            aria-label="Buscar colegas" oninput="applyFilters()">
+        </div>
+        <select id="filter-tipo" onchange="applyFilters()" aria-label="Filtrar por tipo">
+          <option value="">Todos los tipos</option>
+          <option value="psicologo">Psicólogos</option>
+          <option value="especialista">Especialistas</option>
+        </select>
+        <select id="filter-estado" onchange="applyFilters()" aria-label="Filtrar por estado">
+          <option value="">Cualquier estado</option>
+          <option value="online">En línea</option>
+          <option value="busy">Ocupado</option>
+          <option value="offline">Desconectado</option>
+        </select>
+      </div>
+
+      <div id="results-info" style="font-size:.8125rem;color:var(--color-text-muted);margin-bottom:var(--sp-4);"></div>
+
+      <!-- Lista de colegas -->
+      <div class="colega-list" id="colega-list" aria-live="polite" aria-label="Lista de colegas">
+
+        <!-- Colega 1 -->
+        <article class="colega-card" data-tipo="psicologo" data-estado="online" data-nombre="dr. carlos mendoza">
+          <div class="colega-card__avatar" style="background:#2D4A8F;">CM</div>
+          <div class="colega-card__body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3);">
+              <div>
+                <div class="colega-card__name">Dr. Carlos Mendoza</div>
+                <div class="colega-card__role">Psicólogo · Ansiedad y Estrés laboral</div>
+              </div>
+              <div class="colega-card__status">
+                <span class="status-dot online"></span>
+                En línea
+              </div>
+            </div>
+            <div class="colega-card__tags">
+              <span class="badge badge-primary" style="font-size:.75rem;">TCC</span>
+              <span class="badge badge-muted" style="font-size:.75rem;">ACT</span>
+              <span class="badge badge-muted" style="font-size:.75rem;">Adultos</span>
+            </div>
+            <div class="colega-card__shared">
+              <span>👤</span> 2 pacientes compartidos &nbsp;·&nbsp;
+              <span>🔀</span> 1 derivación activa
+            </div>
+            <div class="colega-card__actions">
+              <button class="btn btn-primary btn-sm" onclick="verPacientesCompartidos('Dr. Carlos Mendoza')">Ver pacientes</button>
+              <button class="btn btn-secondary btn-sm" onclick="abrirChat('Dr. Carlos Mendoza')">💬 Mensaje</button>
+              <button class="btn btn-ghost btn-sm" onclick="verPerfil('perfil-orador.html')">Ver perfil</button>
+              <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="desvincularColega('Dr. Carlos Mendoza')">Desvincular</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Colega 2 -->
+        <article class="colega-card" data-tipo="especialista" data-estado="busy" data-nombre="dra. ana sofía paredes">
+          <div class="colega-card__avatar" style="background:#8E44AD;">AP</div>
+          <div class="colega-card__body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3);">
+              <div>
+                <div class="colega-card__name">Dra. Ana Sofía Paredes</div>
+                <div class="colega-card__role">Neuropsicóloga · Evaluación y Rehabilitación</div>
+              </div>
+              <div class="colega-card__status">
+                <span class="status-dot busy"></span>
+                En consulta
+              </div>
+            </div>
+            <div class="colega-card__tags">
+              <span class="badge badge-primary" style="font-size:.75rem;">Neuropsicología</span>
+              <span class="badge badge-muted" style="font-size:.75rem;">Evaluación</span>
+              <span class="badge badge-muted" style="font-size:.75rem;">Niños y adultos</span>
+            </div>
+            <div class="colega-card__shared">
+              <span>👤</span> 2 pacientes compartidos &nbsp;·&nbsp;
+              <span>🔀</span> 1 derivación activa
+            </div>
+            <div class="colega-card__actions">
+              <button class="btn btn-primary btn-sm" onclick="verPacientesCompartidos('Dra. Ana Sofía Paredes')">Ver pacientes</button>
+              <button class="btn btn-secondary btn-sm" onclick="abrirChat('Dra. Ana Sofía Paredes')">💬 Mensaje</button>
+              <button class="btn btn-ghost btn-sm" onclick="verPerfil('perfil-orador.html')">Ver perfil</button>
+              <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="desvincularColega('Dra. Ana Sofía Paredes')">Desvincular</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Colega 3 -->
+        <article class="colega-card" data-tipo="especialista" data-estado="offline" data-nombre="lic. miguel torres">
+          <div class="colega-card__avatar" style="background:#1A7A5C;">MT</div>
+          <div class="colega-card__body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3);">
+              <div>
+                <div class="colega-card__name">Lic. Miguel Torres</div>
+                <div class="colega-card__role">Terapeuta Ocupacional · Integración sensorial</div>
+              </div>
+              <div class="colega-card__status">
+                <span class="status-dot"></span>
+                Desconectado
+              </div>
+            </div>
+            <div class="colega-card__tags">
+              <span class="badge badge-primary" style="font-size:.75rem;">T. Ocupacional</span>
+              <span class="badge badge-muted" style="font-size:.75rem;">Sensorial</span>
+              <span class="badge badge-muted" style="font-size:.75rem;">Infancia</span>
+            </div>
+            <div class="colega-card__shared">
+              <span>👤</span> 1 paciente compartido &nbsp;·&nbsp;
+              <span>🔀</span> Sin derivaciones activas
+            </div>
+            <div class="colega-card__actions">
+              <button class="btn btn-primary btn-sm" onclick="verPacientesCompartidos('Lic. Miguel Torres')">Ver pacientes</button>
+              <button class="btn btn-secondary btn-sm" onclick="abrirChat('Lic. Miguel Torres')">💬 Mensaje</button>
+              <button class="btn btn-ghost btn-sm" onclick="verPerfil('perfil-orador.html')">Ver perfil</button>
+              <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="desvincularColega('Lic. Miguel Torres')">Desvincular</button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- Estado vacío (oculto por defecto) -->
+      <div id="colega-empty" style="display:none;">
+        <div class="empty-state">
+          <div class="empty-state__icon">🤝</div>
+          <div class="empty-state__title">No se encontraron colegas</div>
+          <p>Intenta cambiar los filtros o busca a un colega por nombre.</p>
+        </div>
+      </div>
+
+      <!-- CTA vincular -->
+      <div style="margin-top:var(--sp-8);text-align:center;padding:var(--sp-6);background:var(--color-surface);border:1px dashed var(--color-border-light);border-radius:var(--radius-xl);">
+        <div style="font-size:1.1rem;font-weight:700;color:var(--color-text-primary);margin-bottom:var(--sp-2);">¿Trabajas con otro profesional?</div>
+        <p style="font-size:.9rem;color:var(--color-text-secondary);margin-bottom:var(--sp-4);">Vincúlalo desde su perfil público para coordinar pacientes y derivaciones directamente en Trébol.</p>
+        <div style="display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;">
+          <a href="psicologos.html" class="btn btn-primary">🧠 Buscar psicólogos</a>
+          <a href="especialistas.html" class="btn btn-secondary">🩺 Buscar especialistas</a>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Pacientes compartidos -->
+<div id="pacientes-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pacientes-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title" id="pacientes-title">Pacientes compartidos</div></div>
+      <button class="modal-close" onclick="closeModal('pacientes')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" id="pacientes-body">
+      <!-- populated by JS -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('pacientes')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Desvincular confirmación -->
+<div id="desvincular-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="desvincular-title">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div><div class="modal-title" id="desvincular-title">Desvincular colega</div></div>
+      <button class="modal-close" onclick="closeModal('desvincular')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="desvincular-msg" style="color:var(--color-text-secondary);line-height:1.6;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('desvincular')">Cancelar</button>
+      <button class="btn btn-danger" id="desvincular-confirm-btn">Sí, desvincular</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  if (typeof initSidebar === 'function') initSidebar();
+
+  const s = Session.get();
+  if (s) {
+    const initials = s.nombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('topbar-avatar').textContent = initials;
+    document.getElementById('sidebar-name').textContent = s.nombre;
+  }
+
+  // ── Filtros ────────────────────────────────────────────────────────────────
+  function applyFilters() {
+    const q      = document.getElementById('filter-search').value.toLowerCase();
+    const tipo   = document.getElementById('filter-tipo').value;
+    const estado = document.getElementById('filter-estado').value;
+    const cards  = document.querySelectorAll('#colega-list .colega-card');
+    let visible  = 0;
+
+    cards.forEach(card => {
+      const nombre   = card.dataset.nombre || '';
+      const matchQ   = !q      || nombre.includes(q);
+      const matchT   = !tipo   || card.dataset.tipo === tipo;
+      const matchE   = !estado || card.dataset.estado === estado;
+      const show     = matchQ && matchT && matchE;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    document.getElementById('results-info').textContent =
+      visible === 1 ? '1 colega encontrado' : visible + ' colegas encontrados';
+    document.getElementById('colega-empty').style.display = visible === 0 ? 'block' : 'none';
+  }
+
+  // Inicializar info
+  applyFilters();
+
+  // ── Acciones ──────────────────────────────────────────────────────────────
+  function verPacientesCompartidos(nombre) {
+    document.getElementById('pacientes-title').textContent = 'Pacientes compartidos con ' + nombre;
+    document.getElementById('pacientes-body').innerHTML =
+      '<p style="color:var(--color-text-muted);font-size:.875rem;margin-bottom:var(--sp-4);">Pacientes cuyo seguimiento coordinan ambos profesionales dentro de Trébol.</p>'
+      + '<div style="display:flex;flex-direction:column;gap:var(--sp-3);">'
+      + mockPacientes(nombre)
+      + '</div>'
+      + '<p style="font-size:.8rem;color:var(--color-text-muted);margin-top:var(--sp-4);">🔒 Los datos sensibles solo son visibles según los permisos configurados por cada paciente.</p>';
+    openModal('pacientes');
+  }
+
+  function mockPacientes(nombre) {
+    const pacs = [
+      { alias: 'Luna Verde',  motivo: 'Seguimiento ansiedad',        desde: 'Mar 2026' },
+      { alias: 'Anónimo #4',  motivo: 'Derivación — evaluación',     desde: 'Abr 2026' },
+    ];
+    if (nombre === 'Lic. Miguel Torres') pacs.splice(1, 1);
+    return pacs.map(p =>
+      '<div style="display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3) 0;border-bottom:1px solid var(--color-border-light);">'
+      + '<div class="avatar avatar-sm" style="background:var(--color-accent);color:white;font-size:.75rem;">' + p.alias.slice(0,2).toUpperCase() + '</div>'
+      + '<div><div style="font-weight:600;font-size:.9rem;">' + p.alias + '</div>'
+      + '<div class="text-meta" style="font-size:.8rem;">' + p.motivo + ' · desde ' + p.desde + '</div></div>'
+      + '</div>'
+    ).join('');
+  }
+
+  function abrirChat(nombre) {
+    showToast({ title: 'Chat con ' + nombre + ' disponible en la versión final', type: 'info' });
+  }
+
+  function verPerfil(url) {
+    window.location.href = url;
+  }
+
+  function desvincularColega(nombre) {
+    document.getElementById('desvincular-msg').innerHTML =
+      '¿Estás seguro de que deseas desvincular a <strong>' + nombre + '</strong>?<br>'
+      + 'Se perderán los vínculos de pacientes compartidos y derivaciones activas con este colega.';
+    document.getElementById('desvincular-confirm-btn').onclick = function () {
+      closeModal('desvincular');
+      showToast({ title: nombre + ' desvinculado correctamente', type: 'info' });
+    };
+    openModal('desvincular');
+  }
+</script>
+</body>
+</html>

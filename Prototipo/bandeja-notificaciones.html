@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Bandeja de notificaciones · alejo@yopmail.com</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .inbox-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: 100vh;
+      background: var(--color-background);
+    }
+
+    /* === Sidebar del correo === */
+    .inbox-sidebar {
+      background: var(--color-primary);
+      display: flex;
+      flex-direction: column;
+      padding: var(--sp-6) 0;
+      border-right: 1px solid var(--sidebar-border);
+    }
+    .inbox-sidebar__header {
+      padding: 0 var(--sp-6) var(--sp-6);
+      border-bottom: 1px solid var(--sidebar-border);
+      margin-bottom: var(--sp-4);
+    }
+    .inbox-sidebar__logo {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: #fff;
+      margin-bottom: var(--sp-3);
+    }
+    .inbox-sidebar__account {
+      background: rgba(255,255,255,0.08);
+      border-radius: var(--radius-md);
+      padding: var(--sp-3) var(--sp-4);
+    }
+    .inbox-sidebar__account-label {
+      font-size: 0.6875rem;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .inbox-sidebar__account-email {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.9);
+      font-weight: 600;
+    }
+    .inbox-sidebar__account-role {
+      font-size: 0.75rem;
+      color: var(--color-accent);
+      margin-top: 2px;
+    }
+
+    .inbox-folder {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-3) var(--sp-6);
+      color: rgba(255,255,255,0.7);
+      font-size: 0.875rem;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background var(--transition-fast);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .inbox-folder:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .inbox-folder.active { background: rgba(82,183,136,0.2); color: #fff; font-weight: 600; }
+    .inbox-folder__badge {
+      margin-left: auto;
+      background: var(--color-danger);
+      color: #fff;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .inbox-sidebar__compose {
+      margin: var(--sp-6);
+    }
+
+    /* === Lista de mensajes === */
+    .inbox-main {
+      display: grid;
+      grid-template-rows: 64px 1fr;
+      overflow: hidden;
+    }
+    .inbox-topbar {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+      padding: 0 var(--sp-6);
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .inbox-topbar__title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+    .inbox-topbar__spacer { flex: 1; }
+    .inbox-search {
+      position: relative;
+    }
+    .inbox-search input {
+      padding: var(--sp-2) var(--sp-4) var(--sp-2) 36px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      font-size: 0.8125rem;
+      width: 240px;
+      background: var(--color-background);
+      color: var(--color-text-primary);
+      font-family: var(--font-body);
+    }
+    .inbox-search input:focus { outline: none; border-color: var(--color-accent); }
+    .inbox-search::before {
+      content: '🔍';
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.875rem;
+      pointer-events: none;
+    }
+
+    .inbox-body {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      overflow: hidden;
+    }
+
+    /* Lista de emails */
+    .email-list {
+      border-right: 1px solid var(--color-border-light);
+      overflow-y: auto;
+      background: var(--color-surface);
+    }
+    .email-item {
+      display: flex;
+      gap: var(--sp-3);
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--color-border-light);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+      position: relative;
+    }
+    .email-item:hover { background: var(--color-background); }
+    .email-item.selected { background: var(--color-accent-pale); border-left: 3px solid var(--color-accent); }
+    .email-item.unread { background: rgba(82,183,136,0.04); }
+    .email-item.unread .email-item__sender { font-weight: 700; }
+    .email-item.unread::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--color-accent);
+    }
+
+    .email-item__avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .email-item__avatar.type-reg { background: var(--color-info); }
+    .email-item__avatar.type-sys { background: var(--color-warning); }
+
+    .email-item__content { flex: 1; min-width: 0; }
+    .email-item__sender { font-size: 0.875rem; color: var(--color-text-primary); margin-bottom: 2px; }
+    .email-item__subject { font-size: 0.8125rem; color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .email-item__date { font-size: 0.6875rem; color: var(--color-text-muted); margin-top: 4px; }
+
+    /* Panel de lectura */
+    .email-reader {
+      overflow-y: auto;
+      padding: var(--sp-8) var(--sp-10);
+      background: var(--color-background);
+    }
+    .email-reader__empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--color-text-muted);
+      text-align: center;
+      gap: var(--sp-4);
+    }
+    .email-reader__empty-icon { font-size: 3rem; }
+
+    .email-reader__header {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-6);
+      margin-bottom: var(--sp-6);
+      box-shadow: var(--shadow-sm);
+    }
+    .email-reader__subject {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--sp-4);
+    }
+    .email-reader__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-4);
+      font-size: 0.8125rem;
+      color: var(--color-text-secondary);
+      padding-bottom: var(--sp-4);
+      border-bottom: 1px solid var(--color-border-light);
+      margin-bottom: var(--sp-4);
+    }
+    .email-reader__meta span strong { color: var(--color-text-primary); }
+    .email-reader__actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+
+    .email-reader__body {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-6);
+      box-shadow: var(--shadow-sm);
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      color: var(--color-text-primary);
+    }
+    .email-reader__body ul { padding-left: var(--sp-6); margin: var(--sp-4) 0; }
+    .email-reader__body li { margin-bottom: var(--sp-2); }
+
+    /* Aprobación de profesional */
+    .approval-box {
+      background: var(--color-info-pale);
+      border: 1px solid #90caf9;
+      border-radius: var(--radius-md);
+      padding: var(--sp-5);
+      margin-top: var(--sp-6);
+    }
+    .approval-box__title {
+      font-weight: 700;
+      color: var(--color-info);
+      margin-bottom: var(--sp-3);
+      font-size: 0.9375rem;
+    }
+
+    /* Estado vacío de lista */
+    .email-list__empty {
+      padding: var(--sp-10) var(--sp-6);
+      text-align: center;
+      color: var(--color-text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* Badge de tipo */
+    .email-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      background: var(--color-info-pale);
+      color: var(--color-info);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .email-type-badge.reg { background: var(--color-info-pale); color: var(--color-info); }
+    .email-type-badge.sys { background: var(--color-warning-pale); color: var(--color-warning); }
+  </style>
+</head>
+<body>
+
+<div class="inbox-layout">
+
+  <!-- ============================================================
+       SIDEBAR — Bandeja
+       ============================================================ -->
+  <aside class="inbox-sidebar">
+    <div class="inbox-sidebar__header">
+      <div class="inbox-sidebar__logo">
+        <span>🍀</span>
+        <span>Trébol — Admin</span>
+      </div>
+      <div class="inbox-sidebar__account">
+        <div class="inbox-sidebar__account-label">Cuenta activa</div>
+        <div class="inbox-sidebar__account-email">alejo@yopmail.com</div>
+        <div class="inbox-sidebar__account-role">Administrador del sistema</div>
+      </div>
+    </div>
+
+    <button class="inbox-folder active" id="folder-inbox" onclick="setFolder('inbox')">
+      📥 Recibidos
+      <span class="inbox-folder__badge" id="badge-inbox">0</span>
+    </button>
+    <button class="inbox-folder" id="folder-registros" onclick="setFolder('registros')">
+      🪪 Registros profesionales
+    </button>
+    <button class="inbox-folder" id="folder-leidos" onclick="setFolder('leidos')">
+      📂 Leídos
+    </button>
+
+    <div style="margin-top:auto;padding:var(--sp-6);">
+      <a href="index.html" class="btn btn-secondary w-full" style="font-size:0.8125rem;">← Volver al inicio</a>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       MAIN — Lista + Lector
+       ============================================================ -->
+  <div class="inbox-main">
+
+    <!-- Topbar -->
+    <div class="inbox-topbar">
+      <div class="inbox-topbar__title" id="folder-title">Recibidos</div>
+      <div class="inbox-topbar__spacer"></div>
+      <div class="inbox-search">
+        <input type="search" id="inbox-search" placeholder="Buscar mensajes…" oninput="filterEmails(this.value)">
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="markAllRead()" title="Marcar todo como leído">✓ Marcar todo leído</button>
+    </div>
+
+    <!-- Cuerpo dividido en 2 columnas -->
+    <div class="inbox-body">
+
+      <!-- Lista de emails -->
+      <div class="email-list" id="email-list">
+        <!-- Se genera con JS -->
+      </div>
+
+      <!-- Panel de lectura -->
+      <div class="email-reader" id="email-reader">
+        <div class="email-reader__empty" id="reader-empty">
+          <div class="email-reader__empty-icon">📬</div>
+          <div style="font-size:1rem;font-weight:600;color:var(--color-text-secondary);">Selecciona un mensaje</div>
+          <div>Haz clic en cualquier correo de la lista para leerlo aquí.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación de aprobación -->
+<div id="approve-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="approve-modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon success">✅</div>
+      <div>
+        <div class="modal-title" id="approve-modal-title">Aprobar profesional</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('approve-modal')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="approve-modal-msg">¿Confirmas la aprobación de este profesional?</p>
+      <p class="text-sm" style="color:var(--color-text-muted);margin-top:8px;">
+        Se activará la cuenta y el profesional recibirá notificación por correo para crear su contraseña.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('approve-modal')">Cancelar</button>
+      <button class="btn btn-primary" id="approve-confirm-btn">Aprobar cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de rechazo -->
+<div id="reject-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reject-modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon danger">❌</div>
+      <div>
+        <div class="modal-title" id="reject-modal-title">Rechazar solicitud</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('reject-modal')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="reject-reason">Motivo del rechazo</label>
+        <textarea id="reject-reason" class="form-control" rows="3"
+          placeholder="Ej: Documentos incompletos, tarjeta profesional inválida…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('reject-modal')">Cancelar</button>
+      <button class="btn btn-danger" id="reject-confirm-btn" style="min-width:120px;">Rechazar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  /* ================================================================
+     INBOX STATE
+     ================================================================ */
+  let currentFolder  = 'inbox';
+  let currentEmailId = null;
+  let pendingApprove = null;
+  let pendingReject  = null;
+  let searchTerm     = '';
+
+  /* ================================================================
+     FOLDERS
+     ================================================================ */
+  function setFolder(folder) {
+    currentFolder = folder;
+    currentEmailId = null;
+
+    // Highlight active
+    document.querySelectorAll('.inbox-folder').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('folder-' + folder)?.classList.add('active');
+
+    const titles = { inbox: 'Recibidos', registros: 'Registros profesionales', leidos: 'Leídos' };
+    document.getElementById('folder-title').textContent = titles[folder] || folder;
+
+    renderList();
+    clearReader();
+  }
+
+  /* ================================================================
+     RENDER — Lista de emails
+     ================================================================ */
+  function getFilteredEmails() {
+    let emails = Notificaciones.getAll();
+
+    if (currentFolder === 'registros') {
+      emails = emails.filter(e => e.tipo === 'registro_profesional');
+    } else if (currentFolder === 'leidos') {
+      emails = emails.filter(e => e.leido);
+    } else {
+      // inbox = todos
+    }
+
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      emails = emails.filter(e =>
+        e.asunto.toLowerCase().includes(q) ||
+        e.de.toLowerCase().includes(q) ||
+        (e.datos?.nombre || '').toLowerCase().includes(q)
+      );
+    }
+    return emails;
+  }
+
+  function renderList() {
+    const list = document.getElementById('email-list');
+    const emails = getFilteredEmails();
+
+    // Actualizar badge
+    const noLeidas = Notificaciones.countNoLeidas();
+    const badge = document.getElementById('badge-inbox');
+    badge.textContent = noLeidas;
+    badge.style.display = noLeidas > 0 ? 'inline' : 'none';
+
+    if (emails.length === 0) {
+      list.innerHTML = `<div class="email-list__empty">
+        <div style="font-size:2rem;margin-bottom:8px;">📭</div>
+        No hay mensajes en esta carpeta.
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = emails.map(email => {
+      const initials = email.datos?.nombre
+        ? email.datos.nombre.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase()
+        : email.de.slice(0,2).toUpperCase();
+      const avatarClass = email.tipo === 'registro_profesional' ? 'type-reg' : 'type-sys';
+      const isUnread = !email.leido ? 'unread' : '';
+      const isSelected = email.id === currentEmailId ? 'selected' : '';
+      const dateStr = formatDate(new Date(email.fecha));
+
+      return `
+        <div class="email-item ${isUnread} ${isSelected}"
+          id="email-item-${email.id}"
+          onclick="openEmail('${email.id}')"
+          role="button" tabindex="0"
+          onkeydown="if(event.key==='Enter') openEmail('${email.id}')">
+          <div class="email-item__avatar ${avatarClass}">${initials}</div>
+          <div class="email-item__content">
+            <div class="email-item__sender">${email.datos?.nombre || email.de}</div>
+            <div class="email-item__subject">${email.asunto}</div>
+            <div class="email-item__date">${dateStr} · ${email.de}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ================================================================
+     RENDER — Panel de lectura
+     ================================================================ */
+  function openEmail(emailId) {
+    currentEmailId = emailId;
+    const email = Notificaciones.getAll().find(e => e.id === emailId);
+    if (!email) return;
+
+    // Marcar como leída
+    Notificaciones.marcarLeida(emailId);
+
+    // Actualizar estado visual en la lista
+    const item = document.getElementById('email-item-' + emailId);
+    if (item) {
+      item.classList.remove('unread');
+      item.classList.add('selected');
+      // Deseleccionar otros
+      document.querySelectorAll('.email-item.selected').forEach(el => {
+        if (el !== item) el.classList.remove('selected');
+      });
+    }
+
+    // Refrescar badge
+    const noLeidas = Notificaciones.countNoLeidas();
+    const badge = document.getElementById('badge-inbox');
+    badge.textContent = noLeidas;
+    badge.style.display = noLeidas > 0 ? 'inline' : 'none';
+
+    // Renderizar panel
+    const reader = document.getElementById('email-reader');
+    const dateStr = formatDate(new Date(email.fecha));
+    const timeStr = new Date(email.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    const typeBadge = email.tipo === 'registro_profesional'
+      ? '<span class="email-type-badge reg">🪪 Registro profesional</span>'
+      : '<span class="email-type-badge sys">⚙️ Sistema</span>';
+
+    const approvedBadge = email.aprobado
+      ? '<span class="badge badge-success" style="margin-left:8px;">✓ Aprobado</span>'
+      : '';
+
+    let actionButtons = '';
+    if (email.tipo === 'registro_profesional' && !email.aprobado) {
+      actionButtons = `
+        <button class="btn btn-primary btn-sm" onclick="promptApprove('${email.id}')">
+          ✓ Aprobar profesional
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="promptReject('${email.id}')">
+          ✕ Rechazar
+        </button>`;
+    }
+
+    reader.innerHTML = `
+      <div class="email-reader__header">
+        <div class="email-reader__subject">
+          ${email.asunto} ${approvedBadge}
+        </div>
+        <div class="email-reader__meta">
+          <span>${typeBadge}</span>
+          <span><strong>De:</strong> ${email.de}</span>
+          <span><strong>Para:</strong> ${email.para}</span>
+          <span><strong>Fecha:</strong> ${dateStr} · ${timeStr}</span>
+        </div>
+        ${actionButtons ? `<div class="email-reader__actions">${actionButtons}</div>` : ''}
+      </div>
+      <div class="email-reader__body">
+        ${email.cuerpo}
+      </div>`;
+  }
+
+  function clearReader() {
+    document.getElementById('email-reader').innerHTML = `
+      <div class="email-reader__empty" id="reader-empty">
+        <div class="email-reader__empty-icon">📬</div>
+        <div style="font-size:1rem;font-weight:600;color:var(--color-text-secondary);">Selecciona un mensaje</div>
+        <div>Haz clic en cualquier correo de la lista para leerlo aquí.</div>
+      </div>`;
+  }
+
+  /* ================================================================
+     APROBAR / RECHAZAR profesional
+     ================================================================ */
+  function promptApprove(notifId) {
+    pendingApprove = notifId;
+    const email = Notificaciones.getAll().find(e => e.id === notifId);
+    document.getElementById('approve-modal-msg').textContent =
+      `¿Confirmas la aprobación de ${email?.datos?.nombre || 'este profesional'}?`;
+    openModal('approve-modal');
+  }
+
+  function promptReject(notifId) {
+    pendingReject = notifId;
+    document.getElementById('reject-reason').value = '';
+    openModal('reject-modal');
+  }
+
+  document.getElementById('approve-confirm-btn').addEventListener('click', () => {
+    if (!pendingApprove) return;
+    Notificaciones.aprobar(pendingApprove);
+    closeModal('approve-modal');
+    pendingApprove = null;
+    showToast({ title: '¡Profesional aprobado!', message: 'La cuenta ha sido activada.', type: 'success' });
+    renderList();
+    // Reabrir el email para actualizar el badge de aprobado
+    if (currentEmailId) openEmail(currentEmailId);
+  });
+
+  document.getElementById('reject-confirm-btn').addEventListener('click', () => {
+    if (!pendingReject) return;
+    // En demo, sólo cerramos
+    Notificaciones.marcarLeida(pendingReject);
+    closeModal('reject-modal');
+    pendingReject = null;
+    showToast({ title: 'Solicitud rechazada', message: 'Se ha notificado al solicitante.', type: 'warning' });
+    renderList();
+  });
+
+  /* ================================================================
+     BÚSQUEDA
+     ================================================================ */
+  function filterEmails(val) {
+    searchTerm = val;
+    renderList();
+  }
+
+  function markAllRead() {
+    Notificaciones.marcarTodasLeidas();
+    renderList();
+    showToast({ title: 'Todos los mensajes marcados como leídos', type: 'info' });
+  }
+
+  /* ================================================================
+     INIT
+     ================================================================ */
+  renderList();
+</script>
+</body>
+</html>

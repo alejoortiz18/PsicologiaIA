@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Mi perfil · Calendario</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="#" class="nav-item"><span class="nav-item__icon">🏠</span>Inicio</a>
+        <a href="mis-eventos.html" class="nav-item"><span class="nav-item__icon">🎪</span>Mis eventos</a>
+        <div class="nav-item" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="false">
+          <span class="nav-item__icon">👥</span>Profesionales<span class="nav-toggle">▾</span>
+        </div>
+        <div id="submenu-colegas" class="nav-submenu" style="display:none;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-colegas.html" class="nav-item">Mis colegas</a>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="perfil-profesional.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon">👤</span>Mi perfil
+        </a>
+        <a href="perfil-pro-citas.html" class="nav-item"><span class="nav-item__icon">📅</span>Citas</a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" id="sidebar-avatar" style="background:var(--color-primary);">VR</div>
+        <div>
+          <div class="sidebar__user-name" id="sidebar-name">Dra. Valentina Ríos</div>
+          <div class="sidebar__user-role">Profesional</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú" style="display:none;">☰</button>
+      <span class="topbar__title">Mi perfil profesional</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm" id="topbar-avatar" style="background:var(--color-primary);">VR</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Profile header -->
+      <section style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6) var(--sp-8);margin-bottom:var(--sp-5);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);display:flex;gap:var(--sp-6);align-items:center;flex-wrap:wrap;">
+        <div class="avatar avatar-2xl" id="pro-avatar" style="background:var(--color-primary);">VR</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:4px;">
+            <h1 id="pro-nombre" style="font-family:var(--font-display);color:var(--color-primary);font-size:1.625rem;">Dra. Valentina Ríos</h1>
+            <span class="badge badge-success" style="font-size:0.75rem;">✓ Verificada</span>
+          </div>
+          <div class="text-meta" style="margin-bottom:var(--sp-4);">Psicóloga Clínica · Tarjeta COLPSIC: <strong>PSI-0001234</strong></div>
+          <div style="display:flex;gap:var(--sp-8);">
+            <div style="text-align:center;"><div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">1 248</div><div class="text-meta">Seguidores</div></div>
+            <div style="text-align:center;"><div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">28</div><div class="text-meta">Salas</div></div>
+            <div style="text-align:center;"><div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">3</div><div class="text-meta">Citas próximas</div></div>
+          </div>
+        </div>
+        <a href="perfil-orador.html" class="btn btn-secondary btn-sm">👁 Ver perfil público</a>
+      </section>
+
+      <!-- Horizontal tabs -->
+      <nav class="prof-tabs-bar" aria-label="Secciones del perfil" style="margin-bottom:var(--sp-5);">
+        <ul class="prof-tabs-bar__list" role="tablist">
+          <li><a href="perfil-profesional.html" class="prof-tab-link"><span class="tab-icon">👤</span>Información personal</a></li>
+          <li><a href="perfil-pro-salas.html" class="prof-tab-link"><span class="tab-icon">🎪</span>Salas y eventos<span class="tab-badge">28</span></a></li>
+          <li><a href="perfil-pro-calendario.html" class="prof-tab-link active" aria-current="page"><span class="tab-icon">🗓</span>Calendario</a></li>
+          <li><a href="perfil-pro-citas.html" class="prof-tab-link"><span class="tab-icon">📅</span>Citas<span class="tab-badge">3</span></a></li>
+          <li><a href="perfil-pro-kpi.html" class="prof-tab-link"><span class="tab-icon">📊</span>Indicadores</a></li>
+        </ul>
+      </nav>
+
+      <!-- ── TAB CONTENT: Calendario ── -->
+
+      <!-- Toolbar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);flex-wrap:wrap;margin-bottom:var(--sp-5);">
+        <div>
+          <h2 id="cal-titulo" style="font-size:1.25rem;font-weight:700;color:var(--color-primary);">Mayo 2026</h2>
+          <p class="text-meta" style="margin-top:2px;">Gestiona tu disponibilidad. Haz clic en un día para cambiar su estado.</p>
+        </div>
+        <div style="display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap;">
+          <!-- Legend -->
+          <div style="display:flex;gap:var(--sp-4);align-items:center;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:var(--sp-2);font-size:0.8125rem;font-weight:500;">
+              <div style="width:14px;height:14px;border-radius:3px;background:#C8E6C9;border:1px solid #A5D6A7;"></div>Disponible
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-2);font-size:0.8125rem;font-weight:500;">
+              <div style="width:14px;height:14px;border-radius:3px;background:#FFE0B2;border:1px solid #FFCC80;"></div>Ocupado
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-2);font-size:0.8125rem;font-weight:500;">
+              <div style="width:14px;height:14px;border-radius:3px;background:#FFCDD2;border:1px solid #EF9A9A;"></div>Bloqueado
+            </div>
+          </div>
+          <div style="display:flex;gap:var(--sp-2);">
+            <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="changeMonth(-1)">‹ Anterior</button>
+            <button class="btn btn-ghost btn-sm" id="btn-next" onclick="changeMonth(1)">Siguiente ›</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selector de estado -->
+      <div style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-4);padding:var(--sp-4) var(--sp-5);background:var(--color-surface);border-radius:var(--radius-lg);border:1px solid var(--color-border-light);">
+        <span style="font-size:0.875rem;font-weight:600;color:var(--color-text-secondary);">Marcar días seleccionados como:</span>
+        <button class="btn btn-sm" style="background:#C8E6C9;color:#2D6A4F;border:1px solid #A5D6A7;font-weight:600;" onclick="bulkMark('disponible')">✓ Disponible</button>
+        <button class="btn btn-sm" style="background:#FFE0B2;color:#E65100;border:1px solid #FFCC80;font-weight:600;" onclick="bulkMark('ocupado')">⏰ Ocupado</button>
+        <button class="btn btn-sm" style="background:#FFCDD2;color:#C62828;border:1px solid #EF9A9A;font-weight:600;" onclick="bulkMark('bloqueado')">🚫 Bloqueado</button>
+        <span id="selected-count" style="margin-left:auto;font-size:0.8125rem;color:var(--color-text-muted);">0 días seleccionados</span>
+      </div>
+
+      <!-- Calendar -->
+      <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+        <div id="calendar-grid" class="calendar-grid" role="grid" aria-label="Calendario de disponibilidad">
+          <!-- Day headers -->
+          <div class="calendar-header" role="columnheader">Lun</div>
+          <div class="calendar-header" role="columnheader">Mar</div>
+          <div class="calendar-header" role="columnheader">Mié</div>
+          <div class="calendar-header" role="columnheader">Jue</div>
+          <div class="calendar-header" role="columnheader">Vie</div>
+          <div class="calendar-header" role="columnheader">Sáb</div>
+          <div class="calendar-header" role="columnheader">Dom</div>
+          <!-- Days rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Weekly schedule section -->
+      <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6) var(--sp-8);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);margin-top:var(--sp-6);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-5);">
+          <div>
+            <h3 style="font-size:1.0625rem;font-weight:700;color:var(--color-primary);">🕐 Horario semanal</h3>
+            <p class="text-meta" style="margin-top:2px;">Configura los horarios en que aceptas citas</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="showToast({title:'Horarios guardados',type:'success'})">Guardar horario</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+          <!-- Each day row -->
+          <div class="horario-row" style="display:grid;grid-template-columns:120px 1fr 1fr 80px;gap:var(--sp-4);align-items:center;padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);">
+            <label style="font-weight:600;font-size:0.9rem;color:var(--color-primary);display:flex;align-items:center;gap:var(--sp-2);">
+              <input type="checkbox" checked style="accent-color:var(--color-accent);"> Lunes
+            </label>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Desde</label><input type="time" class="form-control" value="08:00"></div>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Hasta</label><input type="time" class="form-control" value="18:00"></div>
+            <span class="badge badge-success" style="justify-self:center;">Activo</span>
+          </div>
+          <div class="horario-row" style="display:grid;grid-template-columns:120px 1fr 1fr 80px;gap:var(--sp-4);align-items:center;padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);">
+            <label style="font-weight:600;font-size:0.9rem;color:var(--color-primary);display:flex;align-items:center;gap:var(--sp-2);">
+              <input type="checkbox" checked style="accent-color:var(--color-accent);"> Martes
+            </label>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Desde</label><input type="time" class="form-control" value="08:00"></div>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Hasta</label><input type="time" class="form-control" value="18:00"></div>
+            <span class="badge badge-success" style="justify-self:center;">Activo</span>
+          </div>
+          <div class="horario-row" style="display:grid;grid-template-columns:120px 1fr 1fr 80px;gap:var(--sp-4);align-items:center;padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);">
+            <label style="font-weight:600;font-size:0.9rem;color:var(--color-primary);display:flex;align-items:center;gap:var(--sp-2);">
+              <input type="checkbox" checked style="accent-color:var(--color-accent);"> Miércoles
+            </label>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Desde</label><input type="time" class="form-control" value="08:00"></div>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Hasta</label><input type="time" class="form-control" value="18:00"></div>
+            <span class="badge badge-success" style="justify-self:center;">Activo</span>
+          </div>
+          <div class="horario-row" style="display:grid;grid-template-columns:120px 1fr 1fr 80px;gap:var(--sp-4);align-items:center;padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);">
+            <label style="font-weight:600;font-size:0.9rem;color:var(--color-primary);display:flex;align-items:center;gap:var(--sp-2);">
+              <input type="checkbox" checked style="accent-color:var(--color-accent);"> Jueves
+            </label>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Desde</label><input type="time" class="form-control" value="08:00"></div>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Hasta</label><input type="time" class="form-control" value="18:00"></div>
+            <span class="badge badge-success" style="justify-self:center;">Activo</span>
+          </div>
+          <div class="horario-row" style="display:grid;grid-template-columns:120px 1fr 1fr 80px;gap:var(--sp-4);align-items:center;padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);">
+            <label style="font-weight:600;font-size:0.9rem;color:var(--color-primary);display:flex;align-items:center;gap:var(--sp-2);">
+              <input type="checkbox" checked style="accent-color:var(--color-accent);"> Viernes
+            </label>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Desde</label><input type="time" class="form-control" value="08:00"></div>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Hasta</label><input type="time" class="form-control" value="14:00"></div>
+            <span class="badge badge-success" style="justify-self:center;">Activo</span>
+          </div>
+          <div class="horario-row" style="display:grid;grid-template-columns:120px 1fr 1fr 80px;gap:var(--sp-4);align-items:center;padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);opacity:.5;">
+            <label style="font-weight:600;font-size:0.9rem;color:var(--color-text-muted);display:flex;align-items:center;gap:var(--sp-2);">
+              <input type="checkbox" style="accent-color:var(--color-accent);"> Sábado
+            </label>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Desde</label><input type="time" class="form-control" value="09:00" disabled></div>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Hasta</label><input type="time" class="form-control" value="13:00" disabled></div>
+            <span class="badge badge-muted" style="justify-self:center;">Inactivo</span>
+          </div>
+          <div class="horario-row" style="display:grid;grid-template-columns:120px 1fr 1fr 80px;gap:var(--sp-4);align-items:center;padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);opacity:.5;">
+            <label style="font-weight:600;font-size:0.9rem;color:var(--color-text-muted);display:flex;align-items:center;gap:var(--sp-2);">
+              <input type="checkbox" style="accent-color:var(--color-accent);"> Domingo
+            </label>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Desde</label><input type="time" class="form-control" disabled></div>
+            <div class="form-group" style="margin:0;"><label class="form-label" style="font-size:0.75rem;">Hasta</label><input type="time" class="form-control" disabled></div>
+            <span class="badge badge-muted" style="justify-self:center;">Inactivo</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal: editar estado del día -->
+<div id="editar-dia-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="editar-dia-title">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-icon primary">📅</div>
+      <div><div class="modal-title" id="editar-dia-title">Editar disponibilidad</div><div class="text-meta" id="editar-dia-fecha"></div></div>
+      <button class="modal-close" onclick="closeModal('editar-dia')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:var(--sp-4);font-size:0.9rem;color:var(--color-text-secondary);">Selecciona el estado para este día:</p>
+      <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+        <label style="display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4);border-radius:var(--radius-lg);background:#C8E6C9;cursor:pointer;border:2px solid transparent;" onclick="setDayState('disponible')">
+          <span style="font-size:1.25rem;">✅</span>
+          <div><strong>Disponible</strong><div style="font-size:0.8125rem;color:#2D6A4F;">Acepto citas y consultas en este día</div></div>
+        </label>
+        <label style="display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4);border-radius:var(--radius-lg);background:#FFE0B2;cursor:pointer;border:2px solid transparent;" onclick="setDayState('ocupado')">
+          <span style="font-size:1.25rem;">⏰</span>
+          <div><strong>Ocupado</strong><div style="font-size:0.8125rem;color:#E65100;">Tengo citas programadas; no acepto nuevas</div></div>
+        </label>
+        <label style="display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4);border-radius:var(--radius-lg);background:#FFCDD2;cursor:pointer;border:2px solid transparent;" onclick="setDayState('bloqueado')">
+          <span style="font-size:1.25rem;">🚫</span>
+          <div><strong>Bloqueado</strong><div style="font-size:0.8125rem;color:#C62828;">No estoy disponible (vacaciones, licencia…)</div></div>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editar-dia')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  (function() {
+    const s = Session.get();
+    if (s && s.tipo === 'profesional') {
+      const av = s.avatar || s.nombre.charAt(0);
+      ['sidebar-avatar','topbar-avatar','pro-avatar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = av;
+      });
+      const sn = document.getElementById('sidebar-name');
+      if (sn) sn.textContent = s.nombre;
+      const pn = document.getElementById('pro-nombre');
+      if (pn) pn.textContent = s.nombre;
+    }
+  })();
+
+  // ── Calendar state ──
+  const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let currentYear = 2026, currentMonth = 4; // May = 4
+  let dayStates = {}; // key: "YYYY-M-D" → 'disponible'|'ocupado'|'bloqueado'
+  let selected = new Set();
+  let activeDayKey = null;
+
+  // Seed some initial states
+  const seedStates = {
+    '2026-4-3':'bloqueado','2026-4-4':'bloqueado','2026-4-7':'ocupado',
+    '2026-4-9':'ocupado','2026-4-10':'bloqueado','2026-4-11':'bloqueado',
+    '2026-4-15':'ocupado','2026-4-17':'bloqueado','2026-4-18':'bloqueado',
+    '2026-4-19':'ocupado','2026-4-20':'ocupado','2026-4-24':'bloqueado',
+    '2026-4-25':'bloqueado','2026-4-27':'ocupado','2026-4-31':'bloqueado',
+  };
+  Object.assign(dayStates, seedStates);
+
+  function dayKey(y,m,d) { return `${y}-${m}-${d}`; }
+
+  function stateColor(state) {
+    if (state === 'ocupado') return '#FFE0B2';
+    if (state === 'bloqueado') return '#FFCDD2';
+    return '#C8E6C9'; // disponible
+  }
+
+  function stateLabel(state) {
+    if (state === 'ocupado') return 'Ocupado';
+    if (state === 'bloqueado') return 'Bloqueado';
+    return 'Disponible';
+  }
+
+  function renderCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    // Keep headers (first 7 children)
+    const headers = Array.from(grid.children).slice(0,7);
+    grid.innerHTML = '';
+    headers.forEach(h => grid.appendChild(h));
+
+    document.getElementById('cal-titulo').textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay(); // 0=Sun
+    const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+    const today = new Date();
+
+    // Convert Sunday=0 to Monday-first offset
+    const offset = (firstDay === 0) ? 6 : firstDay - 1;
+    for (let i = 0; i < offset; i++) {
+      const blank = document.createElement('div');
+      blank.className = 'calendar-day other-month';
+      grid.appendChild(blank);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dayKey(currentYear, currentMonth, d);
+      const state = dayStates[key] || 'disponible';
+      const isToday = (today.getFullYear()===currentYear && today.getMonth()===currentMonth && today.getDate()===d);
+      const isSel = selected.has(key);
+
+      const cell = document.createElement('div');
+      cell.className = 'calendar-day' + (isToday?' today':'');
+      cell.style.background = stateColor(state);
+      if (isSel) cell.style.outline = '2px solid var(--color-primary)';
+      cell.setAttribute('role','gridcell');
+      cell.setAttribute('tabindex','0');
+      cell.setAttribute('aria-label', `${d} de ${MONTHS[currentMonth]}, ${stateLabel(state)}`);
+      if (isToday) cell.setAttribute('aria-current','date');
+      cell.dataset.key = key;
+      cell.dataset.d = d;
+      cell.innerHTML = `<span>${d}</span>`;
+      cell.addEventListener('click', () => onDayClick(key, d, cell));
+      cell.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') onDayClick(key, d, cell); });
+      grid.appendChild(cell);
+    }
+
+    updateSelectedCount();
+  }
+
+  function onDayClick(key, d, cell) {
+    if (selected.has(key)) {
+      selected.delete(key);
+      cell.style.outline = '';
+    } else {
+      selected.add(key);
+      cell.style.outline = '2px solid var(--color-primary)';
+    }
+    if (selected.size === 1) {
+      // Show modal for single day
+      activeDayKey = key;
+      document.getElementById('editar-dia-fecha').textContent = `${d} de ${MONTHS[currentMonth]} ${currentYear}`;
+      openModal('editar-dia');
+    }
+    updateSelectedCount();
+  }
+
+  function setDayState(state) {
+    if (activeDayKey) {
+      dayStates[activeDayKey] = state;
+      selected.delete(activeDayKey);
+      activeDayKey = null;
+    }
+    closeModal('editar-dia');
+    renderCalendar();
+    showToast({title:'Disponibilidad actualizada', type:'success'});
+  }
+
+  function bulkMark(state) {
+    if (selected.size === 0) {
+      showToast({title:'Selecciona al menos un día',type:'info'});
+      return;
+    }
+    selected.forEach(k => { dayStates[k] = state; });
+    selected.clear();
+    renderCalendar();
+    showToast({title:`${selected.size || 'Días'} marcados como ${stateLabel(state)}`,type:'success'});
+  }
+
+  function updateSelectedCount() {
+    document.getElementById('selected-count').textContent = `${selected.size} día${selected.size!==1?'s':''} seleccionado${selected.size!==1?'s':''}`;
+  }
+
+  function changeMonth(dir) {
+    currentMonth += dir;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if (currentMonth < 0)  { currentMonth = 11; currentYear--; }
+    selected.clear();
+    renderCalendar();
+  }
+
+  // Activate/deactivate weekday rows
+  document.querySelectorAll('.horario-row input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', function() {
+      const row = this.closest('.horario-row');
+      row.querySelectorAll('input[type="time"]').forEach(t => t.disabled = !this.checked);
+      row.style.opacity = this.checked ? '1' : '0.5';
+      const badge = row.querySelector('.badge');
+      badge.className = `badge ${this.checked ? 'badge-success' : 'badge-muted'}`;
+      badge.textContent = this.checked ? 'Activo' : 'Inactivo';
+    });
+  });
+
+  renderCalendar();
+  initSidebar();
+</script>
+</body>
+</html>

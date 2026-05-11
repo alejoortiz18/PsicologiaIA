@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Inscripción y pago</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio
+        </a>
+        <a href="home-usuario.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon" aria-hidden="true">🎫</span>Inscripción
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="citas-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>Mis citas
+        </a>
+        <a href="perfil-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar">MG</div>
+        <div>
+          <div class="sidebar__user-name">María García</div>
+          <div class="sidebar__user-role">Usuario</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="btn btn-ghost btn-sm" onclick="history.back()" aria-label="Volver">← Volver</button>
+      <span class="topbar__title">Inscripción y pago</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <div class="avatar avatar-sm">MG</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+
+      <!-- Wizard steps -->
+      <div class="wizard-steps" role="navigation" aria-label="Pasos del proceso de inscripción" style="margin-bottom:var(--sp-8);">
+        <div class="wizard-step active" id="step-indicator-1" aria-current="step">
+          <div class="wizard-step__circle" aria-hidden="true">1</div>
+          <div class="wizard-step__label">Confirmación</div>
+        </div>
+        <div class="wizard-connector" aria-hidden="true"></div>
+        <div class="wizard-step" id="step-indicator-2">
+          <div class="wizard-step__circle" aria-hidden="true">2</div>
+          <div class="wizard-step__label">Pago</div>
+        </div>
+        <div class="wizard-connector" aria-hidden="true"></div>
+        <div class="wizard-step" id="step-indicator-3">
+          <div class="wizard-step__circle" aria-hidden="true">3</div>
+          <div class="wizard-step__label">Resultado</div>
+        </div>
+      </div>
+
+      <!-- ======================================================
+           STEP 1: Confirmación
+           ====================================================== -->
+      <div id="wizard-step-1" class="wizard-content">
+        <div style="display:grid;grid-template-columns:1fr 380px;gap:var(--sp-6);max-width:900px;">
+
+          <!-- Event details -->
+          <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+            <h2 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.375rem;margin-bottom:var(--sp-2);">Manejo de la ansiedad en adultos</h2>
+            <div class="text-meta" style="margin-bottom:var(--sp-5);">Dr. Jorge Morales · Psicología Clínica</div>
+
+            <div style="width:100%;aspect-ratio:16/6;border-radius:var(--radius-lg);background:linear-gradient(135deg,#1565C0,#1976D2);display:flex;align-items:center;justify-content:center;margin-bottom:var(--sp-6);">
+              <div style="text-align:center;color:white;">
+                <div style="font-size:1.5rem;margin-bottom:var(--sp-2);">🧠</div>
+                <div style="font-family:var(--font-display);font-size:1.125rem;font-weight:700;">Manejo de la ansiedad</div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+              <div class="session-info-row">
+                <span class="session-info-label">📅 Fecha</span>
+                <span class="session-info-value">18 May 2026</span>
+              </div>
+              <div class="session-info-row">
+                <span class="session-info-label">🕑 Hora</span>
+                <span class="session-info-value">2PM – 4PM</span>
+              </div>
+              <div class="session-info-row">
+                <span class="session-info-label">🎓 Orador</span>
+                <span class="session-info-value">Dr. Jorge Morales</span>
+              </div>
+              <div class="session-info-row">
+                <span class="session-info-label">👥 Cupos disponibles</span>
+                <span class="session-info-value" style="color:var(--color-danger);font-weight:600;">11 cupos</span>
+              </div>
+              <div class="session-info-row">
+                <span class="session-info-label">🏷 Categoría</span>
+                <span class="session-info-value">Clínica · Ansiedad</span>
+              </div>
+              <div class="session-info-row">
+                <span class="session-info-label">📍 Modalidad</span>
+                <span class="session-info-value">Virtual (sala en línea)</span>
+              </div>
+            </div>
+
+            <div style="border-top:1px solid var(--color-border-light);margin-top:var(--sp-5);padding-top:var(--sp-4);">
+              <p style="font-size:0.9rem;color:var(--color-text-secondary);line-height:1.7;">
+                En esta conferencia aprenderás técnicas cognitivo-conductuales para identificar y manejar los síntomas de la ansiedad en el día a día. Ideal para adultos con ansiedad leve o moderada.
+              </p>
+            </div>
+          </div>
+
+          <!-- Order summary -->
+          <div>
+            <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);position:sticky;top:var(--sp-4);">
+              <h3 style="font-size:1rem;color:var(--color-primary);font-weight:700;margin-bottom:var(--sp-4);">Resumen del pedido</h3>
+
+              <div style="display:flex;flex-direction:column;gap:var(--sp-3);margin-bottom:var(--sp-4);">
+                <div class="session-info-row">
+                  <span class="session-info-label">Sala</span>
+                  <span style="font-size:0.875rem;color:var(--color-text-primary);font-weight:500;text-align:right;max-width:180px;">Manejo de la ansiedad en adultos</span>
+                </div>
+                <div class="session-info-row">
+                  <span class="session-info-label">Precio</span>
+                  <span style="font-size:0.875rem;font-weight:600;color:var(--color-text-primary);">$45.000 COP</span>
+                </div>
+                <div class="session-info-row">
+                  <span class="session-info-label">IVA (0%)</span>
+                  <span style="font-size:0.875rem;color:var(--color-text-muted);">$0</span>
+                </div>
+              </div>
+
+              <div style="border-top:2px solid var(--color-border-light);padding-top:var(--sp-4);margin-bottom:var(--sp-5);">
+                <div class="session-info-row">
+                  <span style="font-weight:700;color:var(--color-text-primary);">Total</span>
+                  <span style="font-size:1.25rem;font-weight:800;color:var(--color-primary);">$45.000 COP</span>
+                </div>
+              </div>
+
+              <div style="background:var(--color-info-pale);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-5);border:1px solid rgba(21,101,192,0.2);">
+                <p style="font-size:0.8125rem;color:#1565C0;line-height:1.6;">
+                  🔒 Al confirmar, tu lugar quedará reservado durante 15 minutos para completar el pago.
+                </p>
+              </div>
+
+              <button class="btn btn-primary w-full" onclick="goToStep(2)" id="confirm-btn" aria-label="Confirmar inscripción y proceder al pago">
+                Confirmar y pagar
+              </button>
+
+              <button class="btn btn-ghost w-full" style="margin-top:var(--sp-3);" onclick="history.back()" aria-label="Cancelar inscripción">
+                Cancelar
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ======================================================
+           STEP 2: Pago
+           ====================================================== -->
+      <div id="wizard-step-2" class="wizard-content" style="display:none;">
+        <div style="max-width:680px;margin:0 auto;">
+
+          <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+            <h2 style="color:var(--color-primary);font-size:1.25rem;font-weight:700;margin-bottom:var(--sp-2);">Método de pago</h2>
+            <p class="text-meta" style="margin-bottom:var(--sp-6);">Total a pagar: <strong style="color:var(--color-primary);">$45.000 COP</strong></p>
+
+            <!-- Payment methods -->
+            <div style="display:flex;flex-direction:column;gap:var(--sp-3);margin-bottom:var(--sp-6);" role="radiogroup" aria-label="Seleccionar método de pago">
+
+              <label class="payment-option" style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4);border:2px solid var(--color-primary);border-radius:var(--radius-lg);cursor:pointer;background:rgba(26,60,52,0.05);">
+                <input type="radio" name="payment" value="credit" checked aria-label="Tarjeta de crédito">
+                <span style="font-size:1.5rem;" aria-hidden="true">💳</span>
+                <div>
+                  <div style="font-weight:600;color:var(--color-text-primary);">Tarjeta de crédito</div>
+                  <div class="text-meta">Visa, Mastercard, Amex</div>
+                </div>
+              </label>
+
+              <label class="payment-option" style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4);border:1px solid var(--color-border);border-radius:var(--radius-lg);cursor:pointer;">
+                <input type="radio" name="payment" value="debit" aria-label="Tarjeta débito">
+                <span style="font-size:1.5rem;" aria-hidden="true">🏧</span>
+                <div>
+                  <div style="font-weight:600;color:var(--color-text-primary);">Tarjeta débito</div>
+                  <div class="text-meta">Débito bancario</div>
+                </div>
+              </label>
+
+              <label class="payment-option" style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4);border:1px solid var(--color-border);border-radius:var(--radius-lg);cursor:pointer;">
+                <input type="radio" name="payment" value="pse" aria-label="PSE">
+                <span style="font-size:1.5rem;" aria-hidden="true">🏦</span>
+                <div>
+                  <div style="font-weight:600;color:var(--color-text-primary);">PSE</div>
+                  <div class="text-meta">Débito en línea de tu banco</div>
+                </div>
+              </label>
+
+              <label class="payment-option" style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4);border:1px solid var(--color-border);border-radius:var(--radius-lg);cursor:pointer;">
+                <input type="radio" name="payment" value="transfer" aria-label="Transferencia bancaria">
+                <span style="font-size:1.5rem;" aria-hidden="true">↔️</span>
+                <div>
+                  <div style="font-weight:600;color:var(--color-text-primary);">Transferencia bancaria</div>
+                  <div class="text-meta">Pago por transferencia</div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Card form (only for credit) -->
+            <div id="card-form" style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-5);margin-bottom:var(--sp-5);">
+              <div style="background:var(--color-success-pale);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-5);border:1px solid rgba(45,106,79,0.2);">
+                <p style="font-size:0.8125rem;color:var(--color-success);line-height:1.6;">
+                  🔒 <strong>No almacenamos datos de tu tarjeta.</strong> La transacción es procesada de forma segura por nuestro proveedor de pagos.
+                </p>
+              </div>
+
+              <div style="display:grid;gap:var(--sp-4);">
+                <div class="form-group">
+                  <label for="card-number" class="form-label">Número de tarjeta</label>
+                  <input type="text" id="card-number" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number" inputmode="numeric" aria-required="true">
+                </div>
+                <div class="form-row form-row-2">
+                  <div class="form-group">
+                    <label for="card-expiry" class="form-label">Vencimiento</label>
+                    <input type="text" id="card-expiry" class="form-control" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" aria-required="true">
+                  </div>
+                  <div class="form-group">
+                    <label for="card-cvv" class="form-label">CVV</label>
+                    <div class="input-password-wrapper">
+                      <input type="password" id="card-cvv" class="form-control" placeholder="•••" maxlength="4" autocomplete="cc-csc" aria-required="true">
+                      <button type="button" class="password-toggle" aria-label="Mostrar CVV">👁</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="card-name" class="form-label">Nombre en la tarjeta</label>
+                  <input type="text" id="card-name" class="form-control" placeholder="Ej: MARIA GARCIA LOPEZ" autocomplete="cc-name" style="text-transform:uppercase;" aria-required="true">
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:var(--sp-3);">
+              <button class="btn btn-secondary" onclick="goToStep(1)" aria-label="Volver al paso anterior">← Volver</button>
+              <button class="btn btn-primary" style="flex:1;" id="pay-btn" onclick="procesarPago()" aria-label="Pagar $45.000 COP">
+                <span class="btn-text">Pagar $45.000 COP</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ======================================================
+           STEP 3: Resultado
+           ====================================================== -->
+      <div id="wizard-step-3" class="wizard-content" style="display:none;">
+        <div style="max-width:560px;margin:0 auto;text-align:center;">
+
+          <!-- Success state (default) -->
+          <div id="result-success">
+            <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-10);box-shadow:var(--shadow-md);border:1px solid var(--color-border-light);">
+              <div style="font-size:4rem;margin-bottom:var(--sp-4);" aria-hidden="true">✅</div>
+              <h2 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.625rem;margin-bottom:var(--sp-3);">¡Inscripción exitosa!</h2>
+              <p style="color:var(--color-text-secondary);margin-bottom:var(--sp-6);">
+                Tu lugar en la conferencia está confirmado. Recibirás un correo con los detalles y el enlace de acceso.
+              </p>
+
+              <div style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-5);margin-bottom:var(--sp-6);">
+                <div class="text-meta" style="margin-bottom:var(--sp-2);">Código de inscripción</div>
+                <div style="font-size:1.75rem;font-weight:800;color:var(--color-primary);letter-spacing:0.12em;font-family:monospace;">TRB-29847</div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:var(--sp-3);margin-bottom:var(--sp-6);font-size:0.875rem;color:var(--color-text-secondary);">
+                <div class="session-info-row">
+                  <span class="session-info-label">🎪 Sala</span>
+                  <span class="session-info-value">Manejo de la ansiedad en adultos</span>
+                </div>
+                <div class="session-info-row">
+                  <span class="session-info-label">📅 Fecha</span>
+                  <span class="session-info-value">18 May 2026 · 2PM</span>
+                </div>
+                <div class="session-info-row">
+                  <span class="session-info-label">💰 Pagado</span>
+                  <span class="session-info-value" style="color:var(--color-success);font-weight:600;">$45.000 COP</span>
+                </div>
+              </div>
+
+              <div style="background:var(--color-info-pale);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-6);border:1px solid rgba(21,101,192,0.2);">
+                <p style="font-size:0.8125rem;color:#1565C0;line-height:1.6;">
+                  📧 Recibirás un correo con el enlace de acceso a la sala 30 minutos antes del inicio.
+                </p>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+                <a href="perfil-usuario.html" class="btn btn-secondary">Ver mis eventos inscritos</a>
+                <a href="home-usuario.html" class="btn btn-primary">Volver al inicio</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rejected state (hidden) -->
+          <div id="result-rejected" style="display:none;">
+            <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-10);box-shadow:var(--shadow-md);border:1px solid var(--color-border-light);">
+              <div style="font-size:4rem;margin-bottom:var(--sp-4);" aria-hidden="true">❌</div>
+              <h2 style="font-family:var(--font-display);color:var(--color-danger);font-size:1.625rem;margin-bottom:var(--sp-3);">Pago rechazado</h2>
+              <p style="color:var(--color-text-secondary);margin-bottom:var(--sp-6);">
+                Tu banco rechazó la transacción. Verifica los datos de tu tarjeta o intenta con otro método de pago.
+              </p>
+              <button class="btn btn-primary w-full" onclick="goToStep(2)">Reintentar con otro método</button>
+            </div>
+          </div>
+
+          <!-- No cupos state (hidden) -->
+          <div id="result-no-cupos" style="display:none;">
+            <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-10);box-shadow:var(--shadow-md);border:1px solid var(--color-border-light);">
+              <div style="font-size:4rem;margin-bottom:var(--sp-4);" aria-hidden="true">😔</div>
+              <h2 style="font-family:var(--font-display);color:var(--color-text-primary);font-size:1.625rem;margin-bottom:var(--sp-3);">Sin cupos disponibles</h2>
+              <p style="color:var(--color-text-secondary);margin-bottom:var(--sp-4);">
+                Lamentablemente los cupos se agotaron mientras procesabas el pago. Tu dinero será devuelto en 3 a 5 días hábiles.
+              </p>
+              <div style="background:var(--color-success-pale);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-5);border:1px solid rgba(45,106,79,0.2);">
+                <p style="font-size:0.8125rem;color:var(--color-success);">✅ Reembolso iniciado automáticamente.</p>
+              </div>
+              <a href="home-usuario.html" class="btn btn-primary w-full">Buscar otras salas</a>
+            </div>
+          </div>
+
+          <!-- Toggle buttons for prototype -->
+          <div style="margin-top:var(--sp-6);padding:var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);border:1px dashed var(--color-border);">
+            <div class="text-meta" style="margin-bottom:var(--sp-3);">Prototipo: cambiar estado del resultado</div>
+            <div class="d-flex gap-3" style="flex-wrap:wrap;justify-content:center;">
+              <button class="btn btn-secondary btn-sm" onclick="showResult('success')">✅ Éxito</button>
+              <button class="btn btn-secondary btn-sm" onclick="showResult('rejected')">❌ Rechazado</button>
+              <button class="btn btn-secondary btn-sm" onclick="showResult('no-cupos')">😔 Sin cupos</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  let currentStep = 1;
+
+  function goToStep(step) {
+    // Hide all steps
+    document.getElementById('wizard-step-1').style.display = 'none';
+    document.getElementById('wizard-step-2').style.display = 'none';
+    document.getElementById('wizard-step-3').style.display = 'none';
+
+    // Show target step
+    document.getElementById('wizard-step-' + step).style.display = 'block';
+    currentStep = step;
+
+    // Update step indicators
+    for (let i = 1; i <= 3; i++) {
+      const indicator = document.getElementById('step-indicator-' + i);
+      indicator.classList.remove('active', 'completed');
+      if (i < step) indicator.classList.add('completed');
+      else if (i === step) indicator.classList.add('active');
+    }
+
+    // Scroll to top
+    document.getElementById('main-content').scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  function procesarPago() {
+    const payBtn = document.getElementById('pay-btn');
+    payBtn.classList.add('loading');
+    payBtn.disabled = true;
+
+    setTimeout(() => {
+      payBtn.classList.remove('loading');
+      payBtn.disabled = false;
+      // By default, show success
+      showResult('success');
+      goToStep(3);
+    }, 2200);
+  }
+
+  function showResult(type) {
+    document.getElementById('result-success').style.display = 'none';
+    document.getElementById('result-rejected').style.display = 'none';
+    document.getElementById('result-no-cupos').style.display = 'none';
+    document.getElementById('result-' + type).style.display = 'block';
+  }
+
+  // Card number formatting
+  const cardInput = document.getElementById('card-number');
+  if (cardInput) {
+    cardInput.addEventListener('input', function() {
+      let v = this.value.replace(/\D/g,'').substring(0,16);
+      this.value = v.replace(/(.{4})/g,'$1 ').trim();
+    });
+  }
+
+  // Expiry formatting
+  const expiryInput = document.getElementById('card-expiry');
+  if (expiryInput) {
+    expiryInput.addEventListener('input', function() {
+      let v = this.value.replace(/\D/g,'').substring(0,4);
+      if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
+      this.value = v;
+    });
+  }
+
+  // CVV visibility toggle
+  const cvvInput = document.getElementById('card-cvv');
+  const cvvToggle = document.querySelector('.password-toggle');
+  if (cvvToggle && cvvInput) {
+    cvvToggle.addEventListener('click', () => {
+      cvvInput.type = cvvInput.type === 'password' ? 'text' : 'password';
+      cvvToggle.setAttribute('aria-label', cvvInput.type === 'password' ? 'Mostrar CVV' : 'Ocultar CVV');
+    });
+  }
+
+  // Payment option styling
+  document.querySelectorAll('input[name="payment"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      document.querySelectorAll('.payment-option').forEach(opt => {
+        opt.style.border = '1px solid var(--color-border)';
+        opt.style.background = 'transparent';
+      });
+      const label = this.closest('label');
+      if (label) {
+        label.style.border = '2px solid var(--color-primary)';
+        label.style.background = 'rgba(26,60,52,0.05)';
+      }
+      document.getElementById('card-form').style.display =
+        (this.value === 'credit' || this.value === 'debit') ? 'block' : 'none';
+    });
+  });
+</script>
+</body>
+</html>

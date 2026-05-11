@@ -17,6 +17,7 @@ La plataforma estará diseñada para permitir a los profesionales ofrecer confer
 ________________________________________
 2. Objetivos del Perfil Profesional
 •	Permitir el registro en perfil profesional
+•	Seguridad en contraseñas: toda contraseña (Usuario y Profesional) se almacena con doble encriptación Hash + Salt usando Argon2. Salt embebido en el hash. Operación centralizada en la Capa Helpers. Nunca texto plano.
 •	El profesional puede crear salas públicas o privadas
 •	El profesional puede recibir solicitud para atención privada y personalizada a través de su calendario y horarios disponibles
 •	Configurar salas y administrar salas virtuales (pagas o gratuitas).

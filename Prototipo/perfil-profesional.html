@@ -1,0 +1,376 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Mi perfil · Información personal</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="#" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio
+        </a>
+        <a href="mis-eventos.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🎪</span>Mis eventos
+        </a>
+        <div class="nav-item" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="false">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div id="submenu-colegas" class="nav-submenu" style="display:none;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-colegas.html" class="nav-item">Mis colegas</a>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="perfil-profesional.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+        <a href="citas-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>Citas
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" style="background:var(--color-primary);">VR</div>
+        <div>
+          <div class="sidebar__user-name">Dra. Valentina Ríos</div>
+          <div class="sidebar__user-role">Profesional</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <span class="topbar__title">Mi perfil profesional</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm" id="topbar-avatar" style="background:var(--color-primary);">VR</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+
+      <!-- ── Profile header card ── -->
+      <section style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6) var(--sp-8);margin-bottom:var(--sp-5);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);display:flex;gap:var(--sp-6);align-items:center;flex-wrap:wrap;">
+        <div style="position:relative;display:inline-block;">
+          <div class="avatar avatar-2xl" id="pro-avatar" style="background:var(--color-primary);border:4px solid white;box-shadow:var(--shadow-md);">VR</div>
+          <label for="foto-pro" style="position:absolute;bottom:0;right:0;background:var(--color-accent);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.8rem;border:2px solid white;" aria-label="Cambiar foto">✏️</label>
+          <input type="file" id="foto-pro" accept="image/*" style="display:none;" onchange="previewAvatar(this)">
+        </div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:4px;">
+            <h1 id="pro-nombre" style="font-family:var(--font-display);color:var(--color-primary);font-size:1.625rem;">Dra. Valentina Ríos</h1>
+            <span class="badge badge-success" style="font-size:0.75rem;">✓ Verificada</span>
+          </div>
+          <div class="text-meta" style="margin-bottom:var(--sp-4);">Psicóloga Clínica · Tarjeta COLPSIC: <strong>PSI-0001234</strong></div>
+          <div style="display:flex;gap:var(--sp-8);">
+            <div style="text-align:center;">
+              <div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">1 248</div>
+              <div class="text-meta">Seguidores</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">28</div>
+              <div class="text-meta">Salas</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">3</div>
+              <div class="text-meta">Citas próximas</div>
+            </div>
+          </div>
+        </div>
+        <a href="perfil-orador.html" class="btn btn-secondary btn-sm">👁 Ver perfil público</a>
+      </section>
+
+      <!-- ── Horizontal tab nav ── -->
+      <nav class="prof-tabs-bar" aria-label="Secciones del perfil" style="margin-bottom:var(--sp-5);">
+        <ul class="prof-tabs-bar__list" role="tablist">
+          <li><a href="perfil-profesional.html" class="prof-tab-link active" aria-current="page"><span class="tab-icon">👤</span>Información personal</a></li>
+          <li><a href="perfil-pro-salas.html" class="prof-tab-link"><span class="tab-icon">🎪</span>Salas y eventos<span class="tab-badge">28</span></a></li>
+          <li><a href="perfil-pro-calendario.html" class="prof-tab-link"><span class="tab-icon">🗓</span>Calendario</a></li>
+          <li><a href="perfil-pro-citas.html" class="prof-tab-link"><span class="tab-icon">📅</span>Citas<span class="tab-badge">3</span></a></li>
+          <li><a href="perfil-pro-kpi.html" class="prof-tab-link"><span class="tab-icon">📊</span>Indicadores</a></li>
+        </ul>
+      </nav>
+
+      <!-- TAB 1: Información personal -->
+      <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+          <form id="pro-info-form" data-validate novalidate>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-5);margin-bottom:var(--sp-6);">
+
+              <div class="form-group">
+                <label for="pais" class="form-label">País <span class="required">*</span></label>
+                <select id="pais" name="pais" class="form-control" aria-required="true" onchange="filterCities(this.value)">
+                  <option value="">Seleccionar...</option>
+                  <option value="CO" selected>Colombia</option>
+                  <option value="MX">México</option>
+                  <option value="AR">Argentina</option>
+                  <option value="CL">Chile</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="ciudad" class="form-label">Ciudad <span class="required">*</span></label>
+                <select id="ciudad" name="ciudad" class="form-control" aria-required="true">
+                  <option value="">Seleccionar...</option>
+                  <option value="BOG" selected>Bogotá</option>
+                  <option value="MED">Medellín</option>
+                  <option value="CLO">Cali</option>
+                  <option value="CTG">Cartagena</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="ocupacion" class="form-label">Ocupación</label>
+                <input type="text" id="ocupacion" name="ocupacion" class="form-control" value="Psicóloga Clínica">
+              </div>
+
+              <div class="form-group">
+                <label for="celular-pro" class="form-label">Celular <span class="required">*</span></label>
+                <input type="tel" id="celular-pro" name="celular" class="form-control" value="3001234567" data-required aria-required="true">
+              </div>
+
+              <div class="form-group">
+                <label for="genero" class="form-label">Género</label>
+                <select id="genero" name="genero" class="form-control">
+                  <option value="">Prefiero no decir</option>
+                  <option value="F" selected>Femenino</option>
+                  <option value="M">Masculino</option>
+                  <option value="NB">No binario</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="nacimiento" class="form-label">Fecha de nacimiento</label>
+                <input type="date" id="nacimiento" name="nacimiento" class="form-control" value="1990-03-14">
+              </div>
+
+              <div class="form-group">
+                <label for="anios-exp" class="form-label">Años de experiencia</label>
+                <input type="number" id="anios-exp" name="anios_exp" class="form-control" value="12" min="0" max="60">
+              </div>
+
+              <div class="form-group">
+                <label for="tarifa" class="form-label">Tarifa por hora (COP)</label>
+                <input type="number" id="tarifa" name="tarifa" class="form-control" value="90000" min="0" step="5000">
+              </div>
+
+              <div class="form-group" style="grid-column:1/-1;">
+                <label for="idiomas" class="form-label">Idiomas</label>
+                <input type="text" id="idiomas" name="idiomas" class="form-control" value="Español, Inglés" placeholder="Ej: Español, Inglés, Francés">
+              </div>
+
+              <div class="form-group" style="grid-column:1/-1;">
+                <label for="especialidades" class="form-label">Especialidades / Áreas de atención</label>
+                <input type="text" id="especialidades" name="especialidades" class="form-control" value="Ansiedad, Estrés laboral, Terapia de pareja" placeholder="Separadas por comas">
+              </div>
+
+              <div class="form-group" style="grid-column:1/-1;">
+                <label for="sobre-mi" class="form-label">Sobre mí</label>
+                <textarea id="sobre-mi" name="sobre_mi" class="form-control" rows="4" style="resize:vertical;">Psicóloga clínica con más de 12 años de experiencia en el abordaje de trastornos de ansiedad, estrés laboral y bienestar emocional.</textarea>
+              </div>
+
+              <div class="form-group" style="grid-column:1/-1;">
+                <label for="como-trabajo" class="form-label">Cómo trabajo</label>
+                <textarea id="como-trabajo" name="como_trabajo" class="form-control" rows="3" style="resize:vertical;">Trabajo con un enfoque colaborativo donde el paciente es el protagonista, utilizando técnicas de mindfulness y reestructuración cognitiva.</textarea>
+              </div>
+            </div>
+
+            <!-- Formación académica -->
+            <div style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-6);margin-bottom:var(--sp-6);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-4);">
+                <h3 style="font-size:1rem;color:var(--color-primary);font-weight:700;">📚 Formación académica</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="addStudy()">+ Agregar</button>
+              </div>
+              <div id="studies-list" style="display:flex;flex-direction:column;gap:var(--sp-3);">
+                <div class="study-entry" style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-4);display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:var(--sp-3);align-items:end;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Tipo</label>
+                    <select class="form-control">
+                      <option selected>Pregrado</option><option>Posgrado</option><option>Maestría</option><option>Doctorado</option><option>Especialización</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Título</label>
+                    <input type="text" class="form-control" value="Psicóloga">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Institución · Año</label>
+                    <input type="text" class="form-control" value="U. Nacional · 2012">
+                  </div>
+                  <button type="button" class="btn btn-ghost btn-icon" style="color:var(--color-danger);" onclick="this.closest('.study-entry').remove()" aria-label="Eliminar">🗑</button>
+                </div>
+                <div class="study-entry" style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-4);display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:var(--sp-3);align-items:end;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Tipo</label>
+                    <select class="form-control">
+                      <option>Pregrado</option><option selected>Maestría</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Título</label>
+                    <input type="text" class="form-control" value="Magíster en Psicología Clínica">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">Institución · Año</label>
+                    <input type="text" class="form-control" value="U. de los Andes · 2016">
+                  </div>
+                  <button type="button" class="btn btn-ghost btn-icon" style="color:var(--color-danger);" onclick="this.closest('.study-entry').remove()" aria-label="Eliminar">🗑</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Datos registrales -->
+            <div style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-6);margin-bottom:var(--sp-6);">
+              <h3 style="font-size:1rem;color:var(--color-primary);font-weight:700;margin-bottom:var(--sp-4);">🔒 Datos registrales (no editables)</h3>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);">
+                <div class="form-group">
+                  <label class="form-label">Nombre completo</label>
+                  <input type="text" class="form-control" value="Dra. Valentina Ríos Montoya" disabled style="background:var(--color-surface-alt);color:var(--color-text-muted);">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Correo electrónico</label>
+                  <input type="email" class="form-control" value="profesional@trebol.com" disabled style="background:var(--color-surface-alt);color:var(--color-text-muted);">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">N.° cédula</label>
+                  <input type="text" class="form-control" value="••••• 7721" disabled style="background:var(--color-surface-alt);color:var(--color-text-muted);">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tarjeta profesional</label>
+                  <input type="text" class="form-control" value="PSI-0001234" disabled style="background:var(--color-surface-alt);color:var(--color-text-muted);">
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:var(--sp-3);">
+              <button type="submit" class="btn btn-primary"><span class="btn-text">Guardar cambios</span></button>
+              <button type="button" class="btn btn-secondary" onclick="showToast({title:'Cambios descartados',type:'info'})">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal éxito -->
+<div id="save-ok-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="save-ok-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon success">✅</div>
+      <div><div class="modal-title" id="save-ok-title">Perfil actualizado</div></div>
+      <button class="modal-close" onclick="closeModal('save-ok')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body"><p>Los cambios se guardaron correctamente.</p></div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeModal('save-ok')">Aceptar</button></div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  (function() {
+    const s = Session.get();
+    if (s && s.tipo === 'profesional') {
+      const av = s.avatar || s.nombre.charAt(0);
+      ['sidebar-avatar','topbar-avatar','pro-avatar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = av;
+      });
+      const sn = document.getElementById('sidebar-name');
+      if (sn) sn.textContent = s.nombre;
+      const pn = document.getElementById('pro-nombre');
+      if (pn) pn.textContent = s.nombre;
+    }
+  })();
+
+  function previewAvatar(input) {
+    if (!input.files?.length) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const av = document.getElementById('pro-avatar');
+      av.style.backgroundImage = `url(${e.target.result})`;
+      av.style.backgroundSize = 'cover';
+      av.style.backgroundColor = 'transparent';
+      av.textContent = '';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  document.getElementById('pro-info-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type="submit"]');
+    btn.classList.add('loading'); btn.disabled = true;
+    setTimeout(() => {
+      btn.classList.remove('loading'); btn.disabled = false;
+      openModal('save-ok');
+    }, 1200);
+  });
+
+  function addStudy() {
+    const list = document.getElementById('studies-list');
+    const entry = document.createElement('div');
+    entry.className = 'study-entry';
+    entry.style.cssText = 'background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-4);display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:var(--sp-3);align-items:end;';
+    entry.innerHTML = `
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Tipo</label>
+        <select class="form-control"><option>Pregrado</option><option>Posgrado</option><option>Maestría</option><option>Doctorado</option><option>Especialización</option></select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Título</label>
+        <input type="text" class="form-control" placeholder="Ej: Psicólogo">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Institución · Año</label>
+        <input type="text" class="form-control" placeholder="Ej: UNAL · 2020">
+      </div>
+      <button type="button" class="btn btn-ghost btn-icon" style="color:var(--color-danger);" onclick="this.closest('.study-entry').remove()" aria-label="Eliminar">🗑</button>
+    `;
+    list.appendChild(entry);
+    entry.querySelector('input[type="text"]').focus();
+  }
+
+  function filterCities(country) {
+    const cities = {
+      CO: ['Bogotá','Medellín','Cali','Cartagena','Barranquilla','Pereira'],
+      MX: ['Ciudad de México','Guadalajara','Monterrey','Puebla'],
+      AR: ['Buenos Aires','Córdoba','Rosario','Mendoza'],
+      CL: ['Santiago','Valparaíso','Concepción','Antofagasta']
+    };
+    const sel = document.getElementById('ciudad');
+    sel.innerHTML = '<option value="">Seleccionar...</option>';
+    (cities[country] || []).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.substring(0,3).toUpperCase();
+      opt.textContent = c;
+      sel.appendChild(opt);
+    });
+  }
+
+  initSidebar();
+</script>
+</body>
+</html>

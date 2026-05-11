@@ -98,6 +98,8 @@ Qué no puede hacer.
 Validaciones internas.
 8. Riesgos
 Qué puede salir mal.
+9. Seguridad de contraseñas (Regla Transversal)
+Toda contraseña sin importar el perfil (Usuario, Profesional) se almacena con doble encriptación Hash + Salt usando el algoritmo Argon2. Salt embebido en el hash (campo PasswordHash). Capa Helpers es la responsable exclusiva de esta operación. Prohibido texto plano.
 9. Datos necesarios
 Qué guarda base de datos.
 10. Métricas de éxito

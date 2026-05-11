@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Pago de cita</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* ── Checkout layout ── */
+    body{background:var(--color-background);}
+    .checkout-topbar{
+      position:sticky;top:0;z-index:100;
+      display:flex;align-items:center;gap:var(--sp-4);
+      padding:0 var(--sp-6);height:60px;
+      background:var(--color-surface);border-bottom:1px solid var(--color-border-light);
+      box-shadow:0 1px 4px rgba(0,0,0,.06);
+    }
+    .checkout-topbar__brand{display:flex;align-items:center;gap:var(--sp-2);font-weight:800;font-size:1.1rem;color:var(--color-primary);}
+    .checkout-topbar__step{font-size:.82rem;font-weight:600;color:var(--color-text-secondary);}
+    .checkout-body{max-width:920px;margin:var(--sp-8) auto;padding:0 var(--sp-4);display:grid;grid-template-columns:1fr 360px;gap:var(--sp-6);align-items:start;}
+    @media(max-width:740px){.checkout-body{grid-template-columns:1fr;}}
+    .checkout-card{background:var(--color-surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);padding:var(--sp-7);}
+    .checkout-card__title{font-family:var(--font-display);font-size:1.25rem;color:var(--color-primary);margin-bottom:var(--sp-5);display:flex;align-items:center;gap:var(--sp-2);}
+    /* Payment tabs */
+    .pay-tabs{display:flex;gap:2px;background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:3px;margin-bottom:var(--sp-5);}
+    .pay-tab{flex:1;padding:8px 12px;border-radius:var(--radius-md);font-size:.82rem;font-weight:600;border:none;background:transparent;color:var(--color-text-secondary);cursor:pointer;transition:all .15s;text-align:center;}
+    .pay-tab.active{background:var(--color-surface);color:var(--color-primary);box-shadow:0 1px 3px rgba(0,0,0,.12);}
+    /* Card input with brand icon */
+    .card-input-wrap{position:relative;}
+    .card-input-wrap .card-brand{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:1.1rem;pointer-events:none;}
+    /* Card number segmented display */
+    .card-preview{display:flex;gap:var(--sp-2);margin-bottom:var(--sp-5);padding:var(--sp-4) var(--sp-5);background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-primary-light) 100%);border-radius:var(--radius-lg);color:#fff;}
+    .card-preview__num{font-size:1.1rem;font-family:monospace;letter-spacing:.12em;font-weight:700;}
+    .card-preview__sub{font-size:.7rem;opacity:.7;margin-top:4px;}
+    .card-preview__logo{margin-left:auto;font-size:1.5rem;align-self:flex-start;}
+    /* Grid para fecha + cvv */
+    .form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);}
+    /* Resumen */
+    .summary-row{display:flex;align-items:flex-start;justify-content:space-between;font-size:.875rem;padding:var(--sp-2) 0;border-bottom:1px solid var(--color-border-light);}
+    .summary-row:last-of-type{border-bottom:none;}
+    .summary-total{display:flex;align-items:center;justify-content:space-between;font-size:1.15rem;font-weight:800;color:var(--color-primary);padding-top:var(--sp-3);margin-top:var(--sp-1);}
+    /* Success overlay */
+    .success-overlay{position:fixed;inset:0;background:rgba(255,255,255,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-4);z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s;}
+    .success-overlay.show{opacity:1;pointer-events:all;}
+    .success-icon{width:80px;height:80px;border-radius:50%;background:var(--color-accent);display:flex;align-items:center;justify-content:center;font-size:2.2rem;animation:popIn .4s cubic-bezier(.175,.885,.32,1.275) both;}
+    @keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+    .success-title{font-family:var(--font-display);font-size:1.8rem;color:var(--color-primary);text-align:center;}
+    .success-sub{font-size:.95rem;color:var(--color-text-secondary);text-align:center;max-width:380px;}
+    /* PSE / Nequi panels */
+    .bank-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3);margin-bottom:var(--sp-5);}
+    .bank-tile{border:2px solid var(--color-border-light);border-radius:var(--radius-lg);padding:var(--sp-3) var(--sp-2);text-align:center;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);transition:all .15s;}
+    .bank-tile:hover,.bank-tile.selected{border-color:var(--color-primary);background:var(--color-accent-pale);color:var(--color-primary);}
+    .bank-tile__icon{font-size:1.5rem;margin-bottom:4px;}
+    .nequi-hero{text-align:center;padding:var(--sp-6);color:var(--color-text-secondary);}
+    .nequi-hero__icon{font-size:3rem;margin-bottom:var(--sp-3);}
+    .nequi-hero__qr{width:140px;height:140px;background:#f0f0f0;border-radius:var(--radius-lg);margin:var(--sp-4) auto;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#bbb;}
+  </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<header class="checkout-topbar">
+  <div class="checkout-topbar__brand">
+    <span>🍀</span>Trébol
+  </div>
+  <div style="flex:1;"></div>
+  <div class="checkout-topbar__step">🔒 Pago seguro · Paso 2 de 2</div>
+  <a href="orador-calendario.html" class="btn btn-ghost btn-sm">✕ Cancelar</a>
+</header>
+
+<!-- Body -->
+<div class="checkout-body">
+
+  <!-- Left: payment form -->
+  <div>
+    <div class="checkout-card">
+      <div class="checkout-card__title">💳 Método de pago</div>
+
+      <div class="pay-tabs" role="tablist" aria-label="Método de pago">
+        <button class="pay-tab active" id="tab-tarjeta" role="tab" aria-selected="true" onclick="switchTab('tarjeta')">Tarjeta</button>
+        <button class="pay-tab" id="tab-pse" role="tab" aria-selected="false" onclick="switchTab('pse')">PSE</button>
+        <button class="pay-tab" id="tab-nequi" role="tab" aria-selected="false" onclick="switchTab('nequi')">Nequi</button>
+      </div>
+
+      <!-- TARJETA panel -->
+      <div id="panel-tarjeta" role="tabpanel">
+        <div class="card-preview" id="card-preview" aria-hidden="true">
+          <div style="flex:1;">
+            <div class="card-preview__num" id="preview-num">•••• •••• •••• ••••</div>
+            <div style="display:flex;gap:var(--sp-6);margin-top:var(--sp-3);">
+              <div><div class="card-preview__sub">Titular</div><div style="font-size:.82rem;font-weight:600;" id="preview-name">NOMBRE TITULAR</div></div>
+              <div><div class="card-preview__sub">Vence</div><div style="font-size:.82rem;font-weight:600;" id="preview-exp">MM/AA</div></div>
+            </div>
+          </div>
+          <div class="card-preview__logo" id="preview-logo">💳</div>
+        </div>
+
+        <form id="card-form" onsubmit="return false;" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="card-num">Número de tarjeta</label>
+            <div class="card-input-wrap">
+              <input class="form-control" id="card-num" type="text" inputmode="numeric" autocomplete="cc-number"
+                placeholder="0000 0000 0000 0000" maxlength="19" aria-required="true"
+                oninput="fmtCard(this)" onblur="validateField(this)">
+              <span class="card-brand" id="card-brand-icon" aria-hidden="true">💳</span>
+            </div>
+            <div class="form-error" id="err-card-num" role="alert" style="display:none;"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="card-name">Nombre del titular</label>
+            <input class="form-control" id="card-name" type="text" autocomplete="cc-name"
+              placeholder="Como aparece en la tarjeta" maxlength="60" aria-required="true"
+              oninput="syncPreview()" onblur="validateField(this)">
+            <div class="form-error" id="err-card-name" role="alert" style="display:none;"></div>
+          </div>
+          <div class="form-grid2">
+            <div class="form-group">
+              <label class="form-label" for="card-exp">Vencimiento</label>
+              <input class="form-control" id="card-exp" type="text" inputmode="numeric"
+                placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" aria-required="true"
+                oninput="fmtExp(this)" onblur="validateField(this)">
+              <div class="form-error" id="err-card-exp" role="alert" style="display:none;"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="card-cvv">CVV</label>
+              <input class="form-control" id="card-cvv" type="password" inputmode="numeric"
+                placeholder="•••" maxlength="4" autocomplete="cc-csc" aria-required="true"
+                onblur="validateField(this)">
+              <div class="form-error" id="err-card-cvv" role="alert" style="display:none;"></div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- PSE panel -->
+      <div id="panel-pse" role="tabpanel" style="display:none;">
+        <p style="font-size:.875rem;color:var(--color-text-secondary);margin-bottom:var(--sp-4);">Selecciona tu banco:</p>
+        <div class="bank-grid">
+          <div class="bank-tile" onclick="selectBank(this)"><div class="bank-tile__icon">🏦</div>Bancolombia</div>
+          <div class="bank-tile" onclick="selectBank(this)"><div class="bank-tile__icon">🏛</div>Davivienda</div>
+          <div class="bank-tile" onclick="selectBank(this)"><div class="bank-tile__icon">🏦</div>Banco de Bogotá</div>
+          <div class="bank-tile" onclick="selectBank(this)"><div class="bank-tile__icon">🏛</div>BBVA</div>
+          <div class="bank-tile" onclick="selectBank(this)"><div class="bank-tile__icon">🏦</div>Colpatria</div>
+          <div class="bank-tile" onclick="selectBank(this)"><div class="bank-tile__icon">🏛</div>Otro banco</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="pse-doc">Número de documento</label>
+          <input class="form-control" id="pse-doc" type="text" inputmode="numeric" placeholder="Cédula de ciudadanía" maxlength="12">
+        </div>
+      </div>
+
+      <!-- NEQUI panel -->
+      <div id="panel-nequi" role="tabpanel" style="display:none;">
+        <div class="nequi-hero">
+          <div class="nequi-hero__icon">📱</div>
+          <div style="font-size:.95rem;font-weight:600;color:var(--color-primary);margin-bottom:var(--sp-2);">Paga con Nequi</div>
+          <p style="font-size:.82rem;line-height:1.6;margin-bottom:var(--sp-3);">Ingresa tu número de celular Nequi y aprueba el cobro desde la app.</p>
+          <div class="form-group" style="max-width:260px;margin:0 auto;">
+            <input class="form-control" id="nequi-phone" type="tel" inputmode="numeric" placeholder="300 000 0000" maxlength="13">
+          </div>
+          <div class="nequi-hero__qr"><span>QR demo</span></div>
+          <p style="font-size:.75rem;color:var(--color-text-muted);">También puedes escanear el código QR desde la app Nequi</p>
+        </div>
+      </div>
+
+      <!-- Pay button -->
+      <div style="margin-top:var(--sp-5);">
+        <button class="btn btn-primary btn-lg" id="pay-btn" onclick="handlePay()" style="width:100%;font-size:1rem;">
+          🔒 Pagar ahora <span id="pay-btn-total">$0</span>
+        </button>
+        <div style="display:flex;align-items:center;justify-content:center;gap:var(--sp-2);margin-top:var(--sp-3);font-size:.75rem;color:var(--color-text-muted);">
+          <span>🔐</span> Pago encriptado SSL · No almacenamos datos de tarjeta
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: booking summary -->
+  <div>
+    <div class="checkout-card" style="position:sticky;top:80px;">
+      <div class="checkout-card__title">📋 Resumen de la cita</div>
+
+      <div style="display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);margin-bottom:var(--sp-5);">
+        <div class="avatar avatar-sm">VR</div>
+        <div>
+          <div style="font-weight:700;font-size:.9rem;color:var(--color-primary);" id="sum-prof">Dra. Valentina Ríos</div>
+          <div style="font-size:.75rem;color:var(--color-text-muted);" id="sum-spec">Psicóloga Clínica</div>
+        </div>
+        <span class="badge badge-success" style="margin-left:auto;">Verificada</span>
+      </div>
+
+      <div style="margin-bottom:var(--sp-5);">
+        <div class="summary-row">
+          <span class="text-meta">📅 Fecha</span>
+          <span style="font-weight:600;font-size:.875rem;" id="sum-date">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="text-meta">🕐 Hora</span>
+          <span style="font-weight:600;font-size:.875rem;" id="sum-time">—</span>
+        </div>
+        <div class="summary-row">
+          <span class="text-meta">⏱ Duración</span>
+          <span style="font-weight:600;font-size:.875rem;">1 hora</span>
+        </div>
+        <div class="summary-row">
+          <span class="text-meta">🩺 Tipo</span>
+          <span style="font-weight:600;font-size:.875rem;" id="sum-tipo">—</span>
+        </div>
+      </div>
+
+      <div style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-4);">
+        <div class="summary-row" style="border-bottom:1px solid var(--color-border-light);">
+          <span style="color:var(--color-text-secondary);">Sesión</span>
+          <span id="sum-price">$0</span>
+        </div>
+        <div class="summary-row" style="color:var(--color-text-muted);">
+          <span>Plataforma Trébol</span>
+          <span>$5.000</span>
+        </div>
+        <div class="summary-total">
+          <span>Total</span>
+          <span id="sum-total">$0</span>
+        </div>
+      </div>
+
+      <div style="margin-top:var(--sp-4);font-size:.75rem;color:var(--color-text-muted);line-height:1.6;text-align:center;">
+        Al pagar aceptas los <a href="#" style="color:var(--color-primary);">Términos de servicio</a> de Trébol.
+        La cita quedará confirmada inmediatamente.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success overlay -->
+<div class="success-overlay" id="success-overlay" aria-live="assertive" role="status" aria-atomic="true">
+  <div class="success-icon">✓</div>
+  <div class="success-title">¡Pago exitoso!</div>
+  <div class="success-sub">Tu cita ha sido confirmada. Redirigiendo al calendario…</div>
+  <div class="spinner" style="margin-top:var(--sp-2);"></div>
+</div>
+
+<script>
+  /* ======== LEER DATOS DE sessionStorage ======== */
+  const appt = (()=>{
+    try{return JSON.parse(sessionStorage.getItem('pendingAppointment')||'null');}
+    catch(e){return null;}
+  })();
+
+  if(!appt){
+    // Si no hay cita pendiente, volver al calendario
+    window.location.replace('orador-calendario.html');
+  }
+
+  function fmtCOP(n){return '$'+Number(n).toLocaleString('es-CO');}
+
+  function loadSummary(){
+    if(!appt)return;
+    document.getElementById('sum-prof').textContent  = appt.profName  || 'Dra. Valentina Ríos';
+    document.getElementById('sum-spec').textContent  = appt.profSpec  || 'Psicóloga Clínica';
+    document.getElementById('sum-date').textContent  = appt.dateLabel || '—';
+    document.getElementById('sum-time').textContent  = appt.timeLabel || '—';
+    document.getElementById('sum-tipo').textContent  = appt.tipoLabel || '—';
+    document.getElementById('sum-price').textContent = fmtCOP(appt.price||0);
+    document.getElementById('sum-total').textContent = fmtCOP(appt.total||0);
+    document.getElementById('pay-btn-total').textContent = fmtCOP(appt.total||0);
+    document.title = `Trébol — Pagar ${fmtCOP(appt.total||0)}`;
+  }
+
+  /* ======== TABS ======== */
+  let activeTab = 'tarjeta';
+  function switchTab(tab){
+    activeTab = tab;
+    ['tarjeta','pse','nequi'].forEach(t=>{
+      document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+      document.getElementById(`tab-${t}`).setAttribute('aria-selected', String(t===tab));
+      document.getElementById(`panel-${t}`).style.display = t===tab ? '' : 'none';
+    });
+  }
+
+  /* ======== FORMATEO TARJETA ======== */
+  function fmtCard(input){
+    let v = input.value.replace(/\D/g,'').slice(0,16);
+    input.value = v.replace(/(.{4})/g,'$1 ').trim();
+    const masked = v.padEnd(16,'•').replace(/./g,(c,i)=>i<12?'•':c);
+    document.getElementById('preview-num').textContent = [0,4,8,12].map(i=>masked.slice(i,i+4)).join(' ');
+    // detect card brand
+    const brand = v[0]==='4'?'💳 Visa':v[0]==='5'?'💳 MC':v[0]==='3'?'💳 Amex':'💳';
+    document.getElementById('card-brand-icon').textContent = v[0]==='4'?'💳':v[0]==='5'?'💳':'💳';
+    document.getElementById('preview-logo').textContent = brand;
+    syncPreview();
+  }
+
+  function fmtExp(input){
+    let v = input.value.replace(/\D/g,'').slice(0,4);
+    if(v.length>2) v = v.slice(0,2)+'/'+v.slice(2);
+    input.value = v;
+    document.getElementById('preview-exp').textContent = v||'MM/AA';
+  }
+
+  function syncPreview(){
+    const name = document.getElementById('card-name').value.trim().toUpperCase()||'NOMBRE TITULAR';
+    document.getElementById('preview-name').textContent = name.slice(0,24);
+  }
+
+  /* ======== VALIDACIÓN ======== */
+  function validateField(input){
+    const id = input.id, val = input.value.trim();
+    let err='';
+    if(id==='card-num'){
+      const digits=val.replace(/\s/g,'');
+      if(!digits)err='Ingresa el número de tarjeta';
+      else if(digits.length<13)err='Número de tarjeta incompleto';
+    }
+    if(id==='card-name'){
+      if(!val)err='Ingresa el nombre del titular';
+      else if(val.length<3)err='Nombre muy corto';
+    }
+    if(id==='card-exp'){
+      if(!val)err='Ingresa la fecha de vencimiento';
+      else if(!/^\d{2}\/\d{2}$/.test(val))err='Formato inválido (MM/AA)';
+      else{
+        const[mm,yy]=val.split('/').map(Number);
+        if(mm<1||mm>12)err='Mes inválido';
+        else{const exp=new Date(2000+yy,mm-1),now=new Date();if(exp<now)err='Tarjeta vencida';}
+      }
+    }
+    if(id==='card-cvv'){
+      if(!val)err='Ingresa el CVV';
+      else if(!/^\d{3,4}$/.test(val))err='CVV inválido';
+    }
+    const errEl=document.getElementById('err-'+id);
+    if(errEl){
+      errEl.textContent=err;
+      errEl.style.display=err?'':'none';
+      input.classList.toggle('is-invalid',!!err);
+    }
+    return !err;
+  }
+
+  function validateCardForm(){
+    const fields=['card-num','card-name','card-exp','card-cvv'];
+    return fields.map(id=>validateField(document.getElementById(id))).every(Boolean);
+  }
+
+  /* ======== BANCO PSE ======== */
+  let selectedBank=null;
+  function selectBank(el){
+    document.querySelectorAll('.bank-tile').forEach(t=>t.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedBank=el.textContent.trim();
+  }
+
+  /* ======== PAGO ======== */
+  function handlePay(){
+    if(activeTab==='tarjeta'){
+      if(!validateCardForm())return;
+    }else if(activeTab==='pse'){
+      if(!selectedBank){alert('Selecciona tu banco para continuar.');return;}
+    }else if(activeTab==='nequi'){
+      const phone=document.getElementById('nequi-phone').value.replace(/\D/g,'');
+      if(phone.length<10){alert('Ingresa tu número de celular Nequi.');return;}
+    }
+
+    const btn=document.getElementById('pay-btn');
+    btn.disabled=true;
+    btn.innerHTML='<span class="spinner" style="width:18px;height:18px;"></span> Procesando…';
+
+    // Simular tiempo de pago (2 segundos)
+    setTimeout(()=>{
+      // Guardar confirmación
+      sessionStorage.setItem('confirmedAppointment', JSON.stringify({
+        y: appt.y, m: appt.m, d: appt.d, h: appt.h,
+        tipo: appt.tipo, tipoLabel: appt.tipoLabel
+      }));
+      sessionStorage.removeItem('pendingAppointment');
+
+      // Mostrar success overlay
+      document.getElementById('success-overlay').classList.add('show');
+
+      // Redirigir al calendario con ?paid=1 tras 2.5 s
+      setTimeout(()=>{
+        window.location.href='orador-calendario.html?paid=1';
+      }, 2500);
+    }, 2000);
+  }
+
+  /* ======== INIT ======== */
+  loadSummary();
+</script>
+</body>
+</html>

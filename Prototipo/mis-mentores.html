@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Mis mentores</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .mentor-empty {
+      text-align: center;
+      padding: var(--sp-16) var(--sp-8);
+      color: var(--color-text-muted);
+    }
+    .mentor-empty__icon { font-size: 4rem; margin-bottom: var(--sp-4); }
+    .mentor-empty__title { font-size: 1.25rem; font-weight: 700; color: var(--color-text-secondary); margin-bottom: var(--sp-2); }
+
+    .mentor-tip {
+      background: var(--color-accent-pale);
+      border: 1px solid var(--color-accent-light);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-4) var(--sp-5);
+      margin-bottom: var(--sp-6);
+      display: flex;
+      gap: var(--sp-4);
+      align-items: flex-start;
+    }
+    .mentor-tip__icon { font-size: 1.5rem; flex-shrink: 0; }
+    .mentor-tip__text { font-size: 0.875rem; color: var(--color-primary); line-height: 1.6; }
+    .mentor-tip__text strong { font-weight: 700; }
+
+    .mentor-date {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: var(--sp-1);
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- ======================================================
+       SIDEBAR
+       ====================================================== -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>
+          Inicio
+        </a>
+        <div class="nav-item open" data-submenu="submenu-profesionales" tabindex="0" role="button" aria-expanded="true">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div id="submenu-profesionales" class="nav-submenu" style="display:block;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-mentores.html" class="nav-item active" aria-current="page">Mis mentores</a>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="citas-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>
+          Mis citas
+        </a>
+        <a href="perfil-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>
+          Mi perfil
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🗓</span>
+          Calendario
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" id="sidebar-avatar">MG</div>
+        <div>
+          <div class="sidebar__user-name" id="sidebar-name">María García</div>
+          <div class="sidebar__user-role">Usuario</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======================================================
+       MAIN CONTENT
+       ====================================================== -->
+  <div class="main-wrapper">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú" style="display:none;">☰</button>
+      <span class="topbar__title">Mis mentores</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm" style="cursor:pointer;" id="topbar-avatar" title="Mi perfil">MG</div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="main-content" id="main-content">
+
+      <!-- Page header -->
+      <div class="page-header mb-6">
+        <nav class="breadcrumb" aria-label="Ruta">
+          <a href="home-usuario.html">Inicio</a>
+          <span class="breadcrumb__sep" aria-hidden="true">›</span>
+          <a href="#">Profesionales</a>
+          <span class="breadcrumb__sep" aria-hidden="true">›</span>
+          <span>Mis mentores</span>
+        </nav>
+        <h1 style="color:var(--color-primary);">Mis mentores</h1>
+        <p style="color:var(--color-text-secondary);margin-top:4px;">
+          Profesionales que sigues. Accede a su perfil y agenda citas fácilmente.
+        </p>
+      </div>
+
+      <!-- Stats rápidas -->
+      <div class="stats-grid mb-6" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">❤️</div>
+          <div>
+            <div class="stat-card__label">Mentores seguidos</div>
+            <div class="stat-card__value" id="count-mentores">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">🩺</div>
+          <div>
+            <div class="stat-card__label">Especialistas</div>
+            <div class="stat-card__value" id="count-esp">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">🧠</div>
+          <div>
+            <div class="stat-card__label">Psicólogos</div>
+            <div class="stat-card__value" id="count-psi">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tip -->
+      <div class="mentor-tip" id="mentor-tip">
+        <div class="mentor-tip__icon">💡</div>
+        <div class="mentor-tip__text">
+          <strong>¿Qué son los mentores?</strong><br>
+          Son los profesionales que decides seguir. Al seguirlos, recibes notificaciones de sus nuevas salas, conferencias y disponibilidad. Puedes dejar de seguirlos en cualquier momento desde aquí.
+        </div>
+      </div>
+
+      <!-- Búsqueda -->
+      <div class="prof-filter-bar" role="search" style="margin-bottom:var(--sp-5);">
+        <div class="filter-search">
+          <input type="search" id="filter-search" placeholder="Buscar entre mis mentores…"
+            aria-label="Buscar mentores" oninput="applyFilters()">
+        </div>
+        <select id="filter-tipo" onchange="applyFilters()" aria-label="Filtrar por tipo">
+          <option value="">Todos los tipos</option>
+          <option value="psicologo">Psicólogos</option>
+          <option value="especialista">Especialistas</option>
+        </select>
+        <select id="filter-orden" onchange="applyFilters()" aria-label="Ordenar por">
+          <option value="reciente">Más reciente</option>
+          <option value="nombre">Nombre A–Z</option>
+          <option value="seguidores">Más popular</option>
+        </select>
+      </div>
+
+      <div id="results-info" style="font-size:0.8125rem;color:var(--color-text-muted);margin-bottom:var(--sp-4);"></div>
+
+      <!-- Lista -->
+      <div class="prof-cards-list" id="mentor-list" aria-live="polite" aria-label="Lista de mentores">
+        <!-- Generado por JS -->
+      </div>
+
+      <!-- CTA para descubrir más -->
+      <div id="discover-cta" style="display:none;margin-top:var(--sp-8);text-align:center;">
+        <div style="font-size:0.9375rem;color:var(--color-text-secondary);margin-bottom:var(--sp-4);">
+          ¿Quieres seguir a más profesionales?
+        </div>
+        <div style="display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;">
+          <a href="psicologos.html" class="btn btn-primary">🧠 Ver psicólogos</a>
+          <a href="especialistas.html" class="btn btn-secondary">🩺 Ver especialistas</a>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  const USUARIO_ID = 'u001';
+  let allMentores = [];
+  let filtered    = [];
+  let relaciones  = [];   // para obtener la fecha de seguimiento
+
+  function init() {
+    const sesion = Session.get();
+    if (sesion) {
+      document.getElementById('sidebar-name').textContent = sesion.nombre;
+      document.getElementById('sidebar-avatar').textContent = sesion.avatar;
+      document.getElementById('topbar-avatar').textContent = sesion.avatar;
+      document.getElementById('topbar-avatar').title = sesion.nombre;
+    }
+
+    // Cargar relaciones con fecha de seguimiento
+    relaciones = DB.filterList('mentores', m => m.usuarioId === USUARIO_ID);
+
+    // Cargar perfiles
+    allMentores = Mentores.getMentoresDeUsuario(USUARIO_ID);
+
+    updateStats();
+    applyFilters();
+    initSidebar();
+  }
+
+  function updateStats() {
+    document.getElementById('count-mentores').textContent = allMentores.length;
+    document.getElementById('count-esp').textContent = allMentores.filter(p => p.tipo === 'especialista').length;
+    document.getElementById('count-psi').textContent = allMentores.filter(p => p.tipo === 'psicologo').length;
+  }
+
+  function applyFilters() {
+    const q     = document.getElementById('filter-search').value.toLowerCase();
+    const tipo  = document.getElementById('filter-tipo').value;
+    const orden = document.getElementById('filter-orden').value;
+
+    filtered = allMentores.filter(p => {
+      const matchQ    = !q || p.nombre.toLowerCase().includes(q) || (p.especialidad||'').toLowerCase().includes(q);
+      const matchTipo = !tipo || p.tipo === tipo;
+      return matchQ && matchTipo;
+    });
+
+    // Obtener fechas de seguimiento
+    const fechaMap = {};
+    relaciones.forEach(r => { fechaMap[r.profesionalId] = r.fechaSeguimiento; });
+
+    filtered.sort((a, b) => {
+      if (orden === 'reciente') return (fechaMap[b.id] || '').localeCompare(fechaMap[a.id] || '');
+      if (orden === 'nombre')   return a.nombre.localeCompare(b.nombre, 'es');
+      if (orden === 'seguidores') return b.seguidores - a.seguidores;
+      return 0;
+    });
+
+    renderList(fechaMap);
+  }
+
+  function renderList(fechaMap) {
+    const list  = document.getElementById('mentor-list');
+    const info  = document.getElementById('results-info');
+    const cta   = document.getElementById('discover-cta');
+    const tip   = document.getElementById('mentor-tip');
+
+    if (allMentores.length === 0) {
+      tip.style.display = 'flex';
+      list.innerHTML = `
+        <div class="mentor-empty">
+          <div class="mentor-empty__icon">💤</div>
+          <div class="mentor-empty__title">Aún no sigues a ningún profesional</div>
+          <p>Explora el directorio y haz clic en <strong>+ Seguir</strong> para agregarlo a tus mentores.</p>
+        </div>`;
+      cta.style.display = 'block';
+      info.textContent = '';
+      return;
+    }
+
+    tip.style.display = allMentores.length < 3 ? 'flex' : 'none';
+    cta.style.display = 'block';
+
+    info.textContent = filtered.length === 0
+      ? 'Ningún mentor coincide con tu búsqueda.'
+      : `${filtered.length} mentor${filtered.length !== 1 ? 'es' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`;
+
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div style="text-align:center;padding:var(--sp-10);color:var(--color-text-muted);">
+          <div style="font-size:2rem;margin-bottom:var(--sp-3);">🔍</div>
+          Sin resultados. Limpia los filtros.
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(p => {
+      const fecha     = fechaMap?.[p.id];
+      const fechaStr  = fecha ? `Siguiendo desde: ${formatDate(new Date(fecha))}` : '';
+      const stars     = '★'.repeat(Math.round(p.calificacion)) + '☆'.repeat(5 - Math.round(p.calificacion));
+      const badgeTipo = p.tipo === 'psicologo'
+        ? '<span class="badge badge-accent">Psicólogo</span>'
+        : '<span class="badge badge-warning">Especialista</span>';
+      const verificado = p.verificado ? '<span class="badge badge-success">✓ Verificado</span>' : '';
+
+      return `
+        <div class="prof-card" data-prof-id="${p.id}">
+          <div class="prof-card__avatar">${p.avatar}</div>
+          <div class="prof-card__body">
+            <div class="prof-card__header">
+              <div>
+                <div class="prof-card__name">${p.nombre}</div>
+                <div class="prof-card__specialty">${p.especialidad || 'Psicología general'}</div>
+                ${fechaStr ? `<div class="mentor-date">🗓 ${fechaStr}</div>` : ''}
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+                ${badgeTipo}${verificado}
+              </div>
+            </div>
+            <div class="prof-card__meta">
+              <span>📍 ${p.ciudad || 'Colombia'}</span>
+              <span>${stars} ${p.calificacion.toFixed(1)}</span>
+              <span>👥 ${p.seguidores} seguidores</span>
+              ${p.tarifaHora ? `<span>💰 $${p.tarifaHora.toLocaleString('es-CO')} / hora</span>` : ''}
+            </div>
+            ${p.bio ? `<p class="prof-card__bio">${p.bio.slice(0,100)}…</p>` : ''}
+            <div class="prof-card__actions">
+              <a href="perfil-orador.html" class="btn btn-secondary btn-sm">Ver perfil</a>
+              <button class="btn btn-sm btn-mentor-active"
+                onclick="dejarDeSeguirUI('${p.id}', this)"
+                aria-label="Dejar de seguir a ${p.nombre}">
+                ✓ Siguiendo
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  /**
+   * Dejar de seguir con confirmación.
+   */
+  function dejarDeSeguirUI(profesionalId, btn) {
+    const prof = Profesionales.findById(profesionalId);
+    if (!prof) return;
+
+    showConfirm({
+      title: `Dejar de seguir a ${prof.nombre}`,
+      message: `Ya no recibirás notificaciones de sus salas ni conferencias. ¿Deseas continuar?`,
+      confirmText: 'Sí, dejar de seguir',
+      cancelText: 'Cancelar',
+      onConfirm() {
+        Mentores.dejarDeSeguir(USUARIO_ID, profesionalId);
+        // Eliminar de la lista local
+        allMentores = allMentores.filter(p => p.id !== profesionalId);
+        relaciones  = relaciones.filter(r => r.profesionalId !== profesionalId);
+        updateStats();
+        applyFilters();
+        showToast({ title: `Dejaste de seguir a ${prof.nombre}`, type: 'info' });
+      }
+    });
+  }
+
+  init();
+</script>
+</body>
+</html>

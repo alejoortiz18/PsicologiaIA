@@ -40,6 +40,7 @@ REGISTRO USUARIO
 -	El enlace del correo enviará el token a una pagina de crear contraseña.
 -	La página de crear una contraseña recibe el token y lo valida que exista y esté activo
 -	Si el token este activo muestra formulario para etablecer contraseña
+-	Regla de seguridad: la contraseña NUNCA se almacena en texto plano. Se aplica doble encriptación Hash + Salt con el algoritmo Argon2 (salt embebido en el hash). Operación centralizada en la Capa Helpers.
 -	Sino este activo muestra mensaje de token inválido y solicita reenvio de token.
 -	Tendrá una opción para volver al landing page
 

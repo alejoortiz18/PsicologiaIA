@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Mi perfil · Indicadores KPI</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* ── KPI page-specific styles ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: var(--sp-5);
+      margin-bottom: var(--sp-8);
+    }
+
+    .kpi-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--color-border-light);
+      box-shadow: var(--shadow-sm);
+      padding: var(--sp-6);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--sp-4);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .kpi-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .kpi-card__icon {
+      width: 52px; height: 52px;
+      border-radius: var(--radius-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .kpi-card__icon--blue   { background: #EBF5FB; }
+    .kpi-card__icon--green  { background: #E9F7EF; }
+    .kpi-card__icon--teal   { background: #E8F8F5; }
+    .kpi-card__icon--orange { background: #FEF9E7; }
+    .kpi-card__icon--purple { background: #F5EEF8; }
+    .kpi-card__icon--indigo { background: #EBF5FB; }
+
+    .kpi-card__body { flex: 1; }
+    .kpi-card__label {
+      font-size: 0.8125rem;
+      color: var(--color-text-muted);
+      font-weight: 500;
+      margin-bottom: var(--sp-1);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .kpi-card__value {
+      font-family: var(--font-display);
+      font-size: 2.125rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      line-height: 1;
+      margin-bottom: var(--sp-2);
+    }
+    .kpi-card__value--green  { color: #1E8449; }
+    .kpi-card__value--orange { color: #D35400; }
+
+    .kpi-card__sub {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .kpi-trend-up   { color: #1E8449; font-weight: 600; }
+    .kpi-trend-down { color: #C0392B; font-weight: 600; }
+
+    /* Mini progress bar */
+    .kpi-progress {
+      margin-top: var(--sp-3);
+      height: 5px;
+      background: var(--color-border-light);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .kpi-progress__fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.8s ease;
+    }
+
+    /* Summary table card */
+    .kpi-summary-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--color-border-light);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .kpi-summary-card__header {
+      padding: var(--sp-5) var(--sp-6);
+      border-bottom: 1px solid var(--color-border-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kpi-summary-card__title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    /* Monthly breakdown bar chart (pure CSS) */
+    .kpi-bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--sp-3);
+      height: 120px;
+      padding: 0 var(--sp-2);
+    }
+    .kpi-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sp-1);
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .kpi-bar {
+      width: 100%;
+      max-width: 36px;
+      background: var(--color-accent-pale);
+      border-radius: 4px 4px 0 0;
+      position: relative;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    .kpi-bar:hover { background: var(--color-accent); }
+    .kpi-bar-label {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+    .kpi-bar-val {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    /* Divider row */
+    .kpi-divider {
+      border: none;
+      border-top: 1px solid var(--color-border-light);
+      margin: var(--sp-6) 0;
+    }
+
+    /* Section heading */
+    .kpi-section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: var(--sp-4);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+
+    /* Pago pendiente highlight */
+    .kpi-pending-box {
+      background: #FEF9E7;
+      border: 1.5px solid #F9CA24;
+      border-radius: var(--radius-xl);
+      padding: var(--sp-5) var(--sp-6);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-5);
+      margin-bottom: var(--sp-8);
+    }
+    .kpi-pending-box__icon {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+    .kpi-pending-box__label {
+      font-size: 0.85rem;
+      color: #7D6608;
+      font-weight: 500;
+      margin-bottom: var(--sp-1);
+    }
+    .kpi-pending-box__amount {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      color: #D68910;
+      line-height: 1;
+    }
+    .kpi-pending-box__note {
+      font-size: 0.78rem;
+      color: #9A7D0A;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="#" class="nav-item"><span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio</a>
+        <a href="mis-eventos.html" class="nav-item"><span class="nav-item__icon" aria-hidden="true">🎪</span>Mis eventos</a>
+        <div class="nav-item" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="false">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>Profesionales<span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div id="submenu-colegas" class="nav-submenu" style="display:none;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-colegas.html" class="nav-item">Mis colegas</a>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="perfil-profesional.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+        <a href="citas-profesional.html" class="nav-item"><span class="nav-item__icon" aria-hidden="true">📅</span>Citas</a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" id="sidebar-avatar" style="background:var(--color-primary);">VR</div>
+        <div>
+          <div class="sidebar__user-name" id="sidebar-name">Dra. Valentina Ríos</div>
+          <div class="sidebar__user-role">Profesional</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú" style="display:none;">☰</button>
+      <span class="topbar__title">Mi perfil profesional</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm" id="topbar-avatar" style="background:var(--color-primary);">VR</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+
+      <!-- ── Profile header card ── -->
+      <section style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6) var(--sp-8);margin-bottom:var(--sp-5);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);display:flex;gap:var(--sp-6);align-items:center;flex-wrap:wrap;">
+        <div class="avatar avatar-2xl" id="pro-avatar" style="background:var(--color-primary);">VR</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:4px;">
+            <h1 id="pro-nombre" style="font-family:var(--font-display);color:var(--color-primary);font-size:1.625rem;">Dra. Valentina Ríos</h1>
+            <span class="badge badge-success" style="font-size:0.75rem;">✓ Verificada</span>
+          </div>
+          <div class="text-meta" style="margin-bottom:var(--sp-4);">Psicóloga Clínica · Tarjeta COLPSIC: <strong>PSI-0001234</strong></div>
+          <div style="display:flex;gap:var(--sp-8);">
+            <div style="text-align:center;"><div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">1 248</div><div class="text-meta">Seguidores</div></div>
+            <div style="text-align:center;"><div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">28</div><div class="text-meta">Salas</div></div>
+            <div style="text-align:center;"><div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">3</div><div class="text-meta">Citas próximas</div></div>
+          </div>
+        </div>
+        <a href="perfil-orador.html" class="btn btn-secondary btn-sm">👁 Ver perfil público</a>
+      </section>
+
+      <!-- ── Tab nav ── -->
+      <nav class="prof-tabs-bar" aria-label="Secciones del perfil" style="margin-bottom:var(--sp-5);">
+        <ul class="prof-tabs-bar__list" role="tablist">
+          <li><a href="perfil-profesional.html"    class="prof-tab-link"><span class="tab-icon">👤</span>Información personal</a></li>
+          <li><a href="perfil-pro-salas.html"       class="prof-tab-link"><span class="tab-icon">🎪</span>Salas y eventos<span class="tab-badge">28</span></a></li>
+          <li><a href="perfil-pro-calendario.html"  class="prof-tab-link"><span class="tab-icon">🗓</span>Calendario</a></li>
+          <li><a href="perfil-pro-citas.html"       class="prof-tab-link"><span class="tab-icon">📅</span>Citas<span class="tab-badge">3</span></a></li>
+          <li><a href="perfil-pro-kpi.html"         class="prof-tab-link active" aria-current="page"><span class="tab-icon">📊</span>Indicadores</a></li>
+        </ul>
+      </nav>
+
+      <!-- ══════════════════════════════════════════
+           TAB: INDICADORES KPI
+      ══════════════════════════════════════════ -->
+
+      <!-- Period selector -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-4);margin-bottom:var(--sp-6);">
+        <div>
+          <h2 style="font-size:1.125rem;font-weight:700;color:var(--color-primary);margin-bottom:2px;">Resumen de actividad</h2>
+          <span class="text-meta">Acumulado histórico en la plataforma Trébol</span>
+        </div>
+        <div style="display:flex;gap:var(--sp-2);">
+          <button class="btn btn-secondary btn-sm kpi-period-btn active" data-period="all">Todo</button>
+          <button class="btn btn-secondary btn-sm kpi-period-btn" data-period="year">Este año</button>
+          <button class="btn btn-secondary btn-sm kpi-period-btn" data-period="month">Este mes</button>
+        </div>
+      </div>
+
+      <!-- ── KPI Cards grid ── -->
+      <div class="kpi-grid">
+
+        <!-- Consultas totales -->
+        <article class="kpi-card" aria-label="Total de consultas">
+          <div class="kpi-card__icon kpi-card__icon--blue">💬</div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Total de consultas</div>
+            <div class="kpi-card__value" id="kpi-consultas">347</div>
+            <div class="kpi-card__sub">
+              <span class="kpi-trend-up">▲ 12%</span> vs. período anterior
+            </div>
+            <div class="kpi-progress">
+              <div class="kpi-progress__fill" style="width:72%;background:var(--color-accent);"></div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Clientes activos -->
+        <article class="kpi-card" aria-label="Cantidad de clientes">
+          <div class="kpi-card__icon kpi-card__icon--green">👥</div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Clientes atendidos</div>
+            <div class="kpi-card__value kpi-card__value--green" id="kpi-clientes">98</div>
+            <div class="kpi-card__sub">
+              <span class="kpi-trend-up">▲ 8%</span> vs. período anterior
+            </div>
+            <div class="kpi-progress">
+              <div class="kpi-progress__fill" style="width:58%;background:#2ECC71;"></div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Ingresos generados -->
+        <article class="kpi-card" aria-label="Ingresos generados en la plataforma">
+          <div class="kpi-card__icon kpi-card__icon--teal">💰</div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Ingresos generados</div>
+            <div class="kpi-card__value" id="kpi-ingresos" style="font-size:1.6rem;">$31.230.000</div>
+            <div class="kpi-card__sub">
+              <span class="kpi-trend-up">▲ 21%</span> vs. período anterior · en COP
+            </div>
+            <div class="kpi-progress">
+              <div class="kpi-progress__fill" style="width:84%;background:#1ABC9C;"></div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Saldo pendiente de pago -->
+        <article class="kpi-card" aria-label="Saldo que le debe la aplicación">
+          <div class="kpi-card__icon kpi-card__icon--orange">🏦</div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Saldo por pagar</div>
+            <div class="kpi-card__value kpi-card__value--orange" id="kpi-saldo" style="font-size:1.6rem;">$2.700.000</div>
+            <div class="kpi-card__sub">Próximo pago: <strong>31 mayo 2026</strong></div>
+            <div class="kpi-progress">
+              <div class="kpi-progress__fill" style="width:38%;background:#F39C12;"></div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Cantidad de salas -->
+        <article class="kpi-card" aria-label="Cantidad de salas">
+          <div class="kpi-card__icon kpi-card__icon--purple">🎪</div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Salas creadas</div>
+            <div class="kpi-card__value" id="kpi-salas">28</div>
+            <div class="kpi-card__sub">
+              5 abiertas &nbsp;·&nbsp; 18 cerradas &nbsp;·&nbsp; 5 próximas
+            </div>
+            <div class="kpi-progress">
+              <div class="kpi-progress__fill" style="width:65%;background:#8E44AD;"></div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Cantidad de eventos -->
+        <article class="kpi-card" aria-label="Cantidad de eventos">
+          <div class="kpi-card__icon kpi-card__icon--indigo">🗓</div>
+          <div class="kpi-card__body">
+            <div class="kpi-card__label">Eventos organizados</div>
+            <div class="kpi-card__value" id="kpi-eventos">14</div>
+            <div class="kpi-card__sub">
+              <span class="kpi-trend-up">▲ 3</span> nuevos este mes
+            </div>
+            <div class="kpi-progress">
+              <div class="kpi-progress__fill" style="width:48%;background:#2980B9;"></div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- ── Saldo pendiente destacado ── -->
+      <div class="kpi-pending-box" role="note" aria-label="Saldo pendiente de pago">
+        <div class="kpi-pending-box__icon">⏳</div>
+        <div>
+          <div class="kpi-pending-box__label">La plataforma te debe</div>
+          <div class="kpi-pending-box__amount">$2.700.000 COP</div>
+          <div class="kpi-pending-box__note">Se acreditan el <strong>31 de mayo de 2026</strong> a tu cuenta registrada (Bancolombia ··· 4421).</div>
+        </div>
+        <div style="margin-left:auto;">
+          <button class="btn btn-secondary btn-sm">Ver historial de pagos</button>
+        </div>
+      </div>
+
+      <!-- ── Ingresos mensuales (bar chart) ── -->
+      <div class="kpi-summary-card" style="margin-bottom:var(--sp-6);">
+        <div class="kpi-summary-card__header">
+          <span class="kpi-summary-card__title">📈 Ingresos mensuales (COP)</span>
+          <span class="text-meta" style="font-size:0.8rem;">Últimos 6 meses</span>
+        </div>
+        <div style="padding:var(--sp-6);">
+          <div class="kpi-bar-chart" role="img" aria-label="Gráfica de barras de ingresos mensuales">
+            <div class="kpi-bar-wrap">
+              <div class="kpi-bar-val">$4,2M</div>
+              <div class="kpi-bar" style="height:52%;" title="Diciembre · $4.200.000"></div>
+              <div class="kpi-bar-label">Dic</div>
+            </div>
+            <div class="kpi-bar-wrap">
+              <div class="kpi-bar-val">$3,8M</div>
+              <div class="kpi-bar" style="height:47%;" title="Enero · $3.800.000"></div>
+              <div class="kpi-bar-label">Ene</div>
+            </div>
+            <div class="kpi-bar-wrap">
+              <div class="kpi-bar-val">$5,1M</div>
+              <div class="kpi-bar" style="height:63%;" title="Febrero · $5.100.000"></div>
+              <div class="kpi-bar-label">Feb</div>
+            </div>
+            <div class="kpi-bar-wrap">
+              <div class="kpi-bar-val">$6,0M</div>
+              <div class="kpi-bar" style="height:74%;background:var(--color-accent);" title="Marzo · $6.000.000"></div>
+              <div class="kpi-bar-label">Mar</div>
+            </div>
+            <div class="kpi-bar-wrap">
+              <div class="kpi-bar-val">$5,4M</div>
+              <div class="kpi-bar" style="height:67%;" title="Abril · $5.400.000"></div>
+              <div class="kpi-bar-label">Abr</div>
+            </div>
+            <div class="kpi-bar-wrap">
+              <div class="kpi-bar-val">$6,7M</div>
+              <div class="kpi-bar" style="height:83%;background:var(--color-primary);" title="Mayo · $6.700.000"></div>
+              <div class="kpi-bar-label">May</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Resumen tabla ── -->
+      <div class="kpi-summary-card">
+        <div class="kpi-summary-card__header">
+          <span class="kpi-summary-card__title">🗂 Detalle por indicador</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table" style="margin:0;">
+            <thead>
+              <tr>
+                <th>Indicador</th>
+                <th style="text-align:right;">Acumulado</th>
+                <th style="text-align:right;">Este mes</th>
+                <th style="text-align:right;">Variación</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span style="margin-right:8px;">💬</span>Consultas totales</td>
+                <td style="text-align:right;font-weight:600;">347</td>
+                <td style="text-align:right;">38</td>
+                <td style="text-align:right;"><span class="badge badge-success">▲ 12%</span></td>
+              </tr>
+              <tr>
+                <td><span style="margin-right:8px;">👥</span>Clientes atendidos</td>
+                <td style="text-align:right;font-weight:600;">98</td>
+                <td style="text-align:right;">11</td>
+                <td style="text-align:right;"><span class="badge badge-success">▲ 8%</span></td>
+              </tr>
+              <tr>
+                <td><span style="margin-right:8px;">💰</span>Ingresos generados</td>
+                <td style="text-align:right;font-weight:600;">$31.230.000</td>
+                <td style="text-align:right;">$6.700.000</td>
+                <td style="text-align:right;"><span class="badge badge-success">▲ 21%</span></td>
+              </tr>
+              <tr>
+                <td><span style="margin-right:8px;">🏦</span>Saldo por pagar</td>
+                <td style="text-align:right;font-weight:600;" style="color:#D35400;">$2.700.000</td>
+                <td style="text-align:right;">—</td>
+                <td style="text-align:right;"><span class="badge" style="background:#FEF9E7;color:#D35400;">Pendiente</span></td>
+              </tr>
+              <tr>
+                <td><span style="margin-right:8px;">🎪</span>Salas creadas</td>
+                <td style="text-align:right;font-weight:600;">28</td>
+                <td style="text-align:right;">2</td>
+                <td style="text-align:right;"><span class="badge badge-success">▲ 2</span></td>
+              </tr>
+              <tr>
+                <td><span style="margin-right:8px;">🗓</span>Eventos organizados</td>
+                <td style="text-align:right;font-weight:600;">14</td>
+                <td style="text-align:right;">3</td>
+                <td style="text-align:right;"><span class="badge badge-success">▲ 3</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  (function () {
+    const s = Session.get();
+    if (s && s.tipo === 'profesional') {
+      const av = s.avatar || s.nombre.charAt(0);
+      ['sidebar-avatar', 'topbar-avatar', 'pro-avatar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = av;
+      });
+      const sn = document.getElementById('sidebar-name');
+      if (sn) sn.textContent = s.nombre;
+      const pn = document.getElementById('pro-nombre');
+      if (pn) pn.textContent = s.nombre;
+    }
+  })();
+
+  // Period filter buttons (visual only — in a real app would re-fetch data)
+  document.querySelectorAll('.kpi-period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.kpi-period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const period = btn.dataset.period;
+      const data = {
+        all:   { consultas: '347', clientes: '98',  ingresos: '$31.230.000', saldo: '$2.700.000', salas: '28', eventos: '14' },
+        year:  { consultas: '214', clientes: '61',  ingresos: '$19.260.000', saldo: '$2.700.000', salas: '18', eventos: '9'  },
+        month: { consultas: '38',  clientes: '11',  ingresos: '$6.700.000',  saldo: '$2.700.000', salas: '2',  eventos: '3'  }
+      };
+      const d = data[period];
+      document.getElementById('kpi-consultas').textContent = d.consultas;
+      document.getElementById('kpi-clientes').textContent  = d.clientes;
+      document.getElementById('kpi-ingresos').textContent  = d.ingresos;
+      document.getElementById('kpi-saldo').textContent     = d.saldo;
+      document.getElementById('kpi-salas').textContent     = d.salas;
+      document.getElementById('kpi-eventos').textContent   = d.eventos;
+    });
+  });
+
+  initSidebar();
+</script>
+</body>
+</html>

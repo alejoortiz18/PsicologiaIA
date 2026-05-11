@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Mis eventos</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="#" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio
+        </a>
+        <a href="mis-eventos.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon" aria-hidden="true">🎪</span>Mis eventos
+        </a>
+        <div class="nav-item" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="false">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div id="submenu-colegas" class="nav-submenu" style="display:none;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-colegas.html" class="nav-item">Mis colegas</a>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="perfil-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+        <a href="citas-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>Citas
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" style="background:var(--color-primary);">VR</div>
+        <div>
+          <div class="sidebar__user-name">Dra. Valentina Ríos</div>
+          <div class="sidebar__user-role">Profesional</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <span class="topbar__title">Mis eventos</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-primary btn-sm" onclick="showToast({title:'Creación de sala disponible en la versión final',type:'info'})">+ Nueva sala</button>
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm" style="background:var(--color-primary);">VR</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+
+      <!-- Stats row -->
+      <div class="stats-grid mb-6" role="region" aria-label="Resumen de eventos">
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">🎪</div>
+          <div>
+            <div class="stat-card__label">Total salas</div>
+            <div class="stat-card__value">28</div>
+            <div class="stat-card__sub">Historial completo</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">✅</div>
+          <div>
+            <div class="stat-card__label">Salas abiertas</div>
+            <div class="stat-card__value">5</div>
+            <div class="stat-card__sub">Activas actualmente</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">👥</div>
+          <div>
+            <div class="stat-card__label">Total inscritos</div>
+            <div class="stat-card__value">2 847</div>
+            <div class="stat-card__sub">En todas las salas</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">💰</div>
+          <div>
+            <div class="stat-card__label">Ingresos (mes)</div>
+            <div class="stat-card__value">$1.2M</div>
+            <div class="stat-card__sub">Mayo 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <div class="table-search">
+            <span aria-hidden="true">🔍</span>
+            <input type="text" placeholder="Buscar sala..." aria-label="Buscar sala">
+          </div>
+          <select class="table-filter-select" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option>Abierta</option>
+            <option>Cerrada</option>
+          </select>
+          <button class="btn btn-ghost btn-sm">Exportar CSV</button>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table aria-label="Lista de mis eventos">
+            <thead>
+              <tr>
+                <th scope="col" class="sortable" aria-sort="none">Nombre ↕</th>
+                <th scope="col">Estado</th>
+                <th scope="col" class="sortable" aria-sort="descending">Inscritos ↓</th>
+                <th scope="col">Cupo máx.</th>
+                <th scope="col">Precio</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Mindfulness para el estrés laboral</strong></td>
+                <td><span class="badge badge-success">Abierta</span></td>
+                <td>342</td>
+                <td>400</td>
+                <td>Entrada libre</td>
+                <td>15 May 2026 · 6PM</td>
+                <td>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-ghost btn-sm" onclick="openModal('detail-sala-1')" aria-label="Ver detalle de Mindfulness">Ver detalle</button>
+                    <button class="btn btn-danger btn-sm"
+                      onclick="toggleRoomStatus(this,'Mindfulness para el estrés laboral')"
+                      data-room-state="open" aria-label="Cerrar sala Mindfulness">
+                      Cerrar sala
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Regulación emocional en el trabajo</strong></td>
+                <td><span class="badge badge-success">Abierta</span></td>
+                <td>145</td>
+                <td>200</td>
+                <td>$30.000 COP</td>
+                <td>3 Jun 2026 · 7PM</td>
+                <td>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-ghost btn-sm" onclick="openModal('detail-sala-2')" aria-label="Ver detalle de Regulación emocional">Ver detalle</button>
+                    <button class="btn btn-danger btn-sm"
+                      onclick="toggleRoomStatus(this,'Regulación emocional en el trabajo')"
+                      data-room-state="open" aria-label="Cerrar sala Regulación emocional">
+                      Cerrar sala
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Manejo de la ansiedad parte 2</strong></td>
+                <td><span class="badge badge-success">Abierta</span></td>
+                <td>78</td>
+                <td>150</td>
+                <td>$45.000 COP</td>
+                <td>10 Jun 2026 · 5PM</td>
+                <td>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-ghost btn-sm" aria-label="Ver detalle de Manejo de la ansiedad">Ver detalle</button>
+                    <button class="btn btn-danger btn-sm"
+                      onclick="toggleRoomStatus(this,'Manejo de la ansiedad parte 2')"
+                      data-room-state="open" aria-label="Cerrar sala Manejo de la ansiedad">
+                      Cerrar sala
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Psicología positiva aplicada</strong></td>
+                <td><span class="badge badge-muted">Cerrada</span></td>
+                <td>200</td>
+                <td>200</td>
+                <td>$55.000 COP</td>
+                <td>10 Abr 2026 · 4PM</td>
+                <td>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-ghost btn-sm" aria-label="Ver detalle de Psicología positiva">Ver detalle</button>
+                    <button class="btn btn-secondary btn-sm"
+                      onclick="toggleRoomStatus(this,'Psicología positiva aplicada')"
+                      data-room-state="closed" aria-label="Abrir sala Psicología positiva">
+                      Abrir sala
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Terapia cognitiva: introducción</strong></td>
+                <td><span class="badge badge-muted">Cerrada</span></td>
+                <td>150</td>
+                <td>150</td>
+                <td>$40.000 COP</td>
+                <td>15 Mar 2026 · 3PM</td>
+                <td>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-ghost btn-sm" aria-label="Ver detalle de Terapia cognitiva">Ver detalle</button>
+                    <button class="btn btn-secondary btn-sm"
+                      onclick="toggleRoomStatus(this,'Terapia cognitiva: introducción')"
+                      data-room-state="closed" aria-label="Abrir sala Terapia cognitiva">
+                      Abrir sala
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--sp-4);flex-wrap:wrap;gap:var(--sp-3);">
+          <span class="text-meta">Mostrando 1–5 de 28 salas</span>
+          <div class="d-flex items-center gap-4">
+            <div class="pagination" role="navigation" aria-label="Paginación de eventos">
+              <button class="pagination__btn" disabled aria-label="Anterior">‹</button>
+              <button class="pagination__btn active" aria-current="page">1</button>
+              <button class="pagination__btn">2</button>
+              <button class="pagination__btn">3</button>
+              <span class="pagination__btn" style="border:none;cursor:default;">…</span>
+              <button class="pagination__btn">6</button>
+              <button class="pagination__btn" aria-label="Siguiente">›</button>
+            </div>
+            <div class="pagination-size">
+              Registros por página:
+              <select aria-label="Registros por página">
+                <option selected>10</option>
+                <option>25</option>
+                <option>50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Detalle sala 1 -->
+<div id="detail-sala-1-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="detail-sala-1-title">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="detail-sala-1-title">Mindfulness para el estrés laboral</div>
+        <div class="modal-subtitle">Abierta · 342 de 400 inscritos</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('detail-sala-1')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-6);">
+        <div>
+          <h4 style="color:var(--color-primary);margin-bottom:var(--sp-3);">Detalles</h4>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-2);font-size:0.875rem;">
+            <div class="session-info-row"><span class="session-info-label">📅 Fecha</span><span class="session-info-value">15 May 2026</span></div>
+            <div class="session-info-row"><span class="session-info-label">🕕 Hora</span><span class="session-info-value">6PM – 8PM</span></div>
+            <div class="session-info-row"><span class="session-info-label">💰 Precio</span><span class="session-info-value" style="color:var(--color-success);">Entrada libre</span></div>
+            <div class="session-info-row"><span class="session-info-label">👥 Inscritos</span><span class="session-info-value">342/400</span></div>
+            <div class="session-info-row"><span class="session-info-label">❤️ Likes</span><span class="session-info-value">417</span></div>
+          </div>
+        </div>
+        <div>
+          <h4 style="color:var(--color-primary);margin-bottom:var(--sp-3);">Actividad reciente</h4>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-2);font-size:0.8125rem;color:var(--color-text-secondary);">
+            <div>• 12 nuevos inscritos hoy</div>
+            <div>• Último comentario: hace 2 horas</div>
+            <div>• 3 preguntas sin responder</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('detail-sala-1')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detalle sala 2 -->
+<div id="detail-sala-2-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="detail-sala-2-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="detail-sala-2-title">Regulación emocional en el trabajo</div>
+        <div class="modal-subtitle">Abierta · 145 de 200 inscritos</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('detail-sala-2')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:0.875rem;display:flex;flex-direction:column;gap:var(--sp-2);">
+        <div class="session-info-row"><span class="session-info-label">📅 Fecha</span><span class="session-info-value">3 Jun 2026</span></div>
+        <div class="session-info-row"><span class="session-info-label">🕕 Hora</span><span class="session-info-value">7PM – 9PM</span></div>
+        <div class="session-info-row"><span class="session-info-label">💰 Precio</span><span class="session-info-value">$30.000 COP</span></div>
+        <div class="session-info-row"><span class="session-info-label">👥 Inscritos</span><span class="session-info-value">145/200</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('detail-sala-2')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

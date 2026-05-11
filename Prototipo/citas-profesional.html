@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Mis citas · Profesional</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio
+        </a>
+        <a href="mis-eventos.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🎪</span>Mis eventos
+        </a>
+        <div class="nav-item" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="false">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div id="submenu-colegas" class="nav-submenu" style="display:none;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-colegas.html" class="nav-item">Mis colegas</a>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi gestión</div>
+        <a href="citas-profesional.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>Mis citas
+        </a>
+        <a href="perfil-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+        <a href="perfil-pro-calendario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🗓</span>Calendario
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar" id="sidebar-avatar">VR</div>
+        <div>
+          <div class="sidebar__user-name" id="sidebar-name">Dra. Valentina Ríos</div>
+          <div class="sidebar__user-role">Profesional</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="btn btn-ghost btn-sm topbar__menu-btn" id="sidebar-toggle" aria-label="Abrir menú">☰</button>
+      <span class="topbar__title">Mis citas</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm" id="topbar-avatar">VR</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+
+      <!-- Page header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-6);flex-wrap:wrap;gap:var(--sp-3);">
+        <div>
+          <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:4px;">Mis citas</h1>
+          <p class="text-meta">Gestiona tus sesiones con pacientes</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('nueva-cita')">+ Nueva cita</button>
+      </div>
+
+      <!-- Stats strip -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);margin-bottom:var(--sp-6);">
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+          <div style="font-size:1.75rem;font-weight:700;color:var(--color-primary);">3</div>
+          <div class="text-meta">Próximas</div>
+        </div>
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+          <div style="font-size:1.75rem;font-weight:700;color:#E67E22;">1</div>
+          <div class="text-meta">Pendientes</div>
+        </div>
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+          <div style="font-size:1.75rem;font-weight:700;color:var(--color-accent);">47</div>
+          <div class="text-meta">Completadas</div>
+        </div>
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+          <div style="font-size:1.75rem;font-weight:700;color:var(--color-text-secondary);">2</div>
+          <div class="text-meta">Canceladas</div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div style="display:flex;gap:var(--sp-3);margin-bottom:var(--sp-5);flex-wrap:wrap;align-items:center;">
+        <div style="position:relative;flex:1;min-width:200px;">
+          <span style="position:absolute;left:var(--sp-3);top:50%;transform:translateY(-50%);opacity:.5;">🔍</span>
+          <input type="search" id="search-citas" class="form-control" placeholder="Buscar por paciente…"
+            style="padding-left:2.4rem;" oninput="filterCitas()" aria-label="Buscar citas">
+        </div>
+        <select class="form-control" id="filter-estado" onchange="filterCitas()" style="width:170px;" aria-label="Filtrar por estado">
+          <option value="">Todos los estados</option>
+          <option value="hoy">Hoy</option>
+          <option value="confirmada">Confirmada</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="completada">Completada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+        <select class="form-control" id="filter-tipo" onchange="filterCitas()" style="width:170px;" aria-label="Filtrar por tipo">
+          <option value="">Todos los tipos</option>
+          <option value="asesoria">Asesoría</option>
+          <option value="seguimiento">Seguimiento</option>
+          <option value="grupal">Grupal</option>
+        </select>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="tabs-wrapper" role="tablist" aria-label="Vista de citas" style="margin-bottom:var(--sp-5);">
+        <button class="tab-item active" role="tab" aria-selected="true" onclick="switchTab(this,'proximas')">📆 Próximas</button>
+        <button class="tab-item" role="tab" aria-selected="false" onclick="switchTab(this,'historial')">🗂 Historial</button>
+      </div>
+
+      <!-- TAB: Próximas -->
+      <div id="proximas">
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;" role="table" aria-label="Citas próximas">
+            <thead>
+              <tr style="border-bottom:1px solid var(--color-border-light);background:var(--color-surface-alt);">
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Paciente</th>
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Tipo</th>
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Fecha</th>
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Hora</th>
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Estado</th>
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="citas-body">
+
+              <!-- Cita HOY — confirmada -->
+              <tr data-estado="hoy" data-tipo="asesoria" data-paciente="luna verde" style="border-bottom:1px solid var(--color-border-light);">
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div class="avatar avatar-sm" style="background:#4a7a5a;color:white;font-size:.75rem;">LV</div>
+                    <div>
+                      <div style="font-weight:600;font-size:.9rem;">Luna Verde</div>
+                      <div class="text-meta" style="font-size:.8rem;">Asesoría · Anónimo</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <span class="badge badge-primary" style="font-size:.75rem;">Asesoría</span>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="font-weight:600;font-size:.9rem;">Hoy <span class="badge badge-warning" style="font-size:.7rem;vertical-align:middle;">Ahora</span></div>
+                  <div class="text-meta" style="font-size:.8rem;">10 May 2026</div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="font-size:.9rem;">3PM – 4PM</div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <span class="badge badge-success">🟢 Confirmada</span>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="display:flex;gap:var(--sp-2);">
+                    <a href="sala-profesional.html" class="btn btn-primary btn-sm" aria-label="Ingresar a la cita con Luna Verde">▶ Ingresar</a>
+                    <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Luna Verde','Asesoría','10 May 2026','3PM – 4PM','Confirmada','hoy')">Ver</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Cita próxima confirmada -->
+              <tr data-estado="confirmada" data-tipo="seguimiento" data-paciente="mindfulness laboral" style="border-bottom:1px solid var(--color-border-light);">
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div class="avatar avatar-sm" style="background:#5a4a7a;color:white;font-size:.75rem;">ML</div>
+                    <div>
+                      <div style="font-weight:600;font-size:.9rem;">Mindfulness Laboral</div>
+                      <div class="text-meta" style="font-size:.8rem;">Seguimiento · Grupo</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <span class="badge badge-muted" style="font-size:.75rem;">Seguimiento</span>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="font-size:.9rem;">15 May 2026</div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="font-size:.9rem;">6PM – 7PM</div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <span class="badge badge-success">✅ Confirmada</span>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="display:flex;gap:var(--sp-2);">
+                    <button class="btn btn-secondary btn-sm" disabled style="opacity:.45;cursor:not-allowed;" title="Disponible el día de la cita">▶ Ingresar</button>
+                    <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Mindfulness Laboral','Seguimiento','15 May 2026','6PM – 7PM','Confirmada','proxima')">Ver</button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Cita pendiente -->
+              <tr data-estado="pendiente" data-tipo="asesoria" data-paciente="anónimo #7" style="border-bottom:1px solid var(--color-border-light);">
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div class="avatar avatar-sm" style="background:#888;color:white;font-size:.75rem;">A7</div>
+                    <div>
+                      <div style="font-weight:600;font-size:.9rem;">Anónimo #7</div>
+                      <div class="text-meta" style="font-size:.8rem;">Asesoría · Anónimo</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <span class="badge badge-primary" style="font-size:.75rem;">Asesoría</span>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="font-size:.9rem;">22 May 2026</div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="font-size:.9rem;">11AM – 12PM</div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <span class="badge badge-warning">⏳ Pendiente</span>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="display:flex;gap:var(--sp-2);">
+                    <button class="btn btn-secondary btn-sm" onclick="confirmarCita(this)" aria-label="Confirmar cita con Anónimo #7">Confirmar</button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="cancelarCita('Anónimo #7')">Cancelar</button>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+          <div id="proximas-empty" style="display:none;text-align:center;padding:var(--sp-16);color:var(--color-text-secondary);">
+            <div style="font-size:3rem;margin-bottom:var(--sp-4);">📅</div>
+            <p>No hay citas próximas con ese filtro.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Historial -->
+      <div id="historial" style="display:none;">
+        <div style="background:var(--color-surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;" role="table" aria-label="Historial de citas">
+            <thead>
+              <tr style="border-bottom:1px solid var(--color-border-light);background:var(--color-surface-alt);">
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Paciente</th>
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Tipo</th>
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Fecha</th>
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Estado</th>
+                <th style="padding:var(--sp-4) var(--sp-5);text-align:left;font-size:.8rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="historial-body">
+              <tr data-estado="completada" data-tipo="asesoria" data-paciente="luna verde" style="border-bottom:1px solid var(--color-border-light);">
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div class="avatar avatar-sm" style="background:#4a7a5a;color:white;font-size:.75rem;">LV</div>
+                    <div><div style="font-weight:600;font-size:.9rem;">Luna Verde</div><div class="text-meta" style="font-size:.8rem;">Asesoría</div></div>
+                  </div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);"><span class="badge badge-primary" style="font-size:.75rem;">Asesoría</span></td>
+                <td style="padding:var(--sp-4) var(--sp-5);font-size:.9rem;">29 Abr 2026</td>
+                <td style="padding:var(--sp-4) var(--sp-5);"><span class="badge badge-muted">✅ Completada</span></td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Luna Verde','Asesoría','29 Abr 2026','3PM – 4PM','Completada','completada')">Ver</button>
+                </td>
+              </tr>
+              <tr data-estado="completada" data-tipo="seguimiento" data-paciente="andrés parra" style="border-bottom:1px solid var(--color-border-light);">
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div class="avatar avatar-sm" style="background:#2D4A8F;color:white;font-size:.75rem;">AP</div>
+                    <div><div style="font-weight:600;font-size:.9rem;">Andrés Parra</div><div class="text-meta" style="font-size:.8rem;">Seguimiento</div></div>
+                  </div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);"><span class="badge badge-muted" style="font-size:.75rem;">Seguimiento</span></td>
+                <td style="padding:var(--sp-4) var(--sp-5);font-size:.9rem;">20 Abr 2026</td>
+                <td style="padding:var(--sp-4) var(--sp-5);"><span class="badge badge-muted">✅ Completada</span></td>
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Andrés Parra','Seguimiento','20 Abr 2026','10AM – 11AM','Completada','completada')">Ver</button>
+                </td>
+              </tr>
+              <tr data-estado="cancelada" data-tipo="asesoria" data-paciente="anónimo #3" style="border-bottom:1px solid var(--color-border-light);">
+                <td style="padding:var(--sp-4) var(--sp-5);">
+                  <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div class="avatar avatar-sm" style="background:#888;color:white;font-size:.75rem;">A3</div>
+                    <div><div style="font-weight:600;font-size:.9rem;">Anónimo #3</div><div class="text-meta" style="font-size:.8rem;">Asesoría</div></div>
+                  </div>
+                </td>
+                <td style="padding:var(--sp-4) var(--sp-5);"><span class="badge badge-primary" style="font-size:.75rem;">Asesoría</span></td>
+                <td style="padding:var(--sp-4) var(--sp-5);font-size:.9rem;">8 Abr 2026</td>
+                <td style="padding:var(--sp-4) var(--sp-5);"><span class="badge badge-danger">❌ Cancelada</span></td>
+                <td style="padding:var(--sp-4) var(--sp-5);">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Detalle cita -->
+<div id="detalle-cita-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="detalle-cita-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title" id="detalle-cita-title">Detalle de la cita</div></div>
+      <button class="modal-close" onclick="closeModal('detalle-cita')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" id="detalle-cita-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('detalle-cita')">Cerrar</button>
+      <a id="detalle-entrar-btn" href="sala-profesional.html" class="btn btn-primary" style="display:none;">▶ Ingresar a la cita</a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nueva cita -->
+<div id="nueva-cita-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="nueva-cita-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title" id="nueva-cita-title">Agendar nueva cita</div></div>
+      <button class="modal-close" onclick="closeModal('nueva-cita')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Paciente</label><input type="text" class="form-control" placeholder="Nombre del paciente o alias"></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-control">
+          <option>Asesoría</option><option>Seguimiento</option><option>Grupal</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);">
+        <div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-control"></div>
+        <div class="form-group"><label class="form-label">Hora</label><input type="time" class="form-control" value="15:00"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notas</label><textarea class="form-control" rows="3" placeholder="Observaciones previas..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('nueva-cita')">Cancelar</button>
+      <button class="btn btn-primary" onclick="agendarCita()">Agendar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  if (typeof initSidebar === 'function') initSidebar();
+
+  const s = Session.get();
+  if (s) {
+    const initials = s.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('topbar-avatar').textContent = initials;
+    document.getElementById('sidebar-name').textContent = s.nombre;
+  }
+
+  function switchTab(btn, tabId) {
+    document.querySelectorAll('.tabs-wrapper .tab-item').forEach(b => {
+      b.classList.remove('active'); b.setAttribute('aria-selected','false');
+    });
+    btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+    document.getElementById('proximas').style.display = tabId === 'proximas' ? '' : 'none';
+    document.getElementById('historial').style.display = tabId === 'historial' ? '' : 'none';
+  }
+
+  function filterCitas() {
+    const q = document.getElementById('search-citas').value.toLowerCase();
+    const estado = document.getElementById('filter-estado').value;
+    const tipo = document.getElementById('filter-tipo').value;
+    ['citas-body','historial-body'].forEach(tbodyId => {
+      const rows = document.querySelectorAll('#' + tbodyId + ' tr');
+      let vis = 0;
+      rows.forEach(row => {
+        const pac = row.dataset.paciente || '';
+        const matchQ = !q || pac.includes(q);
+        const matchE = !estado || row.dataset.estado === estado;
+        const matchT = !tipo || row.dataset.tipo === tipo;
+        row.style.display = (matchQ && matchE && matchT) ? '' : 'none';
+        if (matchQ && matchE && matchT) vis++;
+      });
+      const empty = document.getElementById('proximas-empty');
+      if (empty && tbodyId === 'citas-body') empty.style.display = vis === 0 ? 'block' : 'none';
+    });
+  }
+
+  function verDetalleCita(pac, tipo, fecha, hora, estado, cat) {
+    document.getElementById('detalle-cita-title').textContent = 'Cita con ' + pac;
+    document.getElementById('detalle-cita-body').innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);">'
+      + '<div><div class="text-meta" style="font-size:.8rem;">Paciente</div><div style="font-weight:600;">' + pac + '</div></div>'
+      + '<div><div class="text-meta" style="font-size:.8rem;">Tipo</div><div style="font-weight:600;">' + tipo + '</div></div>'
+      + '<div><div class="text-meta" style="font-size:.8rem;">Fecha</div><div style="font-weight:600;">' + fecha + '</div></div>'
+      + '<div><div class="text-meta" style="font-size:.8rem;">Hora</div><div style="font-weight:600;">' + hora + '</div></div>'
+      + '<div><div class="text-meta" style="font-size:.8rem;">Estado</div><div style="font-weight:600;">' + estado + '</div></div>'
+      + '</div>';
+    const btnEntrar = document.getElementById('detalle-entrar-btn');
+    btnEntrar.style.display = (cat === 'hoy') ? '' : 'none';
+    openModal('detalle-cita');
+  }
+
+  function confirmarCita(btn) {
+    btn.disabled = true; btn.textContent = '...';
+    setTimeout(() => {
+      const td = btn.closest('tr').querySelector('[data-estado]') || btn.closest('tr');
+      btn.closest('tr').dataset.estado = 'confirmada';
+      btn.closest('td').innerHTML = '<div style="display:flex;gap:var(--sp-2);"><button class="btn btn-secondary btn-sm" disabled style="opacity:.45;cursor:not-allowed;">▶ Ingresar</button></div>';
+      const estadoTd = btn.closest('tr').querySelectorAll('td')[4];
+      if (estadoTd) estadoTd.innerHTML = '<span class="badge badge-success">✅ Confirmada</span>';
+      showToast({title:'Cita confirmada', type:'success'});
+    }, 600);
+  }
+
+  function cancelarCita(paciente) {
+    showConfirm({
+      title: 'Cancelar cita',
+      message: '¿Seguro que deseas cancelar la cita con <strong>' + paciente + '</strong>? Se notificará al paciente.',
+      confirmText: 'Sí, cancelar',
+      danger: true,
+      onConfirm: () => showToast({title:'Cita cancelada', type:'info'})
+    });
+  }
+
+  function agendarCita() {
+    const btn = document.querySelector('#nueva-cita-backdrop .btn-primary');
+    btn.disabled = true; btn.textContent = 'Agendando...';
+    setTimeout(() => {
+      closeModal('nueva-cita');
+      btn.disabled = false; btn.textContent = 'Agendar';
+      showToast({title:'Cita agendada exitosamente', type:'success'});
+    }, 700);
+  }
+</script>
+</body>
+</html>

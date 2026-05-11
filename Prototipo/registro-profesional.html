@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Registro profesional</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="auth-layout">
+
+  <!-- LEFT PANEL -->
+  <div class="auth-panel auth-panel--left" aria-hidden="true">
+    <div class="auth-illustration">
+      <div class="auth-illustration__tag">🎓 Registro profesional</div>
+      <h1 class="auth-illustration__title">
+        Lleva tu<br>práctica al<br><em>siguiente nivel</em>
+      </h1>
+      <p class="auth-illustration__text">
+        Únete a nuestra comunidad de profesionales verificados. Crea salas, dicta conferencias, agenda citas y genera ingresos desde tu propio espacio.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-6);">
+        <div style="display:flex;align-items:center;gap:var(--sp-3);">
+          <div style="width:32px;height:32px;border-radius:50%;background:rgba(82,183,136,0.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">✅</div>
+          <span style="color:rgba(255,255,255,0.85);font-size:0.9rem;">Verificación ante COLPSIC</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--sp-3);">
+          <div style="width:32px;height:32px;border-radius:50%;background:rgba(82,183,136,0.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🎪</div>
+          <span style="color:rgba(255,255,255,0.85);font-size:0.9rem;">Crea salas y conferencias</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--sp-3);">
+          <div style="width:32px;height:32px;border-radius:50%;background:rgba(82,183,136,0.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">💰</div>
+          <span style="color:rgba(255,255,255,0.85);font-size:0.9rem;">Monetiza tus servicios</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--sp-3);">
+          <div style="width:32px;height:32px;border-radius:50%;background:rgba(82,183,136,0.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📅</div>
+          <span style="color:rgba(255,255,255,0.85);font-size:0.9rem;">Gestiona tu agenda clínica</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-panel auth-panel--right" style="align-items:flex-start;padding-top:var(--sp-8);">
+    <div class="auth-form" style="max-width:480px;width:100%;">
+
+      <a href="registro-seleccion.html" class="auth-form__logo">
+        <div class="auth-form__logo-icon">🍀</div>
+        <span class="auth-form__logo-name">Trébol</span>
+      </a>
+
+      <h2 class="auth-form__title">Registro profesional</h2>
+      <p class="auth-form__subtitle">Tu cuenta será verificada por el equipo de Trébol antes de activarse.</p>
+
+      <form id="reg-pro-form" data-validate novalidate>
+
+        <div class="form-section">
+          <div class="form-section__title">Información personal</div>
+
+          <div class="form-group">
+            <label for="nombre" class="form-label">Nombre completo <span class="required">*</span></label>
+            <input type="text" id="nombre" name="nombre" class="form-control"
+              placeholder="Ej: Dra. Valentina Ríos Montoya"
+              data-required autocomplete="name" aria-required="true">
+            <div class="form-hint" style="display:flex;align-items:flex-start;gap:6px;">
+              <span>🪪</span>
+              <span>Este nombre será siempre visible en la plataforma. Los profesionales no usan alias.</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label">Correo electrónico <span class="required">*</span></label>
+            <input type="email" id="email" name="email" class="form-control"
+              placeholder="profesional@correo.com"
+              data-required data-email autocomplete="email" aria-required="true">
+          </div>
+
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label for="documento" class="form-label">N.° de cédula <span class="required">*</span></label>
+              <input type="text" id="documento" name="documento" class="form-control"
+                placeholder="1234567890" data-required autocomplete="off" aria-required="true">
+            </div>
+            <div class="form-group">
+              <label for="celular" class="form-label">Celular <span class="required">*</span></label>
+              <input type="tel" id="celular" name="celular" class="form-control"
+                placeholder="3001234567" data-required autocomplete="tel" aria-required="true">
+            </div>
+          </div>
+
+        </div>
+
+        <div class="form-section">
+          <div class="form-section__title">Información profesional</div>
+
+          <div class="form-group">
+            <label for="tarjeta" class="form-label">N.° de tarjeta profesional (COLPSIC) <span class="required">*</span></label>
+            <input type="text" id="tarjeta" name="tarjeta" class="form-control"
+              placeholder="Ej: PSI-0001234" data-required aria-required="true">
+            <div class="form-hint">Se verificará automáticamente ante el registro de COLPSIC.</div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section__title">Documentos adjuntos</div>
+
+          <div class="form-group">
+            <label class="form-label">Copia PDF de la cédula de identidad <span class="required">*</span></label>
+            <div class="file-input-wrapper" role="button" aria-label="Cargar PDF de cédula" tabindex="0">
+              <input type="file" id="pdf-cedula" name="pdf-cedula" accept=".pdf" aria-label="Seleccionar PDF de cédula">
+              <div class="file-input-icon">📄</div>
+              <div class="file-input-label">Haz clic para seleccionar o arrastra el archivo aquí</div>
+              <div class="file-input-label text-meta" style="margin-top:4px;">Solo PDF · Máximo 5MB</div>
+              <div class="file-name" id="cedula-name"></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Copia PDF de la tarjeta profesional <span class="required">*</span></label>
+            <div class="file-input-wrapper" role="button" aria-label="Cargar PDF tarjeta profesional" tabindex="0">
+              <input type="file" id="pdf-tarjeta" name="pdf-tarjeta" accept=".pdf" aria-label="Seleccionar PDF de tarjeta profesional">
+              <div class="file-input-icon">🪪</div>
+              <div class="file-input-label">Haz clic para seleccionar o arrastra el archivo aquí</div>
+              <div class="file-input-label text-meta" style="margin-top:4px;">Solo PDF · Máximo 5MB</div>
+              <div class="file-name" id="tarjeta-name"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--color-info-pale);border-radius:var(--radius-lg);padding:var(--sp-4);margin-bottom:var(--sp-6);border:1px solid rgba(21,101,192,0.2);">
+          <div style="display:flex;gap:var(--sp-3);align-items:flex-start;">
+            <span style="font-size:1.125rem;">⏱</span>
+            <div>
+              <div style="font-weight:600;font-size:0.875rem;margin-bottom:4px;color:var(--color-info);">Proceso de aprobación</div>
+              <p style="font-size:0.8125rem;color:#1565C0;line-height:1.6;">
+                Tu solicitud será revisada por el equipo de Trébol en un plazo de <strong>3 a 5 días hábiles</strong>. Recibirás un correo con el resultado.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" id="reg-pro-btn">
+          <span class="btn-text">Enviar solicitud de registro</span>
+        </button>
+
+      </form>
+
+      <div class="auth-footer-link" style="margin-top:var(--sp-5);">
+        ¿Ya tienes cuenta? <a href="login.html">Iniciar sesión</a>
+      </div>
+      <div class="auth-footer-link" style="margin-top:12px;">
+        <a href="registro-seleccion.html" style="color:var(--color-text-muted);font-size:0.8125rem;">← Volver a selección de perfil</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal de éxito -->
+<div id="pro-success-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pro-success-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon success">✅</div>
+      <div>
+        <div class="modal-title" id="pro-success-title">¡Solicitud enviada!</div>
+        <div class="modal-subtitle">Tu registro está en revisión</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>
+        Recibimos tu solicitud de registro como profesional. El equipo de Trébol revisará tus documentos y verificará tu tarjeta ante COLPSIC.
+      </p>
+      <div style="background:var(--color-success-pale);border-radius:var(--radius-md);padding:var(--sp-4);margin-top:var(--sp-4);">
+        <p style="font-size:0.8125rem;color:var(--color-success);font-weight:600;" id="pro-success-email-note">
+          📧 Tus documentos fueron enviados para revisión. Recibirás respuesta en 3 a 5 días hábiles.
+        </p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="index.html" class="btn btn-primary">Volver al inicio</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  // Link file names to display elements
+  document.getElementById('pdf-cedula').addEventListener('change', function() {
+    document.getElementById('cedula-name').textContent = this.files[0]?.name || '';
+  });
+  document.getElementById('pdf-tarjeta').addEventListener('change', function() {
+    document.getElementById('tarjeta-name').textContent = this.files[0]?.name || '';
+  });
+
+  const regProForm = document.getElementById('reg-pro-form');
+  const regProBtn  = document.getElementById('reg-pro-btn');
+
+  regProForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Validación básica de campos requeridos
+    const inputs = regProForm.querySelectorAll('[data-required]');
+    let valid = true;
+    inputs.forEach(inp => { if (!inp.value.trim()) valid = false; });
+    if (!valid) return;
+
+    regProBtn.classList.add('loading');
+    regProBtn.disabled = true;
+
+    const datos = {
+      nombre:          document.getElementById('nombre').value.trim(),
+      email:           document.getElementById('email').value.trim(),
+      documento:       document.getElementById('documento').value.trim(),
+      celular:         document.getElementById('celular').value.trim(),
+      tarjeta:         document.getElementById('tarjeta').value.trim(),
+      tipoProfesional: 'psicologo'   // valor por defecto; puede ajustarse con selector
+    };
+
+    setTimeout(() => {
+      regProBtn.classList.remove('loading');
+      regProBtn.disabled = false;
+
+      const resultado = Profesionales.registrar(datos);
+
+      if (!resultado.ok) {
+        const mensajes = {
+          email:    'El correo electrónico ya está registrado en la plataforma.',
+          documento:'El número de cédula ya está registrado.',
+          tarjeta:  'El número de tarjeta profesional ya existe en el sistema.'
+        };
+        showError('Datos duplicados', mensajes[resultado.campo] || 'Ya existe un registro con esos datos.');
+        return;
+      }
+
+      // Éxito — mostrar modal con nota de email enviado
+      document.getElementById('pro-success-email-note').textContent =
+        `📧 Tus documentos fueron enviados a alejo@yopmail.com para revisión. Recibirás respuesta en 3 a 5 días hábiles.`;
+      openModal('pro-success');
+
+    }, 1800);
+  });
+</script>
+</body>
+</html>

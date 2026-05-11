@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Cita en curso</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { background:#0d1117; overflow:hidden; }
+
+    .cita-layout {
+      display: grid;
+      grid-template-rows: 64px 1fr;
+      grid-template-columns: 1fr 340px;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .cita-header {
+      grid-column: 1 / -1;
+      background: #161b22;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--sp-6);
+      gap: var(--sp-4);
+    }
+
+    .cita-header__logo {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      color: var(--color-accent);
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .cita-header__info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+    }
+
+    .cita-header__session-name {
+      color: white;
+      font-weight: 600;
+      font-size: 0.9375rem;
+    }
+
+    .cita-header__badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(200,30,74,0.2);
+      border: 1px solid rgba(200,30,74,0.4);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.8125rem;
+      color: #FF6B8A;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #FF6B8A;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+
+    .cita-timer {
+      font-variant-numeric: tabular-nums;
+      font-size: 1.0625rem;
+      font-weight: 700;
+      color: white;
+      font-family: monospace;
+      margin-left: auto;
+    }
+
+    .cita-video-area {
+      grid-column: 1;
+      grid-row: 2;
+      position: relative;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cita-main-video {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1f2e;
+      position: relative;
+    }
+
+    .video-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sp-4);
+    }
+
+    .video-placeholder__avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: white;
+      font-family: var(--font-body);
+    }
+
+    .video-placeholder__name {
+      color: rgba(255,255,255,0.7);
+      font-size: 1rem;
+    }
+
+    .cita-self-cam {
+      position: absolute;
+      bottom: 80px;
+      right: var(--sp-4);
+      width: 180px;
+      aspect-ratio: 16/9;
+      background: #2d333b;
+      border-radius: var(--radius-lg);
+      border: 2px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.4);
+      overflow: hidden;
+    }
+
+    .cita-controls {
+      height: 72px;
+      background: #161b22;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--sp-4);
+      padding: 0 var(--sp-6);
+    }
+
+    .ctrl-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .ctrl-btn--normal { background: rgba(255,255,255,0.1); color: white; }
+    .ctrl-btn--normal:hover { background: rgba(255,255,255,0.2); }
+    .ctrl-btn--off {
+      background: rgba(200,30,74,0.25);
+      color: #FF6B8A;
+      border: 1px solid rgba(200,30,74,0.4);
+    }
+
+    .cita-side-panel {
+      grid-column: 2;
+      grid-row: 2;
+      background: #161b22;
+      border-left: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .cita-panel-header {
+      padding: var(--sp-5) var(--sp-5) var(--sp-4);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .cita-panel-title {
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.4);
+      font-weight: 600;
+    }
+
+    .cita-panel-value {
+      color: white;
+      font-size: 0.9375rem;
+      margin-top: 2px;
+    }
+
+    .cita-panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--sp-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-5);
+    }
+
+    .cita-info-grid { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+    .cita-info-row { display: flex; justify-content: space-between; font-size: 0.875rem; }
+    .cita-info-label { color: rgba(255,255,255,0.5); }
+    .cita-info-value { color: white; font-weight: 500; }
+
+    .cita-section-title {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-accent);
+      margin-bottom: var(--sp-3);
+    }
+
+    .cita-textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius-md);
+      color: white;
+      padding: var(--sp-3);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      resize: vertical;
+      line-height: 1.6;
+      min-height: 100px;
+    }
+
+    .cita-textarea::placeholder { color: rgba(255,255,255,0.3); }
+    .cita-textarea:focus { outline: none; border-color: var(--color-accent); }
+    .cita-textarea[readonly] { opacity: 0.7; cursor: not-allowed; }
+
+    .anon-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      background: rgba(255,255,255,0.06);
+      border-radius: var(--radius-md);
+      padding: var(--sp-3) var(--sp-4);
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: white;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+    }
+
+    .toggle-switch input:checked + .toggle-slider { background: var(--color-accent); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+    @media (max-width: 768px) {
+      .cita-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 64px 1fr 260px;
+        overflow: hidden;
+      }
+      .cita-side-panel { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cita-layout" role="main">
+
+  <!-- HEADER -->
+  <header class="cita-header" role="banner">
+    <a href="citas-usuario.html" class="cita-header__logo" aria-label="Volver a mis citas">
+      🍀 Trébol
+    </a>
+
+    <div class="cita-header__info">
+      <div class="cita-header__session-name" aria-live="polite">Asesoría con Dra. Valentina Ríos</div>
+      <div class="cita-header__badge">
+        <div class="live-dot" aria-hidden="true"></div>
+        En curso
+      </div>
+    </div>
+
+    <div class="cita-timer" id="session-timer" role="timer" aria-label="Tiempo de sesión" aria-live="off">00:00:00</div>
+  </header>
+
+  <!-- VIDEO AREA -->
+  <div class="cita-video-area">
+    <div class="cita-main-video" aria-label="Video del profesional">
+      <div class="video-placeholder" role="img" aria-label="Cámara de Dra. Valentina Ríos desactivada">
+        <div class="video-placeholder__avatar" aria-hidden="true">VR</div>
+        <div class="video-placeholder__name">Dra. Valentina Ríos</div>
+        <div style="font-size:0.8125rem;color:rgba(255,255,255,0.4);">Cámara desactivada</div>
+      </div>
+    </div>
+
+    <div class="cita-self-cam" aria-label="Tu cámara (tú mismo)">
+      <div style="text-align:center;">
+        <div style="font-size:1.5rem;">📷</div>
+        <div style="margin-top:4px;">Tu cámara</div>
+      </div>
+    </div>
+
+    <div class="cita-controls" role="toolbar" aria-label="Controles de sesión">
+      <button class="ctrl-btn ctrl-btn--normal" id="cam-btn" onclick="toggleControl(this,'cam')" aria-label="Desactivar cámara" aria-pressed="true" title="Cámara">📷</button>
+      <button class="ctrl-btn ctrl-btn--normal" id="mic-btn" onclick="toggleControl(this,'mic')" aria-label="Silenciar micrófono" aria-pressed="true" title="Micrófono">🎤</button>
+      <button class="ctrl-btn ctrl-btn--normal" onclick="openModal('chat-modal')" aria-label="Abrir chat de sesión" title="Mensajes">💬</button>
+    </div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <aside class="cita-side-panel" aria-label="Panel de sesión">
+    <div class="cita-panel-header">
+      <div class="cita-panel-title">Sesión activa</div>
+      <div class="cita-panel-value">Asesoría individual</div>
+    </div>
+
+    <div class="cita-panel-body">
+
+      <div>
+        <div class="cita-section-title">Información de la cita</div>
+        <div class="cita-info-grid">
+          <div class="cita-info-row">
+            <span class="cita-info-label">📅 Fecha</span>
+            <span class="cita-info-value">20 May 2026</span>
+          </div>
+          <div class="cita-info-row">
+            <span class="cita-info-label">🕒 Hora</span>
+            <span class="cita-info-value">3PM – 4PM</span>
+          </div>
+          <div class="cita-info-row">
+            <span class="cita-info-label">🔒 Estado</span>
+            <span class="cita-info-value" style="color:#4CAF50;">Confirmada</span>
+          </div>
+          <div class="cita-info-row">
+            <span class="cita-info-label">⏱ Duración</span>
+            <span class="cita-info-value">60 minutos</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="cita-section-title">Privacidad</div>
+        <label class="anon-toggle">
+          <div class="toggle-switch">
+            <input type="checkbox" id="anon-toggle" checked aria-label="Usar alias en lugar de mi nombre real">
+            <span class="toggle-slider"></span>
+          </div>
+          <div>
+            Mostrar alias <strong style="color:white;">Luna Verde</strong>
+            <div style="font-size:0.75rem;margin-top:2px;color:rgba(255,255,255,0.4);">El profesional verá tu alias</div>
+          </div>
+        </label>
+      </div>
+
+      <div>
+        <div class="cita-section-title">Recomendaciones del profesional</div>
+        <textarea class="cita-textarea" readonly aria-label="Recomendaciones del profesional (solo lectura)" aria-readonly="true">Practica 5 minutos de respiración diafragmática cada mañana antes de revisar el correo. Lleva un diario emocional durante la semana.</textarea>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:6px;">Actualizado el 20 May 2026 · 3:12PM</div>
+      </div>
+
+      <div>
+        <div class="cita-section-title">Mi nota privada</div>
+        <textarea class="cita-textarea" rows="4"
+          placeholder="Escribe tus notas personales aquí... Solo tú las puedes ver."
+          aria-label="Tu nota privada de la sesión (solo visible para ti)">El ejercicio de respiración me ha costado hacerlo diariamente. Siento mucha tensión en la tarde.</textarea>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:6px;">Solo tú puedes ver esta nota.</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:var(--sp-3);width:100%;"
+          onclick="showToast({title:'Nota guardada',type:'success',duration:3000})">
+          Guardar nota
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+</div>
+
+<!-- Modal de chat -->
+<div id="chat-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="chat-modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="chat-modal-title">Chat de sesión</div>
+      <button class="modal-close" onclick="closeModal('chat-modal')" aria-label="Cerrar chat">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:var(--sp-3);margin-bottom:var(--sp-4);min-height:140px;">
+        <div style="align-self:flex-start;background:var(--color-surface-alt);border-radius:var(--radius-md);padding:var(--sp-2) var(--sp-3);font-size:0.875rem;max-width:80%;">
+          <strong style="color:var(--color-primary);font-size:0.75rem;">Dra. Valentina Ríos</strong>
+          <p style="margin-top:2px;">Hola, ¿cómo te has sentido esta semana?</p>
+        </div>
+        <div style="align-self:flex-end;background:var(--color-primary);border-radius:var(--radius-md);padding:var(--sp-2) var(--sp-3);font-size:0.875rem;color:white;max-width:80%;">
+          Un poco mejor que la semana pasada, aunque los lunes siguen siendo difíciles.
+        </div>
+      </div>
+      <div class="d-flex gap-3">
+        <input type="text" class="form-control" placeholder="Escribe un mensaje..." aria-label="Escribe un mensaje de chat">
+        <button class="btn btn-primary btn-sm" aria-label="Enviar mensaje">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  startSessionTimer('session-timer');
+
+  const ctrlState = { cam: true, mic: true };
+  function toggleControl(btn, type) {
+    ctrlState[type] = !ctrlState[type];
+    if (ctrlState[type]) {
+      btn.classList.remove('ctrl-btn--off');
+      btn.classList.add('ctrl-btn--normal');
+      btn.setAttribute('aria-pressed', 'true');
+    } else {
+      btn.classList.remove('ctrl-btn--normal');
+      btn.classList.add('ctrl-btn--off');
+      btn.setAttribute('aria-pressed', 'false');
+    }
+  }
+</script>
+</body>
+</html>
