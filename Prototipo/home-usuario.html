@@ -5,6 +5,97 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trébol — Inicio</title>
   <link rel="stylesheet" href="css/styles.css">
+  <style>
+    @media (max-width: 900px) {
+      .home-two-col { grid-template-columns: 1fr !important; }
+    }
+
+    /* ── Notificaciones ──────────────────────────────────────── */
+    .notif-wrapper { position: relative; display: inline-flex; }
+    .notif-bell { position: relative !important; }
+    .notif-badge {
+      position: absolute; top: 4px; right: 4px;
+      min-width: 17px; height: 17px;
+      background: var(--color-danger); color: #fff;
+      font-size: .6rem; font-weight: 800;
+      border-radius: 99px; padding: 0 3px;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--color-surface);
+      pointer-events: none; line-height: 1;
+    }
+    .notif-badge.zero { display: none; }
+    .notif-panel {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      width: 370px; max-height: 500px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 8px 32px rgba(0,0,0,.16);
+      display: flex; flex-direction: column;
+      overflow: hidden; z-index: 1200;
+      opacity: 0; pointer-events: none;
+      transform: translateY(-8px) scale(.98);
+      transition: opacity .17s, transform .17s;
+    }
+    .notif-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+    .notif-panel__head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--color-border-light); flex-shrink: 0;
+    }
+    .notif-tabs {
+      display: flex; border-bottom: 1px solid var(--color-border-light);
+      background: var(--color-surface); flex-shrink: 0;
+    }
+    .notif-tab {
+      flex: 1; padding: var(--sp-3) var(--sp-2);
+      font-size: .8rem; font-weight: 600; color: var(--color-text-muted);
+      border: none; background: none; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color .15s, border-color .15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .notif-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    .ntc {
+      min-width: 17px; height: 17px;
+      background: var(--color-danger); color: #fff;
+      font-size: .6rem; font-weight: 800;
+      border-radius: 99px; padding: 0 3px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .ntc.zero { display: none; }
+    .notif-list { overflow-y: auto; flex: 1; }
+    .notif-item {
+      display: flex; align-items: flex-start; gap: var(--sp-3);
+      padding: var(--sp-4);
+      border-bottom: 1px solid var(--color-border-light);
+      cursor: pointer; transition: background .12s;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--color-surface-alt); }
+    .notif-item.unread { background: rgba(82,183,136,.07); }
+    .notif-item.unread:hover { background: rgba(82,183,136,.13); }
+    .notif-item__ico {
+      width: 38px; height: 38px; border-radius: 50%;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    }
+    .notif-item__body { flex: 1; min-width: 0; }
+    .notif-item__title { font-size: .845rem; font-weight: 600; color: var(--color-text-primary); line-height: 1.35; }
+    .notif-item__sub { font-size: .75rem; color: var(--color-text-muted); margin-top: 3px; line-height: 1.4; }
+    .notif-item__time { font-size: .67rem; color: var(--color-text-muted); margin-top: 4px; font-weight: 500; }
+    .notif-item__dot {
+      width: 8px; height: 8px; background: var(--color-primary);
+      border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+    }
+    .notif-item.read .notif-item__dot { visibility: hidden; }
+    .notif-panel__foot {
+      padding: var(--sp-3) var(--sp-4); text-align: center;
+      border-top: 1px solid var(--color-border-light);
+      background: var(--color-surface-alt); flex-shrink: 0;
+    }
+    .notif-panel__foot a { font-size: .8rem; font-weight: 600; color: var(--color-primary); text-decoration: none; }
+    .notif-empty { padding: var(--sp-8) var(--sp-4); text-align: center; color: var(--color-text-muted); font-size: .855rem; }
+  </style>
 </head>
 <body>
 
@@ -47,11 +138,15 @@
           <span class="nav-item__icon" aria-hidden="true">📅</span>
           Mis citas
         </a>
+        <a href="mensajes-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">💬</span>
+          Mensajes
+        </a>
         <a href="perfil-usuario.html" class="nav-item">
           <span class="nav-item__icon" aria-hidden="true">👤</span>
           Mi perfil
         </a>
-        <a href="#" class="nav-item">
+        <a href="calendario-usuario.html" class="nav-item">
           <span class="nav-item__icon" aria-hidden="true">🗓</span>
           Calendario
         </a>
@@ -59,11 +154,17 @@
     </nav>
 
     <div class="sidebar__footer">
-      <div class="sidebar__user">
+      <div class="sidebar__user sidebar__user-menu" id="user-menu">
         <div class="sidebar__user-avatar">MG</div>
-        <div>
+        <div style="flex:1;min-width:0;">
           <div class="sidebar__user-name">María García</div>
           <div class="sidebar__user-role">Usuario</div>
+        </div>
+        <button class="sidebar__user-dots" id="user-dots-btn" aria-label="Opciones de usuario" aria-expanded="false" aria-haspopup="true">⋯</button>
+        <div class="sidebar__user-dropdown" id="user-dropdown" role="menu">
+          <button onclick="doLogout()" role="menuitem">
+            <span aria-hidden="true">🚪</span> Cerrar sesión
+          </button>
         </div>
       </div>
     </div>
@@ -80,7 +181,21 @@
       <span class="topbar__title">Inicio</span>
       <div class="topbar__spacer"></div>
       <div class="topbar__actions">
-        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="notif-wrapper" id="notif-wrapper">
+          <button class="btn btn-ghost btn-icon notif-bell" id="notif-btn" aria-label="Notificaciones" aria-expanded="false" aria-haspopup="true">🔔<span class="notif-badge" id="notif-badge">0</span></button>
+          <div class="notif-panel" id="notif-panel" role="dialog" aria-label="Panel de notificaciones">
+            <div class="notif-panel__head">
+              <span style="font-weight:700;font-size:.9rem;">Notificaciones</span>
+              <button class="btn btn-ghost btn-sm notif-mark-all" style="font-size:.75rem;padding:4px 10px;">Marcar leídas</button>
+            </div>
+            <div class="notif-tabs" role="tablist">
+              <button class="notif-tab active" role="tab" data-tab="msg" aria-selected="true">💬 Mensajes <span class="ntc" data-ntc="msg">0</span></button>
+              <button class="notif-tab" role="tab" data-tab="sys" aria-selected="false">⚙️ Sistema <span class="ntc" data-ntc="sys">0</span></button>
+            </div>
+            <div class="notif-list" id="notif-list" role="list"></div>
+            <div class="notif-panel__foot"><a href="bandeja-notificaciones.html">Ver todas las notificaciones →</a></div>
+          </div>
+        </div>
         <div class="avatar avatar-sm" style="cursor:pointer;" title="María García">MG</div>
       </div>
     </header>
@@ -88,7 +203,7 @@
     <!-- Main -->
     <main class="main-content" id="main-content">
 
-      <!-- Stats row -->
+      <!-- ── Stats row ─────────────────────────────────────────────── -->
       <div class="stats-grid mb-6" role="region" aria-label="Resumen de actividad">
         <div class="stat-card">
           <div class="stat-card__icon" aria-hidden="true">🎪</div>
@@ -124,34 +239,144 @@
         </div>
       </div>
 
-      <!-- Filters bar -->
-      <div class="filters-bar" role="search" aria-label="Buscar y filtrar salas">
-        <div class="table-search" style="flex:2;">
-          <span aria-hidden="true">🔍</span>
-          <input type="text" placeholder="Buscar salas, oradores..." aria-label="Buscar salas">
-        </div>
-        <select class="table-filter-select" aria-label="Filtrar por categoría">
-          <option value="">Todas las categorías</option>
-          <option>Ansiedad y Estrés</option>
-          <option>Bienestar</option>
-          <option>Familiar</option>
-          <option>Infantil</option>
-          <option>Clínica</option>
-          <option>Mindfulness</option>
-        </select>
-        <input type="date" class="table-filter-select" aria-label="Filtrar por fecha" style="min-width:150px;">
-        <button class="btn btn-primary btn-sm">Buscar</button>
+      <!-- ── Fila 1: Citas + Eventos inscritos ─────────────────────── -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-6);margin-bottom:var(--sp-8);" class="home-two-col">
+
+        <!-- Mis próximas citas -->
+        <section aria-labelledby="citas-heading">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-4);">
+            <h2 id="citas-heading" style="font-family:var(--font-display);color:var(--color-primary);font-size:1.1rem;display:flex;align-items:center;gap:var(--sp-2);">
+              📅 Mis próximas citas
+            </h2>
+            <a href="citas-usuario.html" class="btn btn-ghost btn-sm">Ver todas</a>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border-light);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-sm);">
+            <table style="width:100%;border-collapse:collapse;font-size:.855rem;" role="table" aria-label="Tabla de próximas citas">
+              <thead>
+                <tr style="background:var(--color-surface-alt);border-bottom:2px solid var(--color-border-light);">
+                  <th style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);">Profesional</th>
+                  <th style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);">Fecha</th>
+                  <th style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);">Hora</th>
+                  <th style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);">Estado</th>
+                  <th style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-muted);"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom:1px solid var(--color-border-light);transition:background .12s;" onmouseover="this.style.background='var(--color-surface-alt)'" onmouseout="this.style.background=''">
+                  <td style="padding:var(--sp-3) var(--sp-4);">
+                    <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                      <div class="avatar avatar-xs" style="background:var(--color-primary);flex-shrink:0;">VR</div>
+                      <div>
+                        <div style="font-weight:600;color:var(--color-text-primary);line-height:1.3;">Dra. Valentina Ríos</div>
+                        <div style="font-size:.72rem;color:var(--color-text-muted);">Asesoría inicial</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="padding:var(--sp-3) var(--sp-4);color:var(--color-text-secondary);white-space:nowrap;">14 May 2026</td>
+                  <td style="padding:var(--sp-3) var(--sp-4);color:var(--color-text-secondary);white-space:nowrap;">10:00 AM</td>
+                  <td style="padding:var(--sp-3) var(--sp-4);">
+                    <span class="badge badge-success" style="white-space:nowrap;">Confirmada</span>
+                  </td>
+                  <td style="padding:var(--sp-3) var(--sp-4);">
+                    <a href="citas-usuario.html" class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;">Ver</a>
+                  </td>
+                </tr>
+                <tr style="transition:background .12s;" onmouseover="this.style.background='var(--color-surface-alt)'" onmouseout="this.style.background=''">
+                  <td style="padding:var(--sp-3) var(--sp-4);">
+                    <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                      <div class="avatar avatar-xs" style="background:#1565C0;flex-shrink:0;">JM</div>
+                      <div>
+                        <div style="font-weight:600;color:var(--color-text-primary);line-height:1.3;">Dr. Jorge Morales</div>
+                        <div style="font-size:.72rem;color:var(--color-text-muted);">Seguimiento</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="padding:var(--sp-3) var(--sp-4);color:var(--color-text-secondary);white-space:nowrap;">19 May 2026</td>
+                  <td style="padding:var(--sp-3) var(--sp-4);color:var(--color-text-secondary);white-space:nowrap;">3:00 PM</td>
+                  <td style="padding:var(--sp-3) var(--sp-4);">
+                    <span class="badge badge-warning" style="white-space:nowrap;">Pendiente</span>
+                  </td>
+                  <td style="padding:var(--sp-3) var(--sp-4);">
+                    <a href="citas-usuario.html" class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;">Ver</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);text-align:center;">
+              <a href="citas-usuario.html" style="font-size:.8rem;color:var(--color-primary);font-weight:600;text-decoration:none;">Ver historial completo →</a>
+            </div>
+          </div>
+        </section>
+
+        <!-- Mis eventos inscritos -->
+        <section aria-labelledby="eventos-inscritos-heading">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-4);">
+            <h2 id="eventos-inscritos-heading" style="font-family:var(--font-display);color:var(--color-primary);font-size:1.1rem;display:flex;align-items:center;gap:var(--sp-2);">
+              🎪 Mis eventos inscritos
+            </h2>
+            <a href="mis-eventos.html" class="btn btn-ghost btn-sm">Ver todos</a>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border-light);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:0;">
+
+            <!-- Evento 1 — EN VIVO HOY: clickable -->
+            <a href="sala-conferencia-usuario.html" style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4);border-bottom:1px solid var(--color-border-light);transition:background .12s,box-shadow .12s;text-decoration:none;cursor:pointer;position:relative;" onmouseover="this.style.background='rgba(82,183,136,.06)';this.querySelector('.evt-enter').style.opacity='1'" onmouseout="this.style.background='';this.querySelector('.evt-enter').style.opacity='0'" aria-label="Ingresar a Mindfulness para el estrés laboral — en vivo ahora">
+              <div style="width:44px;height:44px;border-radius:var(--radius-md);background:linear-gradient(135deg,#1A3C34,#2D6A4F);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🧘</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:.88rem;color:var(--color-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Mindfulness para el estrés laboral</div>
+                <div style="font-size:.75rem;color:var(--color-text-muted);margin-top:2px;">Dra. Valentina Ríos · Hoy · 6PM</div>
+              </div>
+              <span class="badge badge-success" style="flex-shrink:0;white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
+              <span class="evt-enter" style="font-size:.72rem;font-weight:700;color:var(--color-accent);margin-left:var(--sp-2);white-space:nowrap;opacity:0;transition:opacity .15s;">Ingresar →</span>
+            </a>
+
+            <!-- Evento 2 -->
+            <div style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4);border-bottom:1px solid var(--color-border-light);transition:background .12s;" onmouseover="this.style.background='var(--color-surface-alt)'" onmouseout="this.style.background=''">
+              <div style="width:44px;height:44px;border-radius:var(--radius-md);background:linear-gradient(135deg,#1565C0,#1976D2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🧠</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:.88rem;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Manejo de la ansiedad en adultos</div>
+                <div style="font-size:.75rem;color:var(--color-text-muted);margin-top:2px;">Dr. Jorge Morales · 18 May · 2PM</div>
+              </div>
+              <span class="badge badge-primary" style="flex-shrink:0;white-space:nowrap;">En 6 días</span>
+            </div>
+
+            <!-- Evento 3 -->
+            <div style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4);border-bottom:1px solid var(--color-border-light);transition:background .12s;" onmouseover="this.style.background='var(--color-surface-alt)'" onmouseout="this.style.background=''">
+              <div style="width:44px;height:44px;border-radius:var(--radius-md);background:linear-gradient(135deg,#6A1B4D,#8B2252);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">👨‍👩‍👧</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:.88rem;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Terapia familiar: comunicación efectiva</div>
+                <div style="font-size:.75rem;color:var(--color-text-muted);margin-top:2px;">Dra. Carolina López · 22 May · 4:30PM</div>
+              </div>
+              <span class="badge badge-muted" style="flex-shrink:0;white-space:nowrap;">En 10 días</span>
+            </div>
+
+            <!-- Evento 4 (pasado) -->
+            <div style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4);transition:background .12s;opacity:.6;" onmouseover="this.style.background='var(--color-surface-alt)'" onmouseout="this.style.background=''">
+              <div style="width:44px;height:44px;border-radius:var(--radius-md);background:#EEEEEE;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">💜</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:.88rem;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Duelo y pérdida: sanando el corazón</div>
+                <div style="font-size:.75rem;color:var(--color-text-muted);margin-top:2px;">Psic. Andrés Vargas · 5 May · 10AM</div>
+              </div>
+              <span class="badge badge-muted" style="flex-shrink:0;white-space:nowrap;">Finalizado</span>
+            </div>
+
+            <div style="padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);text-align:center;">
+              <a href="mis-eventos.html" style="font-size:.8rem;color:var(--color-primary);font-weight:600;text-decoration:none;">Ver todos mis eventos →</a>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <!-- Section: Salas que comienzan hoy -->
+      <!-- ── Eventos que comienzan hoy ─────────────────────────────── -->
       <div class="mb-8">
-        <div class="d-flex items-center justify-between mb-4">
-          <h2 style="color:var(--color-danger);font-family:var(--font-display);">🔴 Comienzan hoy</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-4);">
+          <h2 style="color:var(--color-danger);font-family:var(--font-display);display:flex;align-items:center;gap:var(--sp-2);">
+            🔴 Comienzan hoy
+            <span style="font-size:.78rem;font-weight:600;background:var(--color-danger);color:#fff;padding:2px 10px;border-radius:99px;vertical-align:middle;">12 mayo 2026</span>
+          </h2>
           <a href="#" class="btn btn-ghost btn-sm">Ver todas</a>
         </div>
         <div class="rooms-grid">
 
-          <!-- Room card 1 -->
           <article class="room-card" aria-label="Sala: Mindfulness para el estrés laboral">
             <div class="room-card__banner" style="background:linear-gradient(135deg,#1A3C34,#2D6A4F);">
               <div class="room-card__banner-text">Mindfulness para el<br>estrés laboral</div>
@@ -162,7 +387,7 @@
             <div class="room-card__body">
               <div class="room-card__speaker">🎓 Dra. Valentina Ríos</div>
               <div class="room-card__meta">
-                <span class="room-card__meta-item">📅 15 May 2026</span>
+                <span class="room-card__meta-item">📅 12 May 2026</span>
                 <span class="room-card__meta-item">🕕 6PM</span>
                 <span class="room-card__meta-item">👥 342/400</span>
               </div>
@@ -172,18 +397,46 @@
               </div>
             </div>
             <div class="room-card__footer">
-              <button class="btn btn-secondary btn-sm" onclick="openModal('detail-modal')" aria-label="Ver más detalles de la sala Mindfulness">Ver más</button>
-              <button class="btn btn-primary btn-sm" onclick="window.location.href='inscripcion-pago.html'" aria-label="Registrarse en la sala Mindfulness">Registrarse</button>
-              <button class="btn btn-ghost btn-sm" aria-label="Enviar mensaje a Dra. Valentina Ríos">💬</button>
+              <button class="btn btn-secondary btn-sm" onclick="openDetailModal('Mindfulness para el estrés laboral')">Ver más</button>
+              <button class="btn btn-primary btn-sm" id="reg-mindfulness" onclick="registerFree(this,'Mindfulness para el estrés laboral')">Registrarse</button>
+              <button class="btn btn-ghost btn-sm" aria-label="Enviar mensaje">💬</button>
+            </div>
+          </article>
+
+          <article class="room-card">
+            <div class="room-card__banner" style="background:linear-gradient(135deg,#4A148C,#6A1B9A);">
+              <div class="room-card__banner-text">Regulación emocional<br>en el trabajo</div>
+              <div class="room-card__badge">
+                <span class="badge badge-success"><span class="badge-dot" aria-hidden="true"></span>En vivo hoy</span>
+              </div>
+            </div>
+            <div class="room-card__body">
+              <div class="room-card__speaker">🎓 Psic. Andrés Vargas</div>
+              <div class="room-card__meta">
+                <span class="room-card__meta-item">📅 12 May 2026</span>
+                <span class="room-card__meta-item">🕙 10AM</span>
+                <span class="room-card__meta-item">👥 115/200</span>
+              </div>
+              <div class="d-flex items-center justify-between">
+                <span class="room-card__price">$30.000 COP</span>
+                <span class="text-meta">85 cupos</span>
+              </div>
+            </div>
+            <div class="room-card__footer">
+              <button class="btn btn-secondary btn-sm" onclick="openModal('detail-modal')">Ver más</button>
+              <button class="btn btn-primary btn-sm" onclick="window.location.href='inscripcion-pago.html'">Registrarse</button>
+              <button class="btn btn-ghost btn-sm" aria-label="Me gusta" onclick="toggleLike(this)" data-liked="false">
+                🤍 <span class="like-count">74</span>
+              </button>
             </div>
           </article>
 
         </div>
       </div>
 
-      <!-- Section: Salas destacadas -->
+      <!-- ── Salas destacadas ──────────────────────────────────────── -->
       <div>
-        <div class="d-flex items-center justify-between mb-4">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-4);">
           <h2 style="color:var(--color-primary);font-family:var(--font-display);">⭐ Salas destacadas</h2>
           <div class="d-flex gap-3">
             <span class="text-meta">Página 1 de 5</span>
@@ -192,7 +445,6 @@
         </div>
         <div class="rooms-grid" id="rooms-container">
 
-          <!-- Room card 2 -->
           <article class="room-card">
             <div class="room-card__banner" style="background:linear-gradient(135deg,#1565C0,#1976D2);">
               <div class="room-card__banner-text">Manejo de la ansiedad<br>en adultos</div>
@@ -221,7 +473,6 @@
             </div>
           </article>
 
-          <!-- Room card 3 -->
           <article class="room-card">
             <div class="room-card__banner" style="background:linear-gradient(135deg,#6A1B4D,#8B2252);">
               <div class="room-card__banner-text">Terapia familiar:<br>comunicación efectiva</div>
@@ -250,7 +501,6 @@
             </div>
           </article>
 
-          <!-- Room card 4 -->
           <article class="room-card">
             <div class="room-card__banner" style="background:linear-gradient(135deg,#4A148C,#6A1B9A);">
               <div class="room-card__banner-text">Duelo y pérdida:<br>sanando el corazón</div>
@@ -272,14 +522,13 @@
             </div>
             <div class="room-card__footer">
               <button class="btn btn-secondary btn-sm" onclick="openModal('detail-modal')">Ver más</button>
-              <button class="btn btn-primary btn-sm" onclick="window.location.href='inscripcion-pago.html'">Registrarse</button>
+              <button class="btn btn-primary btn-sm" onclick="registerFree(this,'Duelo y pérdida: sanando el corazón')">Registrarse</button>
               <button class="btn btn-ghost btn-sm" aria-label="Me gusta" onclick="toggleLike(this)" data-liked="true">
                 💚 <span class="like-count">94</span>
               </button>
             </div>
           </article>
 
-          <!-- Room card 5 -->
           <article class="room-card">
             <div class="room-card__banner" style="background:linear-gradient(135deg,#1A237E,#283593);">
               <div class="room-card__banner-text">Neuropsicología:<br>cerebro y emociones</div>
@@ -403,7 +652,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="window.location.href='perfil-orador.html'">Ver perfil del orador</button>
-      <button class="btn btn-primary" onclick="closeModal('detail-modal');window.location.href='inscripcion-pago.html'">Registrarse</button>
+      <button class="btn btn-primary" id="detail-modal-reg-btn" onclick="registerFree(this,'Mindfulness para el estrés laboral')">Registrarse</button>
     </div>
   </div>
 </div>
@@ -415,8 +664,194 @@
     document.getElementById('sidebar-toggle').style.display = 'flex';
   }
 
+  function doLogout() {
+    if (typeof Session !== 'undefined') Session.clear();
+    window.location.href = 'login.html';
+  }
+
+  // ── Estado de inscripciones gratuitas ─────────────────────────────────
+  var _freeRegistered = {}; // salaName → true
+
+  function _markRegistered(btn) {
+    btn.textContent = '✓ Inscrito';
+    btn.disabled = true;
+    btn.style.cssText += ';background:var(--color-success)!important;color:#fff!important;' +
+      'border-color:transparent!important;opacity:1!important;cursor:default!important;';
+  }
+
+  function registerFree(btn, salaName) {
+    _freeRegistered[salaName] = true;
+
+    // Sync card button
+    var cardBtn = document.getElementById('reg-mindfulness');
+    if (cardBtn && !cardBtn.disabled) _markRegistered(cardBtn);
+
+    // Sync modal button (may or may not be open)
+    var modalBtn = document.getElementById('detail-modal-reg-btn');
+    if (modalBtn && !modalBtn.disabled) _markRegistered(modalBtn);
+
+    // Close modal if it was open
+    closeModal('detail-modal');
+
+    showToast({
+      title: '¡Inscripción confirmada! 🎉',
+      message: 'Ya estás inscrito en “' + salaName + '”. Recibirás un recordatorio antes del evento.',
+      type: 'success'
+    });
+  }
+
+  // Abre el modal de detalle y sincroniza el botón según estado de inscripción
+  function openDetailModal(salaName) {
+    openModal('detail-modal');
+    var modalBtn = document.getElementById('detail-modal-reg-btn');
+    if (!modalBtn) return;
+    if (_freeRegistered[salaName]) {
+      if (!modalBtn.disabled) _markRegistered(modalBtn);
+    } else {
+      // Reset to default in case it was previously modified
+      modalBtn.textContent = 'Registrarse';
+      modalBtn.disabled = false;
+      modalBtn.style.cssText = modalBtn.style.cssText
+        .replace(/background:[^;]+!important;/g, '')
+        .replace(/color:[^;]+!important;/g, '')
+        .replace(/border-color:[^;]+!important;/g, '')
+        .replace(/opacity:[^;]+!important;/g, '')
+        .replace(/cursor:[^;]+!important;/g, '');
+    }
+  }
+
+  // ··· Dropdown de usuario
+  (function() {
+    const btn      = document.getElementById('user-dots-btn');
+    const dropdown = document.getElementById('user-dropdown');
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const open = dropdown.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', function() {
+      dropdown.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { dropdown.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+    });
+  })();
+
   // Show submenu by default
   document.getElementById('submenu-profesionales').style.display = 'block';
+
+  // ── Notificaciones · Usuario ──
+  const NOTIFS = {
+    msg: [
+      { id:1, unread:true,  ico:'💬', bg:'#E3F2FD', col:'#1565C0',
+        title:'Dr. Jorge Morales te envió un mensaje',
+        sub:'"Por favor confirma tu cita del viernes 18 de mayo a las 3:00 PM"',
+        time:'hace 20 min' },
+      { id:2, unread:false, ico:'💬', bg:'#E3F2FD', col:'#1565C0',
+        title:'Dra. Valentina Ríos te escribió',
+        sub:'"Tu próxima sesión se realizará en modalidad virtual. Te envío el enlace pronto."',
+        time:'hace 2 h' }
+    ],
+    sys: [
+      { id:3, unread:true,  ico:'❌', bg:'#FFEBEE', col:'#C62828',
+        title:'Tu cita fue cancelada',
+        sub:'La Dra. Valentina Ríos canceló tu cita del 14 mayo · 10:00 AM · El horario quedó disponible',
+        time:'hace 1 h' },
+      { id:4, unread:true,  ico:'🎪', bg:'#F3E5F5', col:'#6A1B9A',
+        title:'Tu evento comienza hoy',
+        sub:'"Mindfulness para el estrés laboral" comienza a las 6:00 PM — recuerda conectarte',
+        time:'hace 3 h' },
+      { id:5, unread:false, ico:'🎉', bg:'#E8F5E9', col:'#2E7D32',
+        title:'Nueva sala disponible',
+        sub:'"Terapia de pareja" · Dra. Carolina López · 25 mayo · Entrada libre · 70 cupos disponibles',
+        time:'ayer' },
+      { id:6, unread:false, ico:'⚙️', bg:'#F3E5F5', col:'#6A1B9A',
+        title:'Actualización del sistema',
+        sub:'Trébol v2.1: Ahora puedes agendar citas directamente desde el perfil del profesional',
+        time:'hace 2 días' }
+    ]
+  };
+
+  (function initNotif(NOTIFS) {
+    const btn      = document.getElementById('notif-btn');
+    const panel    = document.getElementById('notif-panel');
+    const badge    = document.getElementById('notif-badge');
+    const list     = document.getElementById('notif-list');
+    const markAll  = panel.querySelector('.notif-mark-all');
+    const tabs     = panel.querySelectorAll('.notif-tab');
+    let   activeTab = 'msg';
+
+    function countUnread(tab) { return NOTIFS[tab].filter(n => n.unread).length; }
+    function totalUnread()    { return countUnread('msg') + countUnread('sys'); }
+
+    function updateCounts() {
+      const t = totalUnread();
+      badge.textContent = t > 9 ? '9+' : String(t);
+      badge.classList.toggle('zero', t === 0);
+      panel.querySelectorAll('.ntc').forEach(el => {
+        const c = countUnread(el.dataset.ntc);
+        el.textContent = String(c);
+        el.classList.toggle('zero', c === 0);
+      });
+    }
+
+    function renderList() {
+      const items = NOTIFS[activeTab];
+      if (!items.length) { list.innerHTML = '<div class="notif-empty">Sin notificaciones</div>'; return; }
+      list.innerHTML = items.map(n => `
+        <div class="notif-item ${n.unread ? 'unread' : 'read'}" data-id="${n.id}" data-tab="${activeTab}" role="listitem" tabindex="0">
+          <div class="notif-item__ico" style="background:${n.bg};color:${n.col};">${n.ico}</div>
+          <div class="notif-item__body">
+            <div class="notif-item__title">${n.title}</div>
+            <div class="notif-item__sub">${n.sub}</div>
+            <div class="notif-item__time">${n.time}</div>
+          </div>
+          <div class="notif-item__dot"></div>
+        </div>`).join('');
+      list.querySelectorAll('.notif-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const notif = NOTIFS[el.dataset.tab].find(n => n.id === +el.dataset.id);
+          if (notif) { notif.unread = false; renderList(); updateCounts(); }
+        });
+      });
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => { x.classList.remove('active'); x.setAttribute('aria-selected','false'); });
+      t.classList.add('active'); t.setAttribute('aria-selected','true');
+      activeTab = t.dataset.tab; renderList();
+    }));
+
+    markAll.addEventListener('click', () => {
+      NOTIFS[activeTab].forEach(n => n.unread = false);
+      renderList(); updateCounts();
+    });
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = panel.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+      if (open) renderList();
+    });
+
+    document.addEventListener('click', e => {
+      if (!document.getElementById('notif-wrapper').contains(e.target)) {
+        panel.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+        btn.focus();
+      }
+    });
+
+    updateCounts();
+  })(NOTIFS);
 </script>
 </body>
 </html>

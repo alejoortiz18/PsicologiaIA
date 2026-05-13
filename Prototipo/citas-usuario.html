@@ -40,10 +40,13 @@
         <a href="citas-usuario.html" class="nav-item active" aria-current="page">
           <span class="nav-item__icon" aria-hidden="true">📅</span>Mis citas
         </a>
+        <a href="mensajes-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">💬</span>Mensajes
+        </a>
         <a href="perfil-usuario.html" class="nav-item">
           <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
         </a>
-        <a href="#" class="nav-item">
+        <a href="calendario-usuario.html" class="nav-item">
           <span class="nav-item__icon" aria-hidden="true">🗓</span>Calendario
         </a>
       </div>
@@ -173,9 +176,11 @@
                   <span class="badge badge-success">🟢 Confirmada</span>
                 </td>
                 <td style="padding:var(--sp-4) var(--sp-5);">
-                  <div style="display:flex;gap:var(--sp-2);">
+                  <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
                     <a href="sala-usuario.html" class="btn btn-primary btn-sm" aria-label="Entrar a la cita con Dra. Valentina Ríos">▶ Entrar</a>
                     <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Dra. Valentina Ríos','Asesoría','10 May 2026','3PM – 4PM','Confirmada')" aria-label="Ver detalles">Ver</button>
+                    <button class="btn btn-ghost btn-sm" aria-label="Mensaje a Dra. Valentina Ríos"
+                      onclick="openGlobalPM('Dra. Valentina Ríos','VR','linear-gradient(135deg,#1A3C34,#2D6A4F)')">💬</button>
                   </div>
                 </td>
               </tr>
@@ -204,9 +209,11 @@
                   <span class="badge badge-success">✅ Confirmada</span>
                 </td>
                 <td style="padding:var(--sp-4) var(--sp-5);">
-                  <div style="display:flex;gap:var(--sp-2);">
+                  <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
                     <button class="btn btn-secondary btn-sm" disabled style="opacity:.45;cursor:not-allowed;" title="Disponible el día de la cita">▶ Entrar</button>
                     <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Dr. Carlos Mendoza','Seguimiento','18 May 2026','10AM – 11AM','Confirmada')">Ver</button>
+                    <button class="btn btn-ghost btn-sm" aria-label="Mensaje a Dr. Carlos Mendoza"
+                      onclick="openGlobalPM('Dr. Carlos Mendoza','CM','#2D4A8F')">💬</button>
                   </div>
                 </td>
               </tr>
@@ -251,7 +258,11 @@
                 <td style="padding:var(--sp-4) var(--sp-5);font-size:.9rem;">29 Abr 2026</td>
                 <td style="padding:var(--sp-4) var(--sp-5);"><span class="badge badge-muted">✅ Completada</span></td>
                 <td style="padding:var(--sp-4) var(--sp-5);">
-                  <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Dra. Valentina Ríos','Asesoría','29 Abr 2026','3PM – 4PM','Completada')">Ver</button>
+                  <div style="display:flex;gap:var(--sp-2);">
+                    <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Dra. Valentina Ríos','Asesoría','29 Abr 2026','3PM – 4PM','Completada')">Ver</button>
+                    <button class="btn btn-ghost btn-sm" aria-label="Mensaje a Dra. Valentina Ríos"
+                      onclick="openGlobalPM('Dra. Valentina Ríos','VR','linear-gradient(135deg,#1A3C34,#2D6A4F)')">💬</button>
+                  </div>
                 </td>
               </tr>
 
@@ -269,7 +280,11 @@
                 <td style="padding:var(--sp-4) var(--sp-5);font-size:.9rem;">15 Abr 2026</td>
                 <td style="padding:var(--sp-4) var(--sp-5);"><span class="badge badge-muted">✅ Completada</span></td>
                 <td style="padding:var(--sp-4) var(--sp-5);">
-                  <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Dr. Carlos Mendoza','Seguimiento','15 Abr 2026','10AM – 11AM','Completada')">Ver</button>
+                  <div style="display:flex;gap:var(--sp-2);">
+                    <button class="btn btn-ghost btn-sm" onclick="verDetalleCita('Dr. Carlos Mendoza','Seguimiento','15 Abr 2026','10AM – 11AM','Completada')">Ver</button>
+                    <button class="btn btn-ghost btn-sm" aria-label="Mensaje a Dr. Carlos Mendoza"
+                      onclick="openGlobalPM('Dr. Carlos Mendoza','CM','#2D4A8F')">💬</button>
+                  </div>
                 </td>
               </tr>
 
@@ -287,7 +302,11 @@
                 <td style="padding:var(--sp-4) var(--sp-5);font-size:.9rem;">3 Abr 2026</td>
                 <td style="padding:var(--sp-4) var(--sp-5);"><span class="badge badge-danger">❌ Cancelada</span></td>
                 <td style="padding:var(--sp-4) var(--sp-5);">
-                  <a href="especialistas.html" class="btn btn-ghost btn-sm">Reagendar</a>
+                  <div style="display:flex;gap:var(--sp-2);">
+                    <a href="especialistas.html" class="btn btn-ghost btn-sm">Reagendar</a>
+                    <button class="btn btn-ghost btn-sm" aria-label="Mensaje a Dra. Valentina Ríos"
+                      onclick="openGlobalPM('Dra. Valentina Ríos','VR','linear-gradient(135deg,#1A3C34,#2D6A4F)')">💬</button>
+                  </div>
                 </td>
               </tr>
 

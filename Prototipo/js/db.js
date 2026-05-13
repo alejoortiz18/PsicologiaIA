@@ -410,6 +410,13 @@ function renderProfCard(prof, usuarioId = 'u001') {
             aria-pressed="${esMentor}">
             ${esMentor ? '✓ Siguiendo' : '+ Seguir'}
           </button>
+          <button class="btn btn-ghost btn-sm"
+            data-pm-name="${prof.nombre}"
+            data-pm-avatar="${prof.avatar.slice(0, 2).toUpperCase()}"
+            data-pm-bg="var(--color-primary)"
+            aria-label="Enviar mensaje a ${prof.nombre}">
+            💬 Msg
+          </button>
         </div>
       </div>
     </div>`;

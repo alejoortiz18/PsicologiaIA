@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Inicio · Profesional</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* ── Grid dos columnas con responsive ─────────────────────── */
+    .home-pro-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-6);
+      margin-bottom: var(--sp-8);
+    }
+    @media (max-width: 960px) {
+      .home-pro-two-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Tabla de citas ────────────────────────────────────────── */
+    .citas-table { width: 100%; border-collapse: collapse; font-size: .855rem; }
+    .citas-table th {
+      padding: var(--sp-3) var(--sp-4);
+      text-align: left;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--color-text-muted);
+      background: var(--color-surface-alt);
+      border-bottom: 2px solid var(--color-border-light);
+    }
+    .citas-table td {
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid var(--color-border-light);
+      vertical-align: middle;
+    }
+    .citas-table tr:last-child td { border-bottom: none; }
+    .citas-table tr { transition: background .12s; }
+    .citas-table tr:hover { background: var(--color-surface-alt); }
+
+    /* ── Evento item ───────────────────────────────────────────── */
+    .evento-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+      padding: var(--sp-4);
+      border-bottom: 1px solid var(--color-border-light);
+      transition: background .12s;
+    }
+    .evento-item:last-child { border-bottom: none; }
+    .evento-item:hover { background: var(--color-surface-alt); }
+    .evento-item__icon {
+      width: 46px; height: 46px;
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .evento-item__info { flex: 1; min-width: 0; }
+    .evento-item__title {
+      font-weight: 600;
+      font-size: .875rem;
+      color: var(--color-text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      line-height: 1.3;
+    }
+    .evento-item__meta {
+      font-size: .73rem;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* ── Panel card ────────────────────────────────────────────── */
+    .panel-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-card__footer {
+      padding: var(--sp-3) var(--sp-4);
+      background: var(--color-surface-alt);
+      border-top: 1px solid var(--color-border-light);
+      text-align: center;
+    }
+    .panel-card__footer a {
+      font-size: .8rem;
+      color: var(--color-primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    /* ── Sección heading ───────────────────────────────────────── */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--sp-4);
+    }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+
+    /* ── Room list (eventos de otros) ─────────────────────────── */
+    .event-list-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--color-border-light);
+      transition: background .12s;
+    }
+    .event-list-item:last-child { border-bottom: none; }
+    .event-list-item:hover { background: var(--color-surface-alt); }
+    .event-list-item__thumb {
+      width: 52px; height: 52px;
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .event-list-item__body { flex: 1; min-width: 0; }
+    .event-list-item__title {
+      font-weight: 600;
+      font-size: .9rem;
+      color: var(--color-text-primary);
+      line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .event-list-item__sub {
+      font-size: .76rem;
+      color: var(--color-text-muted);
+      margin-top: 3px;
+    }
+    .event-list-item__date {
+      flex-shrink: 0;
+      text-align: right;
+    }
+    .event-list-item__date-num {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+    .event-list-item__date-label {
+      font-size: .68rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    /* ── Notificaciones ──────────────────────────────────────── */
+    .notif-wrapper { position: relative; display: inline-flex; }
+    .notif-bell { position: relative !important; }
+    .notif-badge {
+      position: absolute; top: 4px; right: 4px;
+      min-width: 17px; height: 17px;
+      background: var(--color-danger); color: #fff;
+      font-size: .6rem; font-weight: 800;
+      border-radius: 99px; padding: 0 3px;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--color-surface);
+      pointer-events: none; line-height: 1;
+    }
+    .notif-badge.zero { display: none; }
+    .notif-panel {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      width: 370px; max-height: 500px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 8px 32px rgba(0,0,0,.16);
+      display: flex; flex-direction: column;
+      overflow: hidden; z-index: 1200;
+      opacity: 0; pointer-events: none;
+      transform: translateY(-8px) scale(.98);
+      transition: opacity .17s, transform .17s;
+    }
+    .notif-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+    .notif-panel__head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--color-border-light); flex-shrink: 0;
+    }
+    .notif-tabs {
+      display: flex; border-bottom: 1px solid var(--color-border-light);
+      background: var(--color-surface); flex-shrink: 0;
+    }
+    .notif-tab {
+      flex: 1; padding: var(--sp-3) var(--sp-2);
+      font-size: .8rem; font-weight: 600; color: var(--color-text-muted);
+      border: none; background: none; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color .15s, border-color .15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .notif-tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    .ntc {
+      min-width: 17px; height: 17px;
+      background: var(--color-danger); color: #fff;
+      font-size: .6rem; font-weight: 800;
+      border-radius: 99px; padding: 0 3px;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .ntc.zero { display: none; }
+    .notif-list { overflow-y: auto; flex: 1; }
+    .notif-item {
+      display: flex; align-items: flex-start; gap: var(--sp-3);
+      padding: var(--sp-4);
+      border-bottom: 1px solid var(--color-border-light);
+      cursor: pointer; transition: background .12s;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: var(--color-surface-alt); }
+    .notif-item.unread { background: rgba(82,183,136,.07); }
+    .notif-item.unread:hover { background: rgba(82,183,136,.13); }
+    .notif-item__ico {
+      width: 38px; height: 38px; border-radius: 50%;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    }
+    .notif-item__body { flex: 1; min-width: 0; }
+    .notif-item__title { font-size: .845rem; font-weight: 600; color: var(--color-text-primary); line-height: 1.35; }
+    .notif-item__sub { font-size: .75rem; color: var(--color-text-muted); margin-top: 3px; line-height: 1.4; }
+    .notif-item__time { font-size: .67rem; color: var(--color-text-muted); margin-top: 4px; font-weight: 500; }
+    .notif-item__dot {
+      width: 8px; height: 8px; background: var(--color-primary);
+      border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+    }
+    .notif-item.read .notif-item__dot { visibility: hidden; }
+    .notif-panel__foot {
+      padding: var(--sp-3) var(--sp-4); text-align: center;
+      border-top: 1px solid var(--color-border-light);
+      background: var(--color-surface-alt); flex-shrink: 0;
+    }
+    .notif-panel__foot a { font-size: .8rem; font-weight: 600; color: var(--color-primary); text-decoration: none; }
+    .notif-empty { padding: var(--sp-8) var(--sp-4); text-align: center; color: var(--color-text-muted); font-size: .855rem; }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-profesional.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio
+        </a>
+        <a href="mis-eventos.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🎪</span>Mis eventos
+        </a>
+        <div class="nav-item" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="false">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div id="submenu-colegas" class="nav-submenu" style="display:none;">
+          <a href="especialistas.html" class="nav-item">Especialistas</a>
+          <a href="psicologos.html" class="nav-item">Psicólogos</a>
+          <a href="mis-colegas.html" class="nav-item">Mis colegas</a>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="perfil-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+        <a href="perfil-pro-citas.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>Citas
+        </a>
+        <a href="mensajes-profesional.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">💬</span>Mensajes
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user sidebar__user-menu" id="user-menu">
+        <div class="sidebar__user-avatar" id="sidebar-avatar" style="background:var(--color-primary);">VR</div>
+        <div style="flex:1;min-width:0;">
+          <div class="sidebar__user-name" id="sidebar-name">Dra. Valentina Ríos</div>
+          <div class="sidebar__user-role">Profesional</div>
+        </div>
+        <button class="sidebar__user-dots" id="user-dots-btn" aria-label="Opciones de usuario" aria-expanded="false" aria-haspopup="true">⋯</button>
+        <div class="sidebar__user-dropdown" id="user-dropdown" role="menu">
+          <button onclick="doLogout()" role="menuitem">
+            <span aria-hidden="true">🚪</span> Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ───────────────────────────────────────────────── -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button id="sidebar-toggle" class="btn btn-ghost btn-icon" aria-label="Abrir menú" style="display:none;">☰</button>
+      <span class="topbar__title">Inicio</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-primary btn-sm" onclick="showToast({title:'Creación de sala disponible en la versión final',type:'info'})">+ Nueva sala</button>
+        <div class="notif-wrapper" id="notif-wrapper">
+          <button class="btn btn-ghost btn-icon notif-bell" id="notif-btn" aria-label="Notificaciones" aria-expanded="false" aria-haspopup="true">🔔<span class="notif-badge" id="notif-badge">0</span></button>
+          <div class="notif-panel" id="notif-panel" role="dialog" aria-label="Panel de notificaciones">
+            <div class="notif-panel__head">
+              <span style="font-weight:700;font-size:.9rem;">Notificaciones</span>
+              <button class="btn btn-ghost btn-sm notif-mark-all" style="font-size:.75rem;padding:4px 10px;">Marcar leídas</button>
+            </div>
+            <div class="notif-tabs" role="tablist">
+              <button class="notif-tab active" role="tab" data-tab="msg" aria-selected="true">💬 Mensajes <span class="ntc" data-ntc="msg">0</span></button>
+              <button class="notif-tab" role="tab" data-tab="sys" aria-selected="false">⚙️ Sistema <span class="ntc" data-ntc="sys">0</span></button>
+            </div>
+            <div class="notif-list" id="notif-list" role="list"></div>
+            <div class="notif-panel__foot"><a href="bandeja-notificaciones.html">Ver todas las notificaciones →</a></div>
+          </div>
+        </div>
+        <div class="avatar avatar-sm" id="topbar-avatar" style="background:var(--color-primary);">VR</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content">
+
+      <!-- ── Stats row ─────────────────────────────────────────── -->
+      <div class="stats-grid mb-6" role="region" aria-label="Resumen del día">
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">📅</div>
+          <div>
+            <div class="stat-card__label">Citas hoy</div>
+            <div class="stat-card__value">3</div>
+            <div class="stat-card__sub">1 pendiente de confirmar</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">🎪</div>
+          <div>
+            <div class="stat-card__label">Mis eventos hoy</div>
+            <div class="stat-card__value">1</div>
+            <div class="stat-card__sub">Mindfulness · 6PM</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">👥</div>
+          <div>
+            <div class="stat-card__label">Citas próximas</div>
+            <div class="stat-card__value">8</div>
+            <div class="stat-card__sub">Esta semana</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__icon" aria-hidden="true">⭐</div>
+          <div>
+            <div class="stat-card__label">Seguidores</div>
+            <div class="stat-card__value">1 248</div>
+            <div class="stat-card__sub">+12 esta semana</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Fila: Citas hoy + Mis eventos hoy ────────────────── -->
+      <div class="home-pro-two-col">
+
+        <!-- Mis citas de hoy -->
+        <section aria-labelledby="citas-hoy-heading">
+          <div class="section-head">
+            <h2 id="citas-hoy-heading" style="color:var(--color-primary);">
+              📅 Mis citas de hoy
+              <span style="font-size:.75rem;font-weight:600;background:var(--color-primary);color:#fff;padding:2px 10px;border-radius:99px;">12 mayo</span>
+            </h2>
+            <a href="perfil-pro-citas.html" class="btn btn-ghost btn-sm">Ver todas</a>
+          </div>
+          <div class="panel-card">
+            <table class="citas-table" role="table" aria-label="Citas de hoy">
+              <thead>
+                <tr>
+                  <th>Paciente</th>
+                  <th>Hora</th>
+                  <th>Tipo</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Cita 1 -->
+                <tr>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                      <div class="avatar avatar-xs" style="background:#1565C0;flex-shrink:0;">CM</div>
+                      <span style="font-weight:600;color:var(--color-text-primary);">Carlos M.</span>
+                    </div>
+                  </td>
+                  <td style="white-space:nowrap;color:var(--color-text-secondary);">9:00 AM</td>
+                  <td style="font-size:.78rem;color:var(--color-text-muted);">Asesoría inicial</td>
+                  <td><span class="badge badge-success">Confirmada</span></td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;"
+                      onclick="showToast({title:'Detalle de cita disponible en la versión final',type:'info'})">Ver</button>
+                  </td>
+                </tr>
+                <!-- Cita 2 -->
+                <tr>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                      <div class="avatar avatar-xs" style="background:#6A1B4D;flex-shrink:0;">LP</div>
+                      <span style="font-weight:600;color:var(--color-text-primary);">Laura P.</span>
+                    </div>
+                  </td>
+                  <td style="white-space:nowrap;color:var(--color-text-secondary);">11:00 AM</td>
+                  <td style="font-size:.78rem;color:var(--color-text-muted);">Seguimiento</td>
+                  <td><span class="badge badge-success">Confirmada</span></td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;"
+                      onclick="showToast({title:'Detalle de cita disponible en la versión final',type:'info'})">Ver</button>
+                  </td>
+                </tr>
+                <!-- Cita 3 -->
+                <tr>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                      <div class="avatar avatar-xs" style="background:#E65100;flex-shrink:0;">RG</div>
+                      <span style="font-weight:600;color:var(--color-text-primary);">Roberto G.</span>
+                    </div>
+                  </td>
+                  <td style="white-space:nowrap;color:var(--color-text-secondary);">3:00 PM</td>
+                  <td style="font-size:.78rem;color:var(--color-text-muted);">Evaluación psicológica</td>
+                  <td><span class="badge badge-warning">Pendiente</span></td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;"
+                      onclick="showToast({title:'Detalle de cita disponible en la versión final',type:'info'})">Ver</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="panel-card__footer">
+              <a href="perfil-pro-calendario.html">Ver calendario completo →</a>
+            </div>
+          </div>
+        </section>
+
+        <!-- Mis eventos de hoy -->
+        <section aria-labelledby="eventos-hoy-heading">
+          <div class="section-head">
+            <h2 id="eventos-hoy-heading" style="color:var(--color-primary);">
+              🎪 Mis eventos hoy
+              <span style="font-size:.75rem;font-weight:600;background:var(--color-danger);color:#fff;padding:2px 10px;border-radius:99px;">En vivo</span>
+            </h2>
+            <a href="mis-eventos.html" class="btn btn-ghost btn-sm">Ver todos</a>
+          </div>
+          <div class="panel-card">
+
+            <!-- Evento activo hoy -->
+            <a href="sala-conferencia-profesional.html"
+               class="evento-item"
+               style="background:linear-gradient(90deg,rgba(82,183,136,.07),transparent);text-decoration:none;cursor:pointer;transition:background .15s;"
+               onmouseenter="this.style.background='linear-gradient(90deg,rgba(82,183,136,.18),rgba(82,183,136,.05))'"
+               onmouseleave="this.style.background='linear-gradient(90deg,rgba(82,183,136,.07),transparent)'"
+               aria-label="Ingresar a Mindfulness para el estrés laboral">
+              <div class="evento-item__icon" style="background:linear-gradient(135deg,#1A3C34,#2D6A4F);">🧘</div>
+              <div class="evento-item__info">
+                <div class="evento-item__title" style="color:var(--color-primary);">Mindfulness para el estrés laboral</div>
+                <div class="evento-item__meta">Hoy · 6:00 PM – 8:00 PM · Entrada libre</div>
+                <div style="margin-top:var(--sp-2);display:flex;align-items:center;gap:var(--sp-2);">
+                  <div style="flex:1;height:6px;background:#e0e0e0;border-radius:99px;overflow:hidden;">
+                    <div style="width:86%;height:100%;background:var(--color-primary);border-radius:99px;"></div>
+                  </div>
+                  <span style="font-size:.72rem;font-weight:700;color:var(--color-primary);">342/400</span>
+                </div>
+              </div>
+              <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp-2);">
+                <span class="badge badge-success"><span class="badge-dot"></span>En vivo hoy</span>
+                <span style="font-size:.72rem;color:var(--color-primary);font-weight:600;">Ingresar →</span>
+              </div>
+            </a>
+
+            <!-- Sin más eventos hoy -->
+            <div style="padding:var(--sp-5);text-align:center;color:var(--color-text-muted);font-size:.855rem;">
+              <div style="font-size:1.6rem;margin-bottom:var(--sp-2);">✅</div>
+              Solo un evento programado para hoy
+            </div>
+
+            <!-- Próximos míos (preview) -->
+            <div style="padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);">
+              <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:var(--sp-2);">Próximos</div>
+              <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:.82rem;">
+                  <span style="color:var(--color-text-secondary);">🧠 Ansiedad y emociones</span>
+                  <span style="font-weight:600;color:var(--color-primary);">20 May</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:.82rem;">
+                  <span style="color:var(--color-text-secondary);">🌿 TCC: sesión grupal</span>
+                  <span style="font-weight:600;color:var(--color-primary);">28 May</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-card__footer">
+              <a href="mis-eventos.html">Ver todos mis eventos →</a>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ── Eventos de otros profesionales ────────────────────── -->
+      <section aria-labelledby="otros-eventos-heading">
+        <div class="section-head" style="margin-bottom:var(--sp-4);">
+          <h2 id="otros-eventos-heading" style="font-family:var(--font-display);font-size:1.15rem;color:var(--color-primary);">
+            🌐 Eventos de colegas
+          </h2>
+          <div style="display:flex;align-items:center;gap:var(--sp-3);">
+            <select class="table-filter-select" aria-label="Filtrar por categoría" style="min-width:160px;">
+              <option value="">Todas las categorías</option>
+              <option>Ansiedad y Estrés</option>
+              <option>Bienestar</option>
+              <option>Familiar</option>
+              <option>Mindfulness</option>
+              <option>Clínica</option>
+            </select>
+            <a href="#" class="btn btn-ghost btn-sm">Ver todos</a>
+          </div>
+        </div>
+
+        <div style="background:var(--color-surface);border:1px solid var(--color-border-light);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-sm);">
+
+          <!-- HOY -->
+          <div style="padding:var(--sp-2) var(--sp-5);background:rgba(229,57,53,.06);border-bottom:1px solid rgba(229,57,53,.15);display:flex;align-items:center;gap:var(--sp-2);">
+            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-danger);">🔴 Hoy — 12 mayo 2026</span>
+          </div>
+
+          <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#4A148C,#6A1B9A);">🧠</div>
+            <div class="event-list-item__body">
+              <div class="event-list-item__title">Regulación emocional en el trabajo</div>
+              <div class="event-list-item__sub">Psic. Andrés Vargas · Bienestar · 👥 115/200 inscritos</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+              <div class="event-list-item__date">
+                <div class="event-list-item__date-num">10</div>
+                <div class="event-list-item__date-label">AM</div>
+              </div>
+              <span class="badge badge-success" style="white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
+              <a href="orador-calendario.html" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+          </div>
+
+          <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#1565C0,#1976D2);">🌊</div>
+            <div class="event-list-item__body">
+              <div class="event-list-item__title">Psicología positiva: construyendo resiliencia</div>
+              <div class="event-list-item__sub">Dra. Carolina López · Clínica · 👥 88/150 inscritos</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+              <div class="event-list-item__date">
+                <div class="event-list-item__date-num">4</div>
+                <div class="event-list-item__date-label">PM</div>
+              </div>
+              <span class="badge badge-success" style="white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
+              <a href="orador-calendario.html" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+          </div>
+
+          <!-- ESTA SEMANA -->
+          <div style="padding:var(--sp-2) var(--sp-5);background:rgba(82,183,136,.06);border-top:1px solid var(--color-border-light);border-bottom:1px solid rgba(82,183,136,.2);display:flex;align-items:center;gap:var(--sp-2);">
+            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#2D6A4F;">📅 Esta semana</span>
+          </div>
+
+          <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#1565C0,#1976D2);">🧠</div>
+            <div class="event-list-item__body">
+              <div class="event-list-item__title">Manejo de la ansiedad en adultos</div>
+              <div class="event-list-item__sub">Dr. Jorge Morales · Ansiedad y Estrés · 👥 289/300 · $45.000 COP</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+              <div class="event-list-item__date">
+                <div class="event-list-item__date-num">18</div>
+                <div class="event-list-item__date-label">Mayo</div>
+              </div>
+              <span class="badge badge-warning" style="white-space:nowrap;">11 cupos</span>
+              <a href="orador-calendario.html" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+          </div>
+
+          <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#E65100,#F57C00);">👶</div>
+            <div class="event-list-item__body">
+              <div class="event-list-item__title">Desarrollo infantil y apego seguro</div>
+              <div class="event-list-item__sub">Psic. María Fuentes · Infantil · 👥 42/80 · Entrada libre</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+              <div class="event-list-item__date">
+                <div class="event-list-item__date-num">20</div>
+                <div class="event-list-item__date-label">Mayo</div>
+              </div>
+              <span class="badge badge-success" style="white-space:nowrap;">Libre</span>
+              <a href="orador-calendario.html" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+          </div>
+
+          <!-- PRÓXIMAMENTE -->
+          <div style="padding:var(--sp-2) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);border-bottom:1px solid var(--color-border-light);">
+            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-muted);">🗓 Próximamente</span>
+          </div>
+
+          <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#6A1B4D,#8B2252);">👨‍👩‍👧</div>
+            <div class="event-list-item__body">
+              <div class="event-list-item__title">Terapia familiar: comunicación efectiva</div>
+              <div class="event-list-item__sub">Dra. Carolina López · Familiar · 👥 201/250 · $35.000 COP</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+              <div class="event-list-item__date">
+                <div class="event-list-item__date-num">22</div>
+                <div class="event-list-item__date-label">Mayo</div>
+              </div>
+              <span class="badge badge-muted" style="white-space:nowrap;">Abierta</span>
+              <a href="orador-calendario.html" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+          </div>
+
+          <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#4A148C,#6A1B9A);">💜</div>
+            <div class="event-list-item__body">
+              <div class="event-list-item__title">Duelo y pérdida: sanando el corazón</div>
+              <div class="event-list-item__sub">Psic. Andrés Vargas · Clínica · 👥 89/150 · Entrada libre</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+              <div class="event-list-item__date">
+                <div class="event-list-item__date-num">25</div>
+                <div class="event-list-item__date-label">Mayo</div>
+              </div>
+              <span class="badge badge-muted" style="white-space:nowrap;">Abierta</span>
+              <a href="orador-calendario.html" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+          </div>
+
+          <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#1A237E,#283593);">🔬</div>
+            <div class="event-list-item__body">
+              <div class="event-list-item__title">Neuropsicología: cerebro y emociones</div>
+              <div class="event-list-item__sub">Dr. Carlos Restrepo · Clínica · 👥 145/150 · $65.000 COP</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+              <div class="event-list-item__date">
+                <div class="event-list-item__date-num">1</div>
+                <div class="event-list-item__date-label">Jun</div>
+              </div>
+              <span class="badge badge-warning" style="white-space:nowrap;color:var(--color-danger);">5 cupos</span>
+              <a href="orador-calendario.html" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+          </div>
+
+          <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#1B5E20,#2E7D32);">🌱</div>
+            <div class="event-list-item__body">
+              <div class="event-list-item__title">Hábitos saludables y bienestar mental</div>
+              <div class="event-list-item__sub">Dra. Sofía Mendoza · Bienestar · 👥 30/100 · Entrada libre</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+              <div class="event-list-item__date">
+                <div class="event-list-item__date-num">8</div>
+                <div class="event-list-item__date-label">Jun</div>
+              </div>
+              <span class="badge badge-success" style="white-space:nowrap;">Libre</span>
+              <a href="orador-calendario.html" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+          </div>
+
+          <!-- Footer paginación -->
+          <div style="padding:var(--sp-4) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-3);">
+            <span class="text-meta" style="font-size:.8rem;">Mostrando 1–8 de 47 eventos</span>
+            <div class="pagination" role="navigation" aria-label="Paginación">
+              <button class="pagination__btn" disabled aria-label="Anterior">‹</button>
+              <button class="pagination__btn active" aria-current="page">1</button>
+              <button class="pagination__btn" onclick="showToast({title:'Navegando a página 2',type:'info'})">2</button>
+              <button class="pagination__btn" onclick="showToast({title:'Navegando a página 3',type:'info'})">3</button>
+              <span class="pagination__btn" style="border:none;cursor:default;">…</span>
+              <button class="pagination__btn">6</button>
+              <button class="pagination__btn" aria-label="Siguiente">›</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  if (window.innerWidth < 1024) {
+    document.getElementById('sidebar-toggle').style.display = 'flex';
+  }
+  if (typeof initSidebar === 'function') initSidebar();
+
+  function doLogout() {
+    if (typeof Session !== 'undefined') Session.clear();
+    window.location.href = 'login.html';
+  }
+
+  // ··· Dropdown de usuario
+  (function() {
+    const btn      = document.getElementById('user-dots-btn');
+    const dropdown = document.getElementById('user-dropdown');
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const open = dropdown.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+    document.addEventListener('click', function() {
+      dropdown.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { dropdown.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+    });
+  })();
+  const s = typeof Session !== 'undefined' ? Session.get() : null;
+  if (s) {
+    const initials = s.nombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    ['sidebar-avatar', 'topbar-avatar'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = initials;
+    });
+    const sn = document.getElementById('sidebar-name');
+    if (sn) sn.textContent = s.alias || s.nombre;
+  }
+
+  // ── Notificaciones · Profesional ──
+  const NOTIFS = {
+    msg: [
+      { id:1, unread:true,  ico:'💬', bg:'#E3F2FD', col:'#1565C0',
+        title:'Carlos Rodríguez compró un cupo',
+        sub:'Se inscribió a "Mindfulness para el estrés laboral" · 342/400 inscritos',
+        time:'hace 5 min' },
+      { id:2, unread:true,  ico:'💬', bg:'#E3F2FD', col:'#1565C0',
+        title:'Ana Martínez te envió un mensaje',
+        sub:'"¿Sigue en pie la cita del viernes a las 3:00 PM?"',
+        time:'hace 32 min' },
+      { id:3, unread:false, ico:'💬', bg:'#E3F2FD', col:'#1565C0',
+        title:'Patricia Gómez tiene una consulta',
+        sub:'"¿Tu taller de ansiedad incluye material descargable?"',
+        time:'hace 2 h' }
+    ],
+    sys: [
+      { id:4, unread:true,  ico:'🎫', bg:'#FFF8E1', col:'#E65100',
+        title:'Nueva inscripción a tu evento',
+        sub:'María Torres compró cupo en "Manejo de ansiedad en adultos" · $45.000 COP cobrado',
+        time:'hace 1 h' },
+      { id:5, unread:true,  ico:'❌', bg:'#FFEBEE', col:'#C62828',
+        title:'Cita privada cancelada',
+        sub:'Laura Pérez canceló la cita del 14 mayo · 9:00 AM · Motivo: compromiso personal',
+        time:'hace 1 h' },
+      { id:6, unread:true,  ico:'📅', bg:'#E8F5E9', col:'#2E7D32',
+        title:'Horario privado separado',
+        sub:'Roberto García reservó el 15 mayo · 3:00 PM para una sesión de evaluación psicológica',
+        time:'hace 3 h' },
+      { id:7, unread:false, ico:'⚙️', bg:'#F3E5F5', col:'#6A1B9A',
+        title:'Actualización del sistema',
+        sub:'Trébol v2.1: Nueva función de videollamadas disponible en tu perfil profesional',
+        time:'hace 1 día' }
+    ]
+  };
+
+  (function initNotif(NOTIFS) {
+    const btn      = document.getElementById('notif-btn');
+    const panel    = document.getElementById('notif-panel');
+    const badge    = document.getElementById('notif-badge');
+    const list     = document.getElementById('notif-list');
+    const markAll  = panel.querySelector('.notif-mark-all');
+    const tabs     = panel.querySelectorAll('.notif-tab');
+    let   activeTab = 'msg';
+
+    function countUnread(tab) { return NOTIFS[tab].filter(n => n.unread).length; }
+    function totalUnread()    { return countUnread('msg') + countUnread('sys'); }
+
+    function updateCounts() {
+      const t = totalUnread();
+      badge.textContent = t > 9 ? '9+' : String(t);
+      badge.classList.toggle('zero', t === 0);
+      panel.querySelectorAll('.ntc').forEach(el => {
+        const c = countUnread(el.dataset.ntc);
+        el.textContent = String(c);
+        el.classList.toggle('zero', c === 0);
+      });
+    }
+
+    function renderList() {
+      const items = NOTIFS[activeTab];
+      if (!items.length) { list.innerHTML = '<div class="notif-empty">Sin notificaciones</div>'; return; }
+      list.innerHTML = items.map(n => `
+        <div class="notif-item ${n.unread ? 'unread' : 'read'}" data-id="${n.id}" data-tab="${activeTab}" role="listitem" tabindex="0">
+          <div class="notif-item__ico" style="background:${n.bg};color:${n.col};">${n.ico}</div>
+          <div class="notif-item__body">
+            <div class="notif-item__title">${n.title}</div>
+            <div class="notif-item__sub">${n.sub}</div>
+            <div class="notif-item__time">${n.time}</div>
+          </div>
+          <div class="notif-item__dot"></div>
+        </div>`).join('');
+      list.querySelectorAll('.notif-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const notif = NOTIFS[el.dataset.tab].find(n => n.id === +el.dataset.id);
+          if (notif) { notif.unread = false; renderList(); updateCounts(); }
+        });
+      });
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => { x.classList.remove('active'); x.setAttribute('aria-selected','false'); });
+      t.classList.add('active'); t.setAttribute('aria-selected','true');
+      activeTab = t.dataset.tab; renderList();
+    }));
+
+    markAll.addEventListener('click', () => {
+      NOTIFS[activeTab].forEach(n => n.unread = false);
+      renderList(); updateCounts();
+    });
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = panel.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+      if (open) renderList();
+    });
+
+    document.addEventListener('click', e => {
+      if (!document.getElementById('notif-wrapper').contains(e.target)) {
+        panel.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+        btn.focus();
+      }
+    });
+
+    updateCounts();
+  })(NOTIFS);
+</script>
+</body>
+</html>

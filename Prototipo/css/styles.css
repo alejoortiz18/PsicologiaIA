@@ -325,6 +325,49 @@ h3 { font-size: 1.125rem; font-weight: 600; font-family: var(--font-body); }   /
   opacity: 0.7;
 }
 
+/* Tres puntos + dropdown de sesión */
+.sidebar__user-menu { position: relative; }
+
+.sidebar__user-dots {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  background: none; border: none; cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--sidebar-text);
+  font-size: 1rem; letter-spacing: .05em;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.sidebar__user-dots:hover { background: var(--sidebar-item-hover); color: var(--sidebar-text-active); }
+
+.sidebar__user-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 6px 24px rgba(0,0,0,.14);
+  overflow: hidden;
+  opacity: 0; pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity .15s, transform .15s;
+  z-index: 500;
+}
+.sidebar__user-dropdown.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+.sidebar__user-dropdown button {
+  display: flex; align-items: center; gap: var(--sp-3);
+  width: 100%; padding: var(--sp-3) var(--sp-4);
+  background: none; border: none; cursor: pointer;
+  font-size: 0.8125rem; font-weight: 600;
+  color: #E53935;
+  transition: background 0.13s;
+  text-align: left;
+}
+.sidebar__user-dropdown button:hover { background: rgba(229,57,53,.08); }
+.sidebar__user-dropdown button span { font-size: 1rem; }
+
 /* --- Main Content --- */
 .main-wrapper {
   margin-left: var(--sidebar-width);

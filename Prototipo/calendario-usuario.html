@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Calendario</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* =====================================================
+       CALENDARIO — Estilos específicos
+       ===================================================== */
+
+    /* Layout principal del calendario */
+    .cal-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - var(--topbar-height) - var(--sp-8));
+      min-height: 520px;
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--color-border-light);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    /* ── Barra superior del calendario ─────────────────── */
+    .cal-topbar {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-4) var(--sp-6);
+      border-bottom: 1px solid var(--color-border-light);
+      background: var(--color-surface);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .cal-nav-group {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+    }
+
+    .cal-btn-today {
+      padding: var(--sp-2) var(--sp-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      background: var(--color-surface);
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+    }
+    .cal-btn-today:hover {
+      background: var(--color-surface-alt);
+      border-color: var(--color-accent);
+    }
+
+    .cal-btn-nav {
+      width: 32px; height: 32px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.125rem;
+      color: var(--color-text-secondary);
+      background: var(--color-surface);
+      transition: background var(--transition-fast);
+    }
+    .cal-btn-nav:hover {
+      background: var(--color-surface-alt);
+      color: var(--color-primary);
+    }
+
+    .cal-date-label {
+      font-family: var(--font-display);
+      font-size: 1.0625rem;
+      color: var(--color-primary);
+      font-weight: 400;
+      white-space: nowrap;
+      min-width: 180px;
+    }
+
+    .cal-view-pills {
+      display: flex;
+      gap: 2px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-left: auto;
+    }
+    .cal-view-pill {
+      padding: var(--sp-2) var(--sp-4);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      background: var(--color-surface);
+      border: none;
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+    .cal-view-pill.active {
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+    }
+    .cal-view-pill:hover:not(.active) {
+      background: var(--color-surface-alt);
+      color: var(--color-primary);
+    }
+
+    /* Leyenda */
+    .cal-legend {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-5);
+      margin-left: var(--sp-4);
+    }
+    .cal-legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+    }
+    .cal-legend-dot {
+      width: 10px; height: 10px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+    .dot-cita      { background: var(--color-accent); }
+    .dot-pendiente { background: var(--color-warning); }
+    .dot-evento    { background: #7C3AED; }
+
+    /* ── Encabezado de días ─────────────────────────────── */
+    .cal-header-row {
+      display: grid;
+      grid-template-columns: 56px repeat(7, 1fr);
+      border-bottom: 1px solid var(--color-border-light);
+      background: var(--color-surface);
+      flex-shrink: 0;
+    }
+
+    .cal-header-spacer {
+      border-right: 1px solid var(--color-border-light);
+    }
+
+    .cal-day-header {
+      padding: var(--sp-3) var(--sp-2) var(--sp-2);
+      text-align: center;
+      border-right: 1px solid var(--color-border-light);
+    }
+    .cal-day-header:last-child { border-right: none; }
+
+    .cal-day-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+    }
+
+    .cal-day-num {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-full);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin: var(--sp-1) auto 0;
+      transition: background var(--transition-fast);
+    }
+    .cal-day-num.today {
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .cal-day-num.has-events {
+      color: var(--color-accent-hover);
+    }
+
+    /* ── Cuerpo scrollable ──────────────────────────────── */
+    .cal-body-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .cal-body-grid {
+      display: grid;
+      grid-template-columns: 56px repeat(7, 1fr);
+      position: relative;
+      /* height = horas × HOUR_HEIGHT */
+    }
+
+    /* Columna de horas */
+    .cal-time-col {
+      position: relative;
+      border-right: 1px solid var(--color-border-light);
+    }
+
+    .cal-time-slot {
+      height: 64px; /* HOUR_HEIGHT */
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding-right: var(--sp-2);
+      padding-top: 2px;
+    }
+    .cal-time-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      transform: translateY(-50%);
+    }
+    /* First slot: hide label (would appear above grid) */
+    .cal-time-slot:first-child .cal-time-label {
+      opacity: 0;
+    }
+
+    /* Columnas de días */
+    .cal-day-col {
+      position: relative;
+      border-right: 1px solid var(--color-border-light);
+    }
+    .cal-day-col:last-child { border-right: none; }
+    .cal-day-col.today-col {
+      background: rgba(82,183,136,0.03);
+    }
+
+    /* Líneas horizontales de horas */
+    .cal-hour-line {
+      height: 64px; /* HOUR_HEIGHT */
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .cal-hour-line.half-hour {
+      border-bottom: 1px dashed rgba(197,223,201,0.5);
+    }
+
+    /* ── Evento en el calendario ────────────────────────── */
+    .cal-event {
+      position: absolute;
+      left: 3px;
+      right: 3px;
+      border-radius: var(--radius-sm);
+      padding: 4px 7px;
+      font-size: 0.75rem;
+      line-height: 1.3;
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+      z-index: 2;
+      border-left-width: 3px;
+      border-left-style: solid;
+    }
+    .cal-event:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateX(1px);
+    }
+    .cal-event:focus {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+
+    /* Tipos de evento */
+    .cal-event--cita {
+      background: #D8F3DC;
+      border-left-color: var(--color-accent);
+      color: #1A3C34;
+    }
+    .cal-event--cita-pendiente {
+      background: #FFF0E0;
+      border-left-color: var(--color-warning);
+      color: #7A3D0C;
+    }
+    .cal-event--evento {
+      background: #EDE9FE;
+      border-left-color: #7C3AED;
+      color: #3B1FA8;
+    }
+
+    .cal-event__title {
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+    .cal-event__sub {
+      opacity: 0.75;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+    .cal-event__time {
+      font-weight: 600;
+      margin-top: 1px;
+      display: block;
+    }
+
+    /* ── Línea de hora actual ────────────────────────────── */
+    .cal-now-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: var(--color-danger);
+      z-index: 3;
+      pointer-events: none;
+    }
+    .cal-now-line::before {
+      content: '';
+      position: absolute;
+      left: -4px;
+      top: -4px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--color-danger);
+    }
+
+    /* ── Modal de evento ─────────────────────────────────── */
+    .event-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(26,44,30,0.45);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .event-modal-backdrop.open {
+      display: flex;
+    }
+    .event-modal {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      padding: var(--sp-8);
+      max-width: 400px;
+      width: 90%;
+      box-shadow: var(--shadow-xl);
+      position: relative;
+    }
+    .event-modal__close {
+      position: absolute;
+      top: var(--sp-4);
+      right: var(--sp-4);
+      width: 32px; height: 32px;
+      border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+      color: var(--color-text-muted);
+      background: var(--color-surface-alt);
+      transition: background var(--transition-fast);
+    }
+    .event-modal__close:hover {
+      background: var(--color-border-light);
+      color: var(--color-primary);
+    }
+    .event-modal__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-1);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--sp-4);
+    }
+    .badge-cita      { background: var(--color-accent-pale); color: var(--color-primary); }
+    .badge-evento    { background: #EDE9FE; color: #5B21B6; }
+    .badge-pendiente { background: var(--color-warning-pale); color: #7A3D0C; }
+    .event-modal__title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--color-primary);
+      margin-bottom: var(--sp-4);
+      line-height: 1.3;
+    }
+    .event-modal__detail {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--sp-3);
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+      margin-bottom: var(--sp-3);
+    }
+    .event-modal__detail-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .event-modal__actions {
+      display: flex;
+      gap: var(--sp-3);
+      margin-top: var(--sp-6);
+    }
+
+    /* ── Semana vacía / sin eventos ─────────────────────── */
+    .cal-empty-msg {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: var(--color-text-muted);
+      pointer-events: none;
+    }
+    .cal-empty-msg p { font-size: 0.875rem; margin-top: var(--sp-2); }
+
+    /* ── Vista diaria ─────────────────────────────────── */
+    .cal-header-row.day-view {
+      grid-template-columns: 56px 1fr;
+    }
+    .cal-body-grid.day-view {
+      grid-template-columns: 56px 1fr;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .cal-legend { display: none; }
+      .cal-date-label { min-width: unset; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" role="navigation" aria-label="Menú principal">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-hidden="true">🍀</div>
+      <span class="sidebar__brand-name">Trébol</span>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a href="home-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">🏠</span>Inicio
+        </a>
+        <div class="nav-item" tabindex="0" role="button">
+          <span class="nav-item__icon" aria-hidden="true">👥</span>
+          Profesionales
+          <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a href="citas-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">📅</span>Mis citas
+        </a>
+        <a href="mensajes-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">💬</span>Mensajes
+        </a>
+        <a href="perfil-usuario.html" class="nav-item">
+          <span class="nav-item__icon" aria-hidden="true">👤</span>Mi perfil
+        </a>
+        <a href="calendario-usuario.html" class="nav-item active" aria-current="page">
+          <span class="nav-item__icon" aria-hidden="true">🗓</span>Calendario
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__user-avatar">MG</div>
+        <div>
+          <div class="sidebar__user-name">María García</div>
+          <div class="sidebar__user-role">Usuario</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <span class="topbar__title">Calendario</span>
+      <div class="topbar__spacer"></div>
+      <div class="topbar__actions">
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">🔔</button>
+        <div class="avatar avatar-sm">MG</div>
+      </div>
+    </header>
+
+    <main class="main-content" id="main-content" style="padding-bottom: var(--sp-4);">
+
+      <!-- ══ CALENDARIO ══════════════════════════════════════════ -->
+      <div class="cal-wrapper" id="cal-wrapper">
+
+        <!-- Barra de control -->
+        <div class="cal-topbar">
+          <div class="cal-nav-group">
+            <button class="cal-btn-today" id="btn-today" aria-label="Ir a la semana actual">Hoy</button>
+            <button class="cal-btn-nav" id="btn-prev" aria-label="Semana anterior">&#8249;</button>
+            <button class="cal-btn-nav" id="btn-next" aria-label="Semana siguiente">&#8250;</button>
+            <span class="cal-date-label" id="cal-date-label" aria-live="polite" aria-atomic="true"></span>
+          </div>
+
+          <div class="cal-legend" aria-label="Leyenda del calendario">
+            <div class="cal-legend-item">
+              <span class="cal-legend-dot dot-cita" aria-hidden="true"></span>Cita confirmada
+            </div>
+            <div class="cal-legend-item">
+              <span class="cal-legend-dot dot-pendiente" aria-hidden="true"></span>Cita pendiente
+            </div>
+            <div class="cal-legend-item">
+              <span class="cal-legend-dot dot-evento" aria-hidden="true"></span>Evento inscrito
+            </div>
+          </div>
+
+          <div class="cal-view-pills" role="group" aria-label="Vista del calendario">
+            <button class="cal-view-pill active" id="pill-week" aria-pressed="true">Semana</button>
+            <button class="cal-view-pill" id="pill-day" aria-pressed="false">Día</button>
+          </div>
+        </div>
+
+        <!-- Encabezado de días (generado por JS) -->
+        <div class="cal-header-row" id="cal-header-row" role="row"></div>
+
+        <!-- Cuerpo del calendario -->
+        <div class="cal-body-scroll" id="cal-body-scroll">
+          <div class="cal-body-grid" id="cal-body-grid" role="presentation"></div>
+        </div>
+
+      </div>
+      <!-- ══ FIN CALENDARIO ══════════════════════════════════════ -->
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Modal de detalle de evento ─────────────────────────────────── -->
+<div class="event-modal-backdrop" id="event-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="event-modal-title">
+  <div class="event-modal">
+    <button class="event-modal__close" id="event-modal-close" aria-label="Cerrar detalle">×</button>
+    <div class="event-modal__badge" id="event-modal-badge"></div>
+    <div class="event-modal__title" id="event-modal-title"></div>
+    <div id="event-modal-details"></div>
+    <div class="event-modal__actions" id="event-modal-actions"></div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+/* =====================================================================
+   TRÉBOL — Calendario de usuario
+   ===================================================================== */
+'use strict';
+
+// ─── Configuración del calendario ──────────────────────────────────────
+const HOUR_START   = 7;   // 7 AM
+const HOUR_END     = 21;  // 9 PM
+const HOUR_HEIGHT  = 64;  // px por hora
+const PX_PER_MIN   = HOUR_HEIGHT / 60;
+const TOTAL_HOURS  = HOUR_END - HOUR_START;
+const DAYS_ES      = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MONTHS_ES    = ['enero','febrero','marzo','abril','mayo','junio',
+                      'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const MONTHS_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+// ─── Base de datos de eventos del usuario ──────────────────────────────
+const USER_EVENTS = [
+  // ── Citas ──────────────────────────────────────────────────────────
+  {
+    id: 'c1',
+    type: 'cita',
+    status: 'confirmada',
+    title: 'Asesoría psicológica',
+    sub: 'Dra. Valentina Ríos',
+    date: '2026-05-20',
+    startHour: 15, startMin: 0,
+    durationMin: 60,
+    modalIcon: '📅',
+    detail: {
+      profesional: 'Dra. Valentina Ríos',
+      especialidad: 'Psicología infantil',
+      tipo: 'Asesoría individual',
+      lugar: 'Videollamada (Trébol)'
+    },
+    action: { label: 'Ingresar a la cita', href: 'citas-usuario.html' }
+  },
+  {
+    id: 'c2',
+    type: 'cita',
+    status: 'pendiente',
+    title: 'Sesión de seguimiento',
+    sub: 'Dr. Jorge Morales',
+    date: '2026-05-27',
+    startHour: 10, startMin: 30,
+    durationMin: 60,
+    modalIcon: '📅',
+    detail: {
+      profesional: 'Dr. Jorge Morales',
+      especialidad: 'Psicología clínica',
+      tipo: 'Seguimiento',
+      lugar: 'Videollamada (Trébol)'
+    },
+    action: { label: 'Ver detalle', href: 'citas-usuario.html' }
+  },
+
+  // ── Eventos ────────────────────────────────────────────────────────
+  {
+    id: 'e1',
+    type: 'evento',
+    status: 'proximo',
+    title: 'Mindfulness para el estrés laboral',
+    sub: 'Dra. Valentina Ríos',
+    date: '2026-05-15',
+    startHour: 18, startMin: 0,
+    durationMin: 90,
+    modalIcon: '🎤',
+    detail: {
+      orador: 'Dra. Valentina Ríos',
+      modalidad: 'Sala virtual',
+      precio: 'Entrada libre',
+      inscriptos: '142 personas inscritas'
+    },
+    action: { label: 'Ir al evento', href: 'sala-usuario.html' }
+  },
+  {
+    id: 'e2',
+    type: 'evento',
+    status: 'proximo',
+    title: 'Manejo de la ansiedad en adultos',
+    sub: 'Dr. Jorge Morales',
+    date: '2026-05-18',
+    startHour: 14, startMin: 0,
+    durationMin: 90,
+    modalIcon: '🎤',
+    detail: {
+      orador: 'Dr. Jorge Morales',
+      modalidad: 'Sala virtual',
+      precio: '$45.000 COP',
+      inscriptos: '98 personas inscritas'
+    },
+    action: { label: 'Ir al evento', href: 'sala-usuario.html' }
+  },
+  {
+    id: 'e3',
+    type: 'evento',
+    status: 'proximo',
+    title: 'Terapia familiar: comunicación efectiva',
+    sub: 'Dra. Carolina López',
+    date: '2026-05-22',
+    startHour: 16, startMin: 30,
+    durationMin: 90,
+    modalIcon: '🎤',
+    detail: {
+      orador: 'Dra. Carolina López',
+      modalidad: 'Sala virtual',
+      precio: '$35.000 COP',
+      inscriptos: '76 personas inscritas'
+    },
+    action: { label: 'Ir al evento', href: 'sala-usuario.html' }
+  }
+];
+
+// ─── Estado del calendario ──────────────────────────────────────────────
+let weekOffset  = 0;   // 0 = semana actual
+let currentView = 'week'; // 'week' | 'day'
+let dayOffset   = 0;   // para vista diaria: offset desde hoy
+
+// ─── Utilidades de fecha ────────────────────────────────────────────────
+function getMonday(date) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = Dom
+  const diff = (day === 0) ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+function toYMD(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function isToday(date) {
+  const today = new Date();
+  return date.getFullYear() === today.getFullYear() &&
+         date.getMonth()    === today.getMonth()    &&
+         date.getDate()     === today.getDate();
+}
+
+function formatHour(h) {
+  if (h === 0 || h === 24) return '12 AM';
+  if (h === 12) return '12 PM';
+  return h < 12 ? `${h} AM` : `${h-12} PM`;
+}
+
+function formatEventTime(h, m) {
+  const period = h >= 12 ? 'PM' : 'AM';
+  const hh = h % 12 || 12;
+  return m === 0 ? `${hh}${period}` : `${hh}:${String(m).padStart(2,'0')}${period}`;
+}
+
+// ─── Obtener días de la semana actual ───────────────────────────────────
+function getWeekDays() {
+  const today = new Date();
+  const monday = getMonday(today);
+  monday.setDate(monday.getDate() + weekOffset * 7);
+  return Array.from({length: 7}, (_, i) => addDays(monday, i));
+}
+
+function getCurrentDay() {
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+// ─── Etiqueta de rango de fechas ────────────────────────────────────────
+function buildDateLabel(days) {
+  const first = days[0];
+  const last  = days[6];
+  if (first.getMonth() === last.getMonth()) {
+    return `${first.getDate()} – ${last.getDate()} de ${MONTHS_ES[first.getMonth()]} ${first.getFullYear()}`;
+  }
+  return `${first.getDate()} ${MONTHS_SHORT[first.getMonth()]} – ${last.getDate()} ${MONTHS_SHORT[last.getMonth()]} ${last.getFullYear()}`;
+}
+
+// ─── Cálculo de posición ────────────────────────────────────────────────
+function topFromTime(startHour, startMin) {
+  return ((startHour - HOUR_START) * 60 + startMin) * PX_PER_MIN;
+}
+
+function heightFromDuration(durationMin) {
+  return Math.max(durationMin * PX_PER_MIN, 22); // mínimo 22px
+}
+
+// ─── Clases de estilo de evento ─────────────────────────────────────────
+function eventClass(ev) {
+  if (ev.type === 'cita') {
+    return ev.status === 'pendiente' ? 'cal-event--cita-pendiente' : 'cal-event--cita';
+  }
+  return 'cal-event--evento';
+}
+
+// ─── Renderizar columna de horas ─────────────────────────────────────────
+function buildTimeCol() {
+  const col = document.createElement('div');
+  col.className = 'cal-time-col';
+  col.setAttribute('aria-hidden', 'true');
+  for (let h = HOUR_START; h <= HOUR_END; h++) {
+    const slot = document.createElement('div');
+    slot.className = 'cal-time-slot';
+    const label = document.createElement('span');
+    label.className = 'cal-time-label';
+    label.textContent = formatHour(h);
+    slot.appendChild(label);
+    col.appendChild(slot);
+  }
+  return col;
+}
+
+// ─── Renderizar líneas de hora en columna de día ─────────────────────────
+function buildHourLines() {
+  const frag = document.createDocumentFragment();
+  for (let h = HOUR_START; h <= HOUR_END; h++) {
+    const line = document.createElement('div');
+    line.className = 'cal-hour-line';
+    line.style.height = HOUR_HEIGHT + 'px';
+    frag.appendChild(line);
+  }
+  return frag;
+}
+
+// ─── Renderizar un evento en el grid ─────────────────────────────────────
+function buildEventEl(ev) {
+  const top    = topFromTime(ev.startHour, ev.startMin);
+  const height = heightFromDuration(ev.durationMin);
+  const endH   = Math.floor((ev.startHour * 60 + ev.startMin + ev.durationMin) / 60);
+  const endM   = (ev.startHour * 60 + ev.startMin + ev.durationMin) % 60;
+  const timeStr = `${formatEventTime(ev.startHour, ev.startMin)} – ${formatEventTime(endH, endM)}`;
+
+  const el = document.createElement('div');
+  el.className = `cal-event ${eventClass(ev)}`;
+  el.style.top    = `${top}px`;
+  el.style.height = `${height}px`;
+  el.tabIndex = 0;
+  el.setAttribute('role', 'button');
+  el.setAttribute('aria-label', `${ev.title} — ${timeStr}`);
+
+  el.innerHTML = `
+    <span class="cal-event__title">${ev.title}</span>
+    ${height >= 42 ? `<span class="cal-event__sub">${ev.sub}</span>` : ''}
+    ${height >= 54 ? `<span class="cal-event__time">${timeStr}</span>` : ''}
+  `;
+
+  const handleOpen = () => openEventModal(ev, timeStr);
+  el.addEventListener('click', handleOpen);
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(); }});
+
+  return el;
+}
+
+// ─── Línea de "hora actual" ───────────────────────────────────────────────
+function buildNowLine(dayColEl, days) {
+  const now   = new Date();
+  const today = toYMD(now);
+
+  const todayIdx = days.findIndex(d => toYMD(d) === today);
+  if (todayIdx === -1) return; // hoy no está en la semana
+
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const startMinutes = HOUR_START * 60;
+  const endMinutes   = HOUR_END   * 60;
+  if (nowMinutes < startMinutes || nowMinutes > endMinutes) return;
+
+  const line = document.createElement('div');
+  line.className = 'cal-now-line';
+  line.setAttribute('aria-hidden', 'true');
+  line.style.top = ((nowMinutes - startMinutes) * PX_PER_MIN) + 'px';
+
+  dayColEl.appendChild(line);
+}
+
+// ─── Renderizar semana completa ───────────────────────────────────────────
+function renderWeek() {
+  const days = getWeekDays();
+
+  // Etiqueta de rango
+  document.getElementById('cal-date-label').textContent = buildDateLabel(days);
+
+  // ── Encabezado de días ──────────────────────────────────────────────
+  const headerRow = document.getElementById('cal-header-row');
+  headerRow.innerHTML = '';
+  headerRow.className = 'cal-header-row';
+
+  // Espaciado vacío sobre columna de horas
+  const spacer = document.createElement('div');
+  spacer.className = 'cal-header-spacer';
+  headerRow.appendChild(spacer);
+
+  days.forEach(day => {
+    const eventsThisDay = USER_EVENTS.filter(e => e.date === toYMD(day));
+    const cell = document.createElement('div');
+    cell.className = 'cal-day-header';
+    const numEl = document.createElement('div');
+    numEl.className = 'cal-day-num' + (isToday(day) ? ' today' : '') + (eventsThisDay.length && !isToday(day) ? ' has-events' : '');
+    numEl.textContent = day.getDate();
+    numEl.setAttribute('aria-label', isToday(day) ? 'Hoy' : '');
+    cell.innerHTML = `<div class="cal-day-name">${DAYS_ES[day.getDay()]}</div>`;
+    cell.appendChild(numEl);
+    headerRow.appendChild(cell);
+  });
+
+  // ── Cuerpo del grid ─────────────────────────────────────────────────
+  const bodyGrid = document.getElementById('cal-body-grid');
+  bodyGrid.innerHTML = '';
+  bodyGrid.className = 'cal-body-grid';
+  bodyGrid.style.minHeight = (TOTAL_HOURS + 1) * HOUR_HEIGHT + 'px';
+
+  // Columna de horas
+  bodyGrid.appendChild(buildTimeCol());
+
+  let hasAnyEvent = false;
+
+  // Columnas de días
+  days.forEach(day => {
+    const ymd = toYMD(day);
+    const dayEvents = USER_EVENTS.filter(e => e.date === ymd);
+    if (dayEvents.length) hasAnyEvent = true;
+
+    const col = document.createElement('div');
+    col.className = 'cal-day-col' + (isToday(day) ? ' today-col' : '');
+    col.setAttribute('aria-label', `${DAYS_ES[day.getDay()]} ${day.getDate()}`);
+
+    // Líneas de hora
+    col.appendChild(buildHourLines());
+
+    // Eventos
+    dayEvents.forEach(ev => col.appendChild(buildEventEl(ev)));
+
+    // Línea de hora actual
+    buildNowLine(col, days);
+
+    bodyGrid.appendChild(col);
+  });
+
+  // Mensaje si no hay eventos en la semana
+  if (!hasAnyEvent) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-empty-msg';
+    empty.innerHTML = '<span style="font-size:2rem;">🗓</span><p>No tienes eventos<br>programados esta semana.</p>';
+    bodyGrid.appendChild(empty);
+  }
+
+  // Scroll a hora laboral (8 AM)
+  const scroll = document.getElementById('cal-body-scroll');
+  scroll.scrollTop = (8 - HOUR_START) * HOUR_HEIGHT;
+}
+
+// ─── Renderizar vista de un día ───────────────────────────────────────────
+function renderDay() {
+  const day  = getCurrentDay();
+  const ymd  = toYMD(day);
+
+  document.getElementById('cal-date-label').textContent =
+    `${DAYS_ES[day.getDay()]}, ${day.getDate()} de ${MONTHS_ES[day.getMonth()]} ${day.getFullYear()}`;
+
+  // Encabezado
+  const headerRow = document.getElementById('cal-header-row');
+  headerRow.innerHTML = '';
+  headerRow.className = 'cal-header-row day-view';
+
+  const spacer = document.createElement('div');
+  spacer.className = 'cal-header-spacer';
+  headerRow.appendChild(spacer);
+
+  const eventsToday = USER_EVENTS.filter(e => e.date === ymd);
+  const cell = document.createElement('div');
+  cell.className = 'cal-day-header';
+  const numEl = document.createElement('div');
+  numEl.className = 'cal-day-num' + (isToday(day) ? ' today' : '');
+  numEl.textContent = day.getDate();
+  cell.innerHTML = `<div class="cal-day-name">${DAYS_ES[day.getDay()]}</div>`;
+  cell.appendChild(numEl);
+  headerRow.appendChild(cell);
+
+  // Cuerpo
+  const bodyGrid = document.getElementById('cal-body-grid');
+  bodyGrid.innerHTML = '';
+  bodyGrid.className = 'cal-body-grid day-view';
+  bodyGrid.style.minHeight = (TOTAL_HOURS + 1) * HOUR_HEIGHT + 'px';
+
+  bodyGrid.appendChild(buildTimeCol());
+
+  const col = document.createElement('div');
+  col.className = 'cal-day-col' + (isToday(day) ? ' today-col' : '');
+  col.appendChild(buildHourLines());
+
+  eventsToday.forEach(ev => col.appendChild(buildEventEl(ev)));
+
+  buildNowLine(col, [day]);
+
+  if (!eventsToday.length) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-empty-msg';
+    empty.innerHTML = '<span style="font-size:2rem;">🗓</span><p>No tienes eventos<br>programados para este día.</p>';
+    col.appendChild(empty);
+  }
+
+  bodyGrid.appendChild(col);
+
+  const scroll = document.getElementById('cal-body-scroll');
+  scroll.scrollTop = (8 - HOUR_START) * HOUR_HEIGHT;
+}
+
+// ─── Renderizado principal ────────────────────────────────────────────────
+function render() {
+  if (currentView === 'week') renderWeek();
+  else renderDay();
+}
+
+// ─── Modal de detalle de evento ───────────────────────────────────────────
+function openEventModal(ev, timeStr) {
+  const backdrop = document.getElementById('event-modal-backdrop');
+
+  // Badge
+  const badgeEl = document.getElementById('event-modal-badge');
+  if (ev.type === 'cita') {
+    if (ev.status === 'pendiente') {
+      badgeEl.className = 'event-modal__badge badge-pendiente';
+      badgeEl.textContent = '⏳ Cita pendiente';
+    } else {
+      badgeEl.className = 'event-modal__badge badge-cita';
+      badgeEl.textContent = '📅 Cita confirmada';
+    }
+  } else {
+    badgeEl.className = 'event-modal__badge badge-evento';
+    badgeEl.textContent = '🎤 Evento inscrito';
+  }
+
+  // Título
+  document.getElementById('event-modal-title').textContent = ev.title;
+
+  // Detalles
+  const detailsEl = document.getElementById('event-modal-details');
+  // Fecha y hora
+  const evDate = new Date(ev.date + 'T00:00:00');
+  const dateStr = `${DAYS_ES[evDate.getDay()]} ${evDate.getDate()} de ${MONTHS_ES[evDate.getMonth()]} ${evDate.getFullYear()}`;
+  let detailsHTML = `
+    <div class="event-modal__detail">
+      <span class="event-modal__detail-icon">🕐</span>
+      <div><strong>${dateStr}</strong><br>${timeStr}</div>
+    </div>
+  `;
+
+  Object.entries(ev.detail).forEach(([key, val]) => {
+    const icons = { profesional:'👨‍⚕️', especialidad:'🎓', tipo:'📋', lugar:'📍', orador:'🎤', modalidad:'💻', precio:'💳', inscriptos:'👥' };
+    detailsHTML += `
+      <div class="event-modal__detail">
+        <span class="event-modal__detail-icon">${icons[key] || '•'}</span>
+        <div>${val}</div>
+      </div>
+    `;
+  });
+
+  detailsEl.innerHTML = detailsHTML;
+
+  // Acciones
+  document.getElementById('event-modal-actions').innerHTML = `
+    <button class="btn btn-primary" onclick="window.location.href='${ev.action.href}'">${ev.action.label}</button>
+    <button class="btn btn-secondary" onclick="closeEventModal()">Cerrar</button>
+  `;
+
+  backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Foco en el botón de cerrar
+  setTimeout(() => document.getElementById('event-modal-close').focus(), 80);
+}
+
+function closeEventModal() {
+  const backdrop = document.getElementById('event-modal-backdrop');
+  backdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ─── Eventos de UI ────────────────────────────────────────────────────────
+
+// Hoy
+document.getElementById('btn-today').addEventListener('click', () => {
+  weekOffset = 0;
+  dayOffset  = 0;
+  render();
+});
+
+// Anterior
+document.getElementById('btn-prev').addEventListener('click', () => {
+  if (currentView === 'week') weekOffset--;
+  else dayOffset--;
+  render();
+});
+
+// Siguiente
+document.getElementById('btn-next').addEventListener('click', () => {
+  if (currentView === 'week') weekOffset++;
+  else dayOffset++;
+  render();
+});
+
+// Vista semana
+document.getElementById('pill-week').addEventListener('click', () => {
+  currentView = 'week';
+  document.getElementById('pill-week').classList.add('active');
+  document.getElementById('pill-week').setAttribute('aria-pressed', 'true');
+  document.getElementById('pill-day').classList.remove('active');
+  document.getElementById('pill-day').setAttribute('aria-pressed', 'false');
+  render();
+});
+
+// Vista día
+document.getElementById('pill-day').addEventListener('click', () => {
+  currentView = 'day';
+  dayOffset = 0;
+  document.getElementById('pill-day').classList.add('active');
+  document.getElementById('pill-day').setAttribute('aria-pressed', 'true');
+  document.getElementById('pill-week').classList.remove('active');
+  document.getElementById('pill-week').setAttribute('aria-pressed', 'false');
+  render();
+});
+
+// Cerrar modal
+document.getElementById('event-modal-close').addEventListener('click', closeEventModal);
+document.getElementById('event-modal-backdrop').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeEventModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeEventModal();
+});
+
+// ─── Inicializar ──────────────────────────────────────────────────────────
+seedDatabase();
+render();
+</script>
+</body>
+</html>

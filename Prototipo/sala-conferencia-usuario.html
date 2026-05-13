@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Conferencia · Mindfulness para el estrés laboral</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { background: #0a0e17; overflow: hidden; }
+
+    /* ── Layout principal ──────────────────────────────────────── */
+    .conf-layout {
+      display: grid;
+      grid-template-rows: 60px 1fr 72px;
+      grid-template-columns: 1fr 340px;
+      height: 100vh; width: 100vw;
+    }
+
+    /* ── Header ────────────────────────────────────────────────── */
+    .conf-header {
+      grid-column: 1 / -1;
+      background: #111827;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center;
+      padding: 0 var(--sp-6); gap: var(--sp-4);
+    }
+    .conf-logo {
+      display: flex; align-items: center; gap: var(--sp-2);
+      color: var(--color-accent); font-family: var(--font-display);
+      font-size: 1.15rem; font-weight: 700; text-decoration: none;
+      flex-shrink: 0;
+    }
+    .conf-header__title {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .conf-header__event-name {
+      font-weight: 700; color: white; font-size: .9375rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .conf-header__meta { display: flex; align-items: center; gap: var(--sp-4); }
+    .conf-live-dot {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .75rem; color: #4CAF50; font-weight: 600;
+    }
+    .live-pulse {
+      width: 8px; height: 8px; border-radius: 50%; background: #4CAF50;
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+    .conf-attendee-count {
+      font-size: .75rem; color: rgba(255,255,255,.5);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    /* Chip alias del usuario */
+    .conf-alias-chip {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 99px; padding: 4px 12px;
+      font-size: .72rem; color: rgba(255,255,255,.55); font-weight: 600;
+      flex-shrink: 0;
+    }
+    .conf-alias-chip__label { color: rgba(255,255,255,.3); font-weight: 400; }
+    .conf-alias-chip__name { color: rgba(255,255,255,.7); }
+
+    .conf-timer {
+      font-variant-numeric: tabular-nums; font-size: 1rem;
+      font-weight: 700; color: white; font-family: monospace;
+      flex-shrink: 0;
+    }
+
+    /* ── Área del stream (video) ───────────────────────────────── */
+    .conf-stream {
+      grid-column: 1; grid-row: 2;
+      background: #0a0e17;
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .conf-stream__placeholder {
+      display: flex; flex-direction: column;
+      align-items: center; gap: var(--sp-5); text-align: center;
+    }
+    .conf-stream__avatar {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: linear-gradient(135deg,#1A3C34,#2D6A4F);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; font-weight: 700; color: white;
+      animation: speaking-ring 2s ease-in-out infinite;
+    }
+    @keyframes speaking-ring {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(82,183,136,.3), 0 0 0 8px rgba(82,183,136,.1); }
+      50%       { box-shadow: 0 0 0 6px rgba(82,183,136,.5), 0 0 0 14px rgba(82,183,136,.15); }
+    }
+    .conf-stream__name { color: rgba(255,255,255,.85); font-size: 1.1rem; font-weight: 600; }
+    .conf-stream__role { color: rgba(255,255,255,.4); font-size: .82rem; }
+
+    .conf-stream__ponente-chip {
+      position: absolute; bottom: 90px; left: var(--sp-5);
+      background: rgba(0,0,0,.65); border: 1px solid rgba(255,255,255,.15);
+      border-radius: 99px; padding: 5px 14px;
+      display: flex; align-items: center; gap: 8px;
+      color: white; font-size: .78rem; font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+    .conf-stream__ponente-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent);
+    }
+
+    /* Mini cam propia */
+    .conf-self-cam {
+      position: absolute; bottom: 90px; right: var(--sp-4);
+      width: 148px; aspect-ratio: 16/9;
+      background: #1e2533; border-radius: var(--radius-lg);
+      border: 2px solid rgba(255,255,255,.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; color: rgba(255,255,255,.35);
+      overflow: hidden; flex-direction: column; gap: var(--sp-1);
+    }
+
+    /* Raised-hand indicator */
+    .conf-hand-indicator {
+      position: absolute; top: var(--sp-4); right: var(--sp-4);
+      background: rgba(255,179,0,.18); border: 1px solid rgba(255,179,0,.4);
+      border-radius: 99px; padding: 5px 14px;
+      font-size: .76rem; font-weight: 700; color: #FFB300;
+      display: none; align-items: center; gap: 6px;
+    }
+    .conf-hand-indicator.visible { display: flex; }
+
+    /* ── Controles (simplificados para asistente) ──────────────── */
+    .conf-controls {
+      grid-column: 1; grid-row: 3;
+      background: #111827; border-top: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center; justify-content: center;
+      gap: var(--sp-3); padding: 0 var(--sp-6);
+    }
+    .ctrl-btn {
+      width: 50px; height: 50px; border-radius: 50%;
+      border: none; cursor: pointer; font-size: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, transform .1s;
+      flex-shrink: 0;
+    }
+    .ctrl-btn:active { transform: scale(.93); }
+    .ctrl-btn--normal { background: rgba(255,255,255,.1); color: white; }
+    .ctrl-btn--normal:hover { background: rgba(255,255,255,.2); }
+    .ctrl-btn--off { background: rgba(200,30,74,.22); color: #FF6B8A; border: 1px solid rgba(200,30,74,.4); }
+    .ctrl-btn--hand { background: rgba(255,179,0,.18); color: #FFB300; border: 1px solid rgba(255,179,0,.4); }
+    .ctrl-btn--leave { background: rgba(200,30,74,.18); color: #FF6B8A; border: 1px solid rgba(200,30,74,.35); width: 52px; height: 52px; font-size: 1.1rem; }
+    .ctrl-btn--leave:hover { background: rgba(200,30,74,.32); }
+    .ctrl-label {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      font-size: .62rem; color: rgba(255,255,255,.45); font-weight: 600;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+
+    /* ── Panel lateral ─────────────────────────────────────────── */
+    .conf-side {
+      grid-column: 2; grid-row: 2 / 4;
+      background: #111827; border-left: 1px solid rgba(255,255,255,.08);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* Tabs */
+    .conf-tabs {
+      display: flex; border-bottom: 1px solid rgba(255,255,255,.08); flex-shrink: 0;
+    }
+    .conf-tab {
+      flex: 1; padding: var(--sp-3) var(--sp-2);
+      background: none; border: none; cursor: pointer;
+      font-size: .78rem; font-weight: 600;
+      color: rgba(255,255,255,.4);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      font-family: var(--font-body);
+      transition: color .15s, border-color .15s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .conf-tab.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+    .conf-tab-count {
+      min-width: 18px; height: 18px; border-radius: 99px;
+      background: rgba(255,255,255,.12); color: rgba(255,255,255,.6);
+      font-size: .65rem; font-weight: 800;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0 4px;
+    }
+    .conf-tab.active .conf-tab-count { background: var(--color-accent); color: #fff; }
+
+    /* Aviso de estado del chat (controlado por el ponente) */
+    .conf-chat-status-bar {
+      display: flex; align-items: center; gap: var(--sp-3);
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(82,183,136,.07); flex-shrink: 0;
+    }
+    .conf-chat-status-bar__dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--color-accent); flex-shrink: 0;
+    }
+    .conf-chat-status-bar__text {
+      font-size: .73rem; color: var(--color-accent); font-weight: 600;
+    }
+
+    /* Lista de mensajes */
+    .conf-msg-list {
+      flex: 1; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 0;
+      padding: 0;
+    }
+    .conf-msg-item {
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      transition: background .12s;
+    }
+    .conf-msg-item:hover { background: rgba(255,255,255,.04); }
+
+    /* Indicador sutil para la pregunta propia */
+    .conf-msg-item--own { background: rgba(82,183,136,.05); }
+    .conf-msg-item--own-label {
+      font-size: .63rem; color: var(--color-accent); font-weight: 700;
+      margin-bottom: 3px; opacity: .7;
+    }
+
+    .conf-msg-text {
+      font-size: .83rem; color: rgba(255,255,255,.82);
+      line-height: 1.5;
+    }
+    .conf-msg-time { font-size: .65rem; color: rgba(255,255,255,.3); margin-top: 3px; }
+    .conf-msg-item--question { border-left: 3px solid rgba(82,183,136,.5); }
+    .conf-msg-item--question .conf-msg-text::before { content: '❓ '; }
+
+    /* Input de pregunta */
+    .conf-input-area {
+      padding: var(--sp-3) var(--sp-4);
+      border-top: 1px solid rgba(255,255,255,.08);
+      background: #111827; flex-shrink: 0;
+    }
+    .conf-chat-disabled-notice {
+      padding: var(--sp-4); text-align: center;
+      font-size: .78rem; color: rgba(255,255,255,.35);
+      display: none;
+    }
+    .conf-input-row { display: flex; gap: var(--sp-2); align-items: flex-end; }
+    .conf-input {
+      flex: 1; background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-md);
+      color: white; padding: var(--sp-2) var(--sp-3);
+      font-family: var(--font-body); font-size: .83rem; resize: none;
+      min-height: 38px; max-height: 90px; line-height: 1.5;
+    }
+    .conf-input::placeholder { color: rgba(255,255,255,.3); }
+    .conf-input:focus { outline: none; border-color: var(--color-accent); }
+    .conf-send-btn {
+      width: 38px; height: 38px; border-radius: 50%; border: none;
+      background: var(--color-accent); color: white; cursor: pointer;
+      font-size: 1rem; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background .15s, transform .1s;
+    }
+    .conf-send-btn:hover { background: #3aac77; }
+    .conf-send-btn:active { transform: scale(.9); }
+    .conf-anon-notice {
+      font-size: .67rem; color: rgba(255,255,255,.3);
+      margin-top: 4px; text-align: center;
+    }
+
+    /* Tab asistentes */
+    .conf-attendee-list { overflow-y: auto; flex: 1; }
+    .conf-attendee-item {
+      display: flex; align-items: center; gap: var(--sp-3);
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .conf-attendee-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 700; flex-shrink: 0;
+    }
+    .conf-attendee-name { font-size: .82rem; color: rgba(255,255,255,.75); flex: 1; }
+    .conf-attendee-role { font-size: .65rem; padding: 2px 7px; border-radius: 99px; font-weight: 700; }
+
+    /* Tab info */
+    .conf-info-body { overflow-y: auto; flex: 1; padding: var(--sp-5); }
+    .conf-info-row { display: flex; justify-content: space-between; font-size: .84rem; padding: var(--sp-2) 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .conf-info-label { color: rgba(255,255,255,.45); }
+    .conf-info-value { color: rgba(255,255,255,.85); font-weight: 500; }
+
+    .conf-panel-section { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    .conf-panel-section.active { display: flex; }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .45; }
+    }
+    @media (max-width: 768px) {
+      .conf-layout { grid-template-columns: 1fr; grid-template-rows: 60px 1fr 260px 72px; }
+      .conf-side { grid-column: 1; grid-row: 3; }
+      .conf-controls { grid-row: 4; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="conf-layout" role="main">
+
+  <!-- ══ HEADER ════════════════════════════════════════════════ -->
+  <header class="conf-header" role="banner">
+    <a href="home-usuario.html" class="conf-logo" aria-label="Volver al inicio">🍀 Trébol</a>
+
+    <div class="conf-header__title">
+      <div class="conf-header__event-name">Mindfulness para el estrés laboral</div>
+      <div class="conf-header__meta">
+        <div class="conf-live-dot">
+          <div class="live-pulse" aria-hidden="true"></div>
+          EN VIVO
+        </div>
+        <div class="conf-attendee-count">👥 <span id="attendee-count">342</span> asistentes</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.35);">12 mayo 2026 · 6PM – 8PM</div>
+      </div>
+    </div>
+
+    <!-- Alias del usuario (solo visible para él) -->
+    <div class="conf-alias-chip" aria-label="Tu alias en esta sala">
+      <span style="font-size:.9rem;">🎭</span>
+      <span><span class="conf-alias-chip__label">Tu alias: </span><span class="conf-alias-chip__name">Luna Verde</span></span>
+    </div>
+
+    <div class="conf-timer" id="conf-timer" role="timer" aria-label="Duración de la conferencia">00:00:00</div>
+  </header>
+
+  <!-- ══ STREAM AREA ═══════════════════════════════════════════ -->
+  <div class="conf-stream" aria-label="Transmisión en vivo">
+
+    <div class="conf-stream__placeholder" role="img" aria-label="Video de Dra. Valentina Ríos">
+      <div class="conf-stream__avatar" aria-hidden="true">VR</div>
+      <div>
+        <div class="conf-stream__name">Dra. Valentina Ríos</div>
+        <div class="conf-stream__role">Psicóloga Clínica · Ponente</div>
+      </div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.3);">Transmisión en vivo</div>
+    </div>
+
+    <div class="conf-stream__ponente-chip" aria-label="Ponente activo">
+      <div class="conf-stream__ponente-dot" aria-hidden="true"></div>
+      Dra. Valentina Ríos — Ponente
+    </div>
+
+    <div class="conf-self-cam" aria-label="Tu vista de cámara">
+      <span style="font-size:1.4rem;">🧑</span>
+      <span>Tú · Luna Verde</span>
+    </div>
+  </div>
+
+  <!-- ══ CONTROLES (asistente) ═════════════════════════════════ -->
+  <div class="conf-controls" role="toolbar" aria-label="Controles del asistente">
+    <div class="ctrl-label">
+      <button class="ctrl-btn ctrl-btn--leave"
+        onclick="openModal('leave-modal')" aria-label="Salir de la conferencia" title="Salir">🚪</button>
+      Salir
+    </div>
+  </div>
+
+  <!-- ══ PANEL LATERAL ═════════════════════════════════════════ -->
+  <aside class="conf-side" aria-label="Panel de la conferencia">
+
+    <div class="conf-tabs" role="tablist">
+      <button class="conf-tab active" role="tab" data-ctab="tab-questions" aria-selected="true">
+        ❓ Preguntas <span class="conf-tab-count" id="q-count">5</span>
+      </button>
+      <button class="conf-tab" role="tab" data-ctab="tab-info" aria-selected="false">
+        ℹ️ Info
+      </button>
+    </div>
+
+    <!-- ─ TAB: PREGUNTAS ─────────────────────────────────────── -->
+    <div class="conf-panel-section active" id="tab-questions">
+
+      <!-- Indicador de estado del chat (solo lectura para usuarios) -->
+      <div class="conf-chat-status-bar" id="chat-status-bar" aria-live="polite">
+        <div class="conf-chat-status-bar__dot" id="chat-status-dot"></div>
+        <div class="conf-chat-status-bar__text" id="chat-status-text">Preguntas habilitadas</div>
+      </div>
+
+      <!-- Lista de mensajes — SIN autor, solo texto -->
+      <div class="conf-msg-list" id="msg-list" role="log" aria-live="polite" aria-label="Preguntas de la conferencia">
+
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-text">¿Las técnicas de respiración funcionan también para crisis de pánico nocturnas?</div>
+          <div class="conf-msg-time">6:04 PM</div>
+        </div>
+
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-text">¿Hay alguna diferencia entre mindfulness y meditación? ¿Cuál recomienda para principiantes?</div>
+          <div class="conf-msg-time">6:07 PM</div>
+        </div>
+
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-text">¿Cuántos minutos al día son suficientes para ver resultados con la práctica de mindfulness?</div>
+          <div class="conf-msg-time">6:12 PM</div>
+        </div>
+
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-text">¿El mindfulness puede ayudar con el insomnio relacionado al estrés laboral?</div>
+          <div class="conf-msg-time">6:18 PM</div>
+        </div>
+
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-text">¿Existe alguna app que recomiende para practicar lo aprendido en casa?</div>
+          <div class="conf-msg-time">6:22 PM</div>
+        </div>
+
+      </div>
+
+      <!-- Input -->
+      <div class="conf-input-area" id="input-area">
+        <div class="conf-chat-disabled-notice" id="chat-disabled-notice">
+          🔇 El ponente ha deshabilitado las preguntas por el momento
+        </div>
+        <div class="conf-input-row" id="input-row">
+          <textarea class="conf-input" id="msg-input" rows="1"
+            placeholder="Escribe tu pregunta…"
+            aria-label="Escribe tu pregunta"
+            onkeydown="handleMsgKey(event)"></textarea>
+          <button class="conf-send-btn" onclick="sendMsg()" aria-label="Enviar pregunta">➤</button>
+        </div>
+        <div class="conf-anon-notice">
+          Tu pregunta es anónima · nadie sabe que la enviaste
+        </div>
+      </div>
+    </div>
+
+    <!-- ─ TAB: INFO ──────────────────────────────────────────── -->
+    <div class="conf-panel-section" id="tab-info">
+      <div class="conf-info-body">
+        <div style="margin-bottom:var(--sp-5);">
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-accent);margin-bottom:var(--sp-3);">Información del evento</div>
+          <div class="conf-info-row"><span class="conf-info-label">📅 Fecha</span><span class="conf-info-value">12 mayo 2026</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">🕕 Horario</span><span class="conf-info-value">6:00 PM – 8:00 PM</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">🎙 Ponente</span><span class="conf-info-value">Dra. Valentina Ríos</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">🏷 Categoría</span><span class="conf-info-value">Bienestar · Mindfulness</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">💰 Precio</span><span class="conf-info-value" style="color:var(--color-accent);">Entrada libre</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">👥 Capacidad</span><span class="conf-info-value">342 / 400 inscritos</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">🎭 Tu alias</span><span class="conf-info-value" style="color:var(--color-accent);">Luna Verde</span></div>
+        </div>
+
+        <div style="margin-bottom:var(--sp-5);">
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-accent);margin-bottom:var(--sp-3);">Privacidad en sala</div>
+          <div style="background:rgba(82,183,136,.08);border:1px solid rgba(82,183,136,.2);border-radius:var(--radius-md);padding:var(--sp-3);font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6;">
+            🎭 Participas con tu <strong style="color:rgba(255,255,255,.8);">seudónimo</strong>. Tu nombre real no es visible para nadie.<br>
+            🔒 Tus preguntas son <strong style="color:rgba(255,255,255,.8);">completamente anónimas</strong>: nadie del auditorio sabe que las enviaste.<br>
+            👁 Solo el <strong style="color:rgba(255,255,255,.8);">ponente ve tu alias</strong> al leer las preguntas.<br>
+            🚫 No puedes ver ni interactuar con otros asistentes.
+          </div>
+        </div>
+
+        <div style="margin-bottom:var(--sp-5);">
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-accent);margin-bottom:var(--sp-3);">Cómo participar</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.6;">
+            Usa la pestaña <strong style="color:rgba(255,255,255,.65);">❓ Preguntas</strong> para enviar tus dudas al ponente. El ponente puede habilitar o deshabilitar las preguntas en cualquier momento.
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-accent);margin-bottom:var(--sp-3);">Contactar al ponente</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.4);line-height:1.5;margin-bottom:var(--sp-3);">
+            Envía un mensaje privado a la Dra. Valentina Ríos. Lo recibirá en su bandeja de mensajes.
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;gap:var(--sp-2);" onclick="openModal('contact-modal')">✉️ Enviar mensaje privado</button>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- ══ MODAL: Contactar al ponente ═════════════════════════ -->
+<div id="contact-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon" style="background:rgba(82,183,136,.15);font-size:1.4rem;" aria-hidden="true">✉️</div>
+      <div>
+        <div class="modal-title" id="contact-modal-title">Mensaje a Dra. Valentina Ríos</div>
+        <div class="modal-subtitle">Mensaje privado · llegará a su bandeja</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('contact-modal')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:var(--sp-3);">
+        <label style="display:block;font-size:.78rem;font-weight:600;color:var(--color-text-secondary);margin-bottom:var(--sp-2);" for="contact-subject">Asunto</label>
+        <input id="contact-subject" type="text" class="form-input" placeholder="Ej: Consulta sobre la sesión de hoy" maxlength="100"
+          style="width:100%;background:var(--color-surface-alt);border:1px solid var(--color-border-light);border-radius:var(--radius-md);padding:var(--sp-2) var(--sp-3);font-size:.85rem;color:var(--color-text-primary);font-family:var(--font-body);"
+          aria-label="Asunto del mensaje"/>
+      </div>
+      <div>
+        <label style="display:block;font-size:.78rem;font-weight:600;color:var(--color-text-secondary);margin-bottom:var(--sp-2);" for="contact-body">Mensaje</label>
+        <textarea id="contact-body" rows="5" class="form-input" placeholder="Escribe tu mensaje aquí…" maxlength="1000"
+          style="width:100%;background:var(--color-surface-alt);border:1px solid var(--color-border-light);border-radius:var(--radius-md);padding:var(--sp-2) var(--sp-3);font-size:.85rem;color:var(--color-text-primary);font-family:var(--font-body);resize:vertical;"
+          aria-label="Cuerpo del mensaje"></textarea>
+        <div style="font-size:.7rem;color:var(--color-text-muted);margin-top:4px;text-align:right;"><span id="contact-chars">0</span> / 1000</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('contact-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="sendContact()">Enviar mensaje</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Salir de la conferencia ═══════════════════════ -->
+<div id="leave-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="leave-modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon" style="background:rgba(255,255,255,.08);font-size:1.5rem;" aria-hidden="true">🚪</div>
+      <div>
+        <div class="modal-title" id="leave-modal-title">¿Salir de la conferencia?</div>
+        <div class="modal-subtitle">Podrás reingresar si el evento sigue activo</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>¿Deseas abandonar <strong>Mindfulness para el estrés laboral</strong>? Puedes volver a ingresar desde "Mis eventos inscritos" mientras el evento esté en curso.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('leave-modal')">Quedarme</button>
+      <button class="btn btn-primary" onclick="leaveConference()">Sí, salir</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  // ── Timer ──────────────────────────────────────────────────
+  startSessionTimer('conf-timer');
+
+  // ── Tabs del panel lateral ─────────────────────────────────
+  document.querySelectorAll('.conf-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.conf-tab').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.conf-panel-section').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      document.getElementById(tab.dataset.ctab).classList.add('active');
+    });
+  });
+
+  // ── Estado del chat (controlado por el ponente — simulado) ─
+  // En un caso real, esto vendría del servidor en tiempo real.
+  // Aquí lo exponemos como función para que el prototipo lo demuestre.
+  let chatEnabled = true;
+  function setChatEnabled(enabled) {
+    chatEnabled = enabled;
+    const notice  = document.getElementById('chat-disabled-notice');
+    const row     = document.getElementById('input-row');
+    const dot     = document.getElementById('chat-status-dot');
+    const text    = document.getElementById('chat-status-text');
+    const bar     = document.getElementById('chat-status-bar');
+
+    if (chatEnabled) {
+      notice.style.display  = 'none';
+      row.style.display     = 'flex';
+      dot.style.background  = 'var(--color-accent)';
+      text.style.color      = 'var(--color-accent)';
+      text.textContent      = 'Preguntas habilitadas';
+      bar.style.background  = 'rgba(82,183,136,.07)';
+    } else {
+      notice.style.display  = 'block';
+      row.style.display     = 'none';
+      dot.style.background  = '#FF6B8A';
+      text.style.color      = '#FF6B8A';
+      text.textContent      = 'Preguntas deshabilitadas por el ponente';
+      bar.style.background  = 'rgba(200,30,74,.07)';
+    }
+  }
+
+  // ── Enviar pregunta (anónima — sin autor en la vista) ──────
+  let qCount = 5;
+  function sendMsg() {
+    const input = document.getElementById('msg-input');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    qCount++;
+    document.getElementById('q-count').textContent = String(qCount);
+
+    const list = document.getElementById('msg-list');
+    const item = document.createElement('div');
+    // La pregunta propia tiene un indicador sutil "Tu pregunta" solo para el emisor
+    item.className = 'conf-msg-item conf-msg-item--question conf-msg-item--own';
+    const now = new Date();
+    const h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const timeStr = (h % 12 || 12) + ':' + m + ' ' + ampm;
+    item.innerHTML = `
+      <div class="conf-msg-item--own-label">Tu pregunta</div>
+      <div class="conf-msg-text">${escapeHtml(text)}</div>
+      <div class="conf-msg-time">${timeStr}</div>`;
+    list.appendChild(item);
+    list.scrollTop = list.scrollHeight;
+    input.value = '';
+    input.style.height = 'auto';
+    showToast({ title: 'Pregunta enviada', message: 'El ponente puede verla', type: 'success' });
+  }
+
+  function handleMsgKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Auto-resize textarea
+  document.getElementById('msg-input').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 90) + 'px';
+  });
+
+  // ── Contactar al ponente ───────────────────────────────────
+  document.getElementById('contact-body').addEventListener('input', function() {
+    document.getElementById('contact-chars').textContent = this.value.length;
+  });
+
+  function sendContact() {
+    const subject = document.getElementById('contact-subject').value.trim();
+    const body    = document.getElementById('contact-body').value.trim();
+    if (!body) {
+      showToast({ title: 'Escribe un mensaje antes de enviar', type: 'info' });
+      return;
+    }
+
+    // Persist so mensajes-usuario & mensajes-profesional reflect the message
+    const now  = new Date();
+    const h = now.getHours(), m = now.getMinutes();
+    const time = (h % 12 || 12) + ':' + String(m).padStart(2, '0') + (h >= 12 ? ' PM' : ' AM');
+
+    let sent;
+    try { sent = JSON.parse(localStorage.getItem('trebol_pm_user_sent') || '[]'); } catch (ex) { sent = []; }
+    sent.push({ to: 'Dra. Valentina Ríos', avatar: 'VR', bg: 'linear-gradient(135deg,#1A3C34,#2D6A4F)',
+      text: (subject ? '[' + subject + '] ' : '') + body, time: time, date: now.toISOString() });
+    localStorage.setItem('trebol_pm_user_sent', JSON.stringify(sent));
+
+    let proInbox;
+    try { proInbox = JSON.parse(localStorage.getItem('trebol_pm_pro_inbox') || '[]'); } catch (ex) { proInbox = []; }
+    proInbox.push({ from: 'María García', fromAvatar: 'MG', fromBg: '#9E9E9E',
+      to: 'Dra. Valentina Ríos', text: (subject ? '[' + subject + '] ' : '') + body,
+      time: time, date: now.toISOString() });
+    localStorage.setItem('trebol_pm_pro_inbox', JSON.stringify(proInbox));
+
+    closeModal('contact-modal');
+    document.getElementById('contact-subject').value = '';
+    document.getElementById('contact-body').value    = '';
+    document.getElementById('contact-chars').textContent = '0';
+    showToast({ title: 'Mensaje enviado', message: 'La Dra. Valentina Ríos lo recibirá en su bandeja', type: 'success' });
+  }
+
+  // ── Salir de la conferencia ────────────────────────────────
+  function leaveConference() {
+    closeModal('leave-modal');
+    showToast({ title: 'Has salido de la conferencia', type: 'info' });
+    setTimeout(() => { window.location.href = 'home-usuario.html'; }, 1200);
+  }
+
+  // ── Simulación: contador de asistentes fluctúa ─────────────
+  let attCount = 342;
+  setInterval(() => {
+    attCount += Math.random() > .5 ? 1 : -1;
+    attCount = Math.max(330, Math.min(400, attCount));
+    document.getElementById('attendee-count').textContent = attCount;
+  }, 5000);
+</script>
+</body>
+</html>

@@ -661,6 +661,248 @@ function toggleRoomStatus(btn, roomName) {
 }
 
 // ==========================================================================
+// GLOBAL PRIVATE MESSAGE (PM) — inject once, usable from any page
+// ==========================================================================
+// Declared with var so onclick="GlobalPM.xxx()" in injected HTML can resolve it
+var GlobalPM = (function () {
+  var ID = 'global-pm-modal';
+  var _name = '', _avatar = '', _bg = '';
+
+  function _init() {
+    if (document.getElementById(ID + '-backdrop')) return;
+
+    // ── Scoped styles injected once ──────────────────────────────────────
+    var s = document.createElement('style');
+    s.textContent = [
+      '#global-pm-modal-backdrop {',
+      '  background: rgba(10,22,15,.72);',
+      '  backdrop-filter: blur(4px);',
+      '}',
+      '#global-pm-modal-backdrop .modal {',
+      '  max-width: 460px;',
+      '  border-radius: 20px;',
+      '  overflow: hidden;',
+      '  box-shadow: 0 24px 64px rgba(26,60,52,.28), 0 8px 24px rgba(26,60,52,.12);',
+      '}',
+      /* top accent stripe */
+      '.gpm-stripe {',
+      '  height: 4px;',
+      '  background: linear-gradient(90deg, #1A3C34 0%, #52B788 55%, #B7E4C7 100%);',
+      '}',
+      /* header */
+      '.gpm-hdr {',
+      '  padding: 20px 22px 18px;',
+      '  display: flex; align-items: center; gap: 14px;',
+      '  background: linear-gradient(135deg, rgba(26,60,52,.04) 0%, rgba(82,183,136,.07) 100%);',
+      '  border-bottom: 1px solid #E2F0E4;',
+      '}',
+      /* recipient avatar circle */
+      '.gpm-av {',
+      '  width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0;',
+      '  display: flex; align-items: center; justify-content: center;',
+      '  font-family: "Plus Jakarta Sans", sans-serif;',
+      '  font-size: .9375rem; font-weight: 700; letter-spacing: .04em; color: #fff;',
+      '  box-shadow: 0 4px 14px rgba(26,60,52,.3);',
+      '}',
+      '.gpm-av-info { flex: 1; min-width: 0; }',
+      '.gpm-eyebrow {',
+      '  font-size: .6875rem; font-weight: 700;',
+      '  text-transform: uppercase; letter-spacing: .09em;',
+      '  color: #7A9E8A; margin-bottom: 3px;',
+      '}',
+      '.gpm-rec-name {',
+      '  font-family: "DM Serif Display", Georgia, serif;',
+      '  font-size: 1.125rem; color: #1A3C34; line-height: 1.3;',
+      '  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;',
+      '}',
+      /* close button */
+      '.gpm-x {',
+      '  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;',
+      '  background: #EBF5EE; border: none; cursor: pointer;',
+      '  color: #4A6652; font-size: 1rem; line-height: 1;',
+      '  display: flex; align-items: center; justify-content: center;',
+      '  transition: background 140ms, color 140ms, transform 220ms;',
+      '}',
+      '.gpm-x:hover { background: #C5DFC9; color: #1A3C34; transform: rotate(90deg); }',
+      /* body */
+      '.gpm-body { padding: 22px 22px 6px; }',
+      '.gpm-lbl {',
+      '  display: block; font-size: .71rem; font-weight: 700;',
+      '  text-transform: uppercase; letter-spacing: .08em;',
+      '  color: #7A9E8A; margin-bottom: 8px;',
+      '}',
+      /* textarea */
+      '.gpm-ta {',
+      '  width: 100%; min-height: 118px; padding: 13px 15px;',
+      '  background: #F3FAF5; border: 1.5px solid #C5DFC9; border-radius: 12px;',
+      '  font-family: "Plus Jakarta Sans", sans-serif; font-size: .9375rem;',
+      '  color: #1A2E1F; line-height: 1.65; resize: vertical; outline: none; display: block;',
+      '  transition: border-color .18s, box-shadow .18s, background .18s;',
+      '}',
+      '.gpm-ta::placeholder { color: #95B8A1; }',
+      '.gpm-ta:focus {',
+      '  border-color: #52B788; background: #fff;',
+      '  box-shadow: 0 0 0 3px rgba(82,183,136,.18);',
+      '}',
+      /* counter */
+      '.gpm-cnt {',
+      '  text-align: right; font-size: .71rem; color: #95B8A1; margin-top: 5px;',
+      '  transition: color .18s;',
+      '}',
+      '.gpm-cnt.warn  { color: #D4813A; }',
+      '.gpm-cnt.limit { color: #C81E4A; font-weight: 700; }',
+      /* privacy notice */
+      '.gpm-priv {',
+      '  display: flex; align-items: flex-start; gap: 9px;',
+      '  margin: 14px 0 0;',
+      '  padding: 10px 14px;',
+      '  background: rgba(82,183,136,.07); border: 1px solid rgba(82,183,136,.22);',
+      '  border-radius: 10px; font-size: .78rem; color: #4A6652; line-height: 1.55;',
+      '}',
+      '.gpm-priv-ic { font-size: .875rem; flex-shrink: 0; margin-top: 1px; }',
+      /* footer */
+      '.gpm-foot {',
+      '  padding: 18px 22px 22px;',
+      '  display: flex; gap: 10px; justify-content: flex-end;',
+      '}',
+      '.gpm-btn-c {',
+      '  padding: 9px 20px; border-radius: 10px; cursor: pointer;',
+      '  font-family: "Plus Jakarta Sans", sans-serif; font-size: .875rem; font-weight: 600;',
+      '  background: #EBF5EE; color: #4A6652; border: 1.5px solid #C5DFC9;',
+      '  transition: background 140ms, color 140ms, border-color 140ms;',
+      '}',
+      '.gpm-btn-c:hover { background: #D3ECD9; color: #1A3C34; border-color: #9EC6A8; }',
+      '.gpm-btn-s {',
+      '  padding: 9px 22px; border-radius: 10px; cursor: pointer; border: none;',
+      '  font-family: "Plus Jakarta Sans", sans-serif; font-size: .875rem; font-weight: 700;',
+      '  background: linear-gradient(135deg, #1A3C34 0%, #2D6A4F 100%); color: #fff;',
+      '  display: flex; align-items: center; gap: 8px;',
+      '  box-shadow: 0 4px 14px rgba(26,60,52,.28);',
+      '  transition: opacity .14s, transform .14s, box-shadow .14s;',
+      '}',
+      '.gpm-btn-s:hover  { opacity: .87; transform: translateY(-1px); box-shadow: 0 7px 20px rgba(26,60,52,.35); }',
+      '.gpm-btn-s:active { transform: translateY(0); }',
+      '.gpm-arr { font-style: normal; display: inline-block; transition: transform .2s; }',
+      '.gpm-btn-s:hover .gpm-arr { transform: translateX(3px); }',
+    ].join('\n');
+    document.head.appendChild(s);
+
+    // ── Modal HTML ────────────────────────────────────────────────────────
+    document.body.insertAdjacentHTML('beforeend',
+      '<div id="global-pm-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true"' +
+      '     aria-labelledby="global-pm-modal-title">' +
+      '<div class="modal">' +
+      '  <div class="gpm-stripe"></div>' +
+      '  <div class="gpm-hdr">' +
+      '    <div class="gpm-av" id="global-pm-modal-av"></div>' +
+      '    <div class="gpm-av-info">' +
+      '      <div class="gpm-eyebrow">Mensaje privado</div>' +
+      '      <div class="gpm-rec-name" id="global-pm-modal-title"></div>' +
+      '    </div>' +
+      '    <button class="gpm-x" onclick="GlobalPM.close()" aria-label="Cerrar">\u00d7</button>' +
+      '  </div>' +
+      '  <div class="gpm-body">' +
+      '    <label class="gpm-lbl" for="global-pm-modal-body">Mensaje</label>' +
+      '    <textarea id="global-pm-modal-body" class="gpm-ta" rows="5"' +
+      '      placeholder="Escribe tu mensaje\u2026" maxlength="500"' +
+      '      oninput="GlobalPM.updateCount()"></textarea>' +
+      '    <div class="gpm-cnt" id="global-pm-modal-cnt"><span id="global-pm-modal-cnt-n">0</span>/500</div>' +
+      '    <div class="gpm-priv">' +
+      '      <span class="gpm-priv-ic">\uD83D\uDD12</span>' +
+      '      <span>Este mensaje es <strong>privado y confidencial</strong>. Solo t\u00fa y el destinatario pueden verlo.</span>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div class="gpm-foot">' +
+      '    <button class="gpm-btn-c" onclick="GlobalPM.close()">Cancelar</button>' +
+      '    <button class="gpm-btn-s" onclick="GlobalPM.send()">Enviar <em class="gpm-arr">\u2192</em></button>' +
+      '  </div>' +
+      '</div>' +
+      '</div>'
+    );
+
+    // Event delegation — any element with [data-pm-name] opens the modal
+    document.body.addEventListener('click', function (e) {
+      var trigger = e.target.closest('[data-pm-name]');
+      if (!trigger) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var initials = trigger.dataset.pmAvatar ||
+        trigger.dataset.pmName.split(' ').map(function (w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase();
+      GlobalPM.open(trigger.dataset.pmName, initials, trigger.dataset.pmBg || 'var(--color-primary)');
+    });
+  }
+
+  function open(name, avatar, bg) {
+    _name   = name;
+    _avatar = avatar || name.split(' ').map(function (w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase();
+    _bg     = bg || 'var(--color-primary)';
+
+    var titleEl = document.getElementById(ID + '-title');
+    var avEl    = document.getElementById(ID + '-av');
+    var bodyEl  = document.getElementById(ID + '-body');
+    var cntEl   = document.getElementById(ID + '-cnt-n');
+    var cntWrap = document.getElementById(ID + '-cnt');
+
+    if (titleEl) titleEl.textContent = name;
+    if (avEl)    { avEl.textContent = _avatar; avEl.style.background = _bg; }
+    if (bodyEl)  bodyEl.value = '';
+    if (cntEl)   cntEl.textContent = '0';
+    if (cntWrap) cntWrap.className = 'gpm-cnt';
+
+    openModal(ID);
+  }
+
+  function close() {
+    closeModal(ID);
+  }
+
+  function updateCount() {
+    var bodyEl  = document.getElementById(ID + '-body');
+    var cntEl   = document.getElementById(ID + '-cnt-n');
+    var cntWrap = document.getElementById(ID + '-cnt');
+    if (!bodyEl || !cntEl) return;
+    var len = bodyEl.value.length;
+    cntEl.textContent = len;
+    if (cntWrap) cntWrap.className = 'gpm-cnt' + (len >= 500 ? ' limit' : len >= 400 ? ' warn' : '');
+  }
+
+  function send() {
+    var bodyEl = document.getElementById(ID + '-body');
+    var text   = bodyEl ? bodyEl.value.trim() : '';
+    if (!text) {
+      if (typeof showToast !== 'undefined') showToast({ title: 'Escribe un mensaje', type: 'warning' });
+      return;
+    }
+    var now  = new Date();
+    var h = now.getHours(), m = now.getMinutes();
+    var time = (h % 12 || 12) + ':' + String(m).padStart(2, '0') + (h >= 12 ? ' PM' : ' AM');
+
+    var sent;
+    try { sent = JSON.parse(localStorage.getItem('trebol_pm_user_sent') || '[]'); } catch (ex) { sent = []; }
+    sent.push({ to: _name, avatar: _avatar, bg: _bg, text: text, time: time, date: now.toISOString() });
+    localStorage.setItem('trebol_pm_user_sent', JSON.stringify(sent));
+
+    var proInbox;
+    try { proInbox = JSON.parse(localStorage.getItem('trebol_pm_pro_inbox') || '[]'); } catch (ex) { proInbox = []; }
+    proInbox.push({ from: 'Mar\u00eda Garc\u00eda', fromAvatar: 'MG', fromBg: '#9E9E9E',
+      to: _name, text: text, time: time, date: now.toISOString() });
+    localStorage.setItem('trebol_pm_pro_inbox', JSON.stringify(proInbox));
+
+    close();
+    if (typeof showToast !== 'undefined') {
+      showToast({ title: 'Mensaje enviado', message: 'Tu mensaje fue enviado a ' + _name, type: 'success' });
+    }
+  }
+
+  return { init: _init, open: open, close: close, updateCount: updateCount, send: send };
+}());
+
+/** Global shortcut usable from onclick attributes in HTML */
+function openGlobalPM(name, avatar, bg) {
+  GlobalPM.open(name, avatar || '', bg || '');
+}
+
+// ==========================================================================
 // INIT — Run on DOMContentLoaded
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -669,6 +911,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Init sidebar
   initSidebar();
+
+  // Init global private messaging
+  GlobalPM.init();
 
   // Init all tabs on page
   document.querySelectorAll('[data-tabs]').forEach(el => initTabs(el));

@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trébol — Conferencia · Mindfulness para el estrés laboral</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body { background: #0a0e17; overflow: hidden; }
+
+    /* ── Layout principal ──────────────────────────────────────── */
+    .conf-layout {
+      display: grid;
+      grid-template-rows: 60px 1fr 72px;
+      grid-template-columns: 1fr 340px;
+      height: 100vh; width: 100vw;
+    }
+
+    /* ── Header ────────────────────────────────────────────────── */
+    .conf-header {
+      grid-column: 1 / -1;
+      background: #111827;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center;
+      padding: 0 var(--sp-6); gap: var(--sp-4);
+    }
+    .conf-logo {
+      display: flex; align-items: center; gap: var(--sp-2);
+      color: var(--color-accent); font-family: var(--font-display);
+      font-size: 1.15rem; font-weight: 700; text-decoration: none;
+      flex-shrink: 0;
+    }
+    .conf-header__title {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .conf-header__event-name {
+      font-weight: 700; color: white; font-size: .9375rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .conf-header__meta { display: flex; align-items: center; gap: var(--sp-4); }
+    .conf-live-dot {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .75rem; color: #4CAF50; font-weight: 600;
+    }
+    .live-pulse {
+      width: 8px; height: 8px; border-radius: 50%; background: #4CAF50;
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+    .conf-attendee-count {
+      font-size: .75rem; color: rgba(255,255,255,.5);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .conf-timer {
+      font-variant-numeric: tabular-nums; font-size: 1rem;
+      font-weight: 700; color: white; font-family: monospace;
+      margin-left: auto; flex-shrink: 0;
+    }
+
+    /* ── Área del stream (video) ───────────────────────────────── */
+    .conf-stream {
+      grid-column: 1; grid-row: 2;
+      background: #0a0e17;
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .conf-stream__placeholder {
+      display: flex; flex-direction: column;
+      align-items: center; gap: var(--sp-5); text-align: center;
+    }
+    .conf-stream__avatar {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: linear-gradient(135deg,#1A3C34,#2D6A4F);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; font-weight: 700; color: white;
+      box-shadow: 0 0 0 4px rgba(82,183,136,.3), 0 0 0 8px rgba(82,183,136,.1);
+      animation: speaking-ring 2s ease-in-out infinite;
+    }
+    @keyframes speaking-ring {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(82,183,136,.3), 0 0 0 8px rgba(82,183,136,.1); }
+      50%       { box-shadow: 0 0 0 6px rgba(82,183,136,.5), 0 0 0 14px rgba(82,183,136,.15); }
+    }
+    .conf-stream__name { color: rgba(255,255,255,.85); font-size: 1.1rem; font-weight: 600; }
+    .conf-stream__role { color: rgba(255,255,255,.4); font-size: .82rem; margin-top: -var(--sp-2); }
+
+    /* Overlay: chip "Ponente" */
+    .conf-stream__ponente-chip {
+      position: absolute; bottom: 90px; left: var(--sp-5);
+      background: rgba(0,0,0,.65); border: 1px solid rgba(255,255,255,.15);
+      border-radius: 99px; padding: 5px 14px;
+      display: flex; align-items: center; gap: 8px;
+      color: white; font-size: .78rem; font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+    .conf-stream__ponente-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent);
+    }
+
+    /* Mini cam propia */
+    .conf-self-cam {
+      position: absolute; bottom: 90px; right: var(--sp-4);
+      width: 148px; aspect-ratio: 16/9;
+      background: #1e2533; border-radius: var(--radius-lg);
+      border: 2px solid rgba(255,255,255,.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; color: rgba(255,255,255,.35);
+      overflow: hidden; flex-direction: column; gap: var(--sp-1);
+    }
+
+    /* ── Controles ─────────────────────────────────────────────── */
+    .conf-controls {
+      grid-column: 1; grid-row: 3;
+      background: #111827; border-top: 1px solid rgba(255,255,255,.08);
+      display: flex; align-items: center; justify-content: center;
+      gap: var(--sp-3); padding: 0 var(--sp-6);
+    }
+    .ctrl-btn {
+      width: 50px; height: 50px; border-radius: 50%;
+      border: none; cursor: pointer; font-size: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, transform .1s;
+      flex-shrink: 0;
+    }
+    .ctrl-btn:active { transform: scale(.93); }
+    .ctrl-btn--normal { background: rgba(255,255,255,.1); color: white; }
+    .ctrl-btn--normal:hover { background: rgba(255,255,255,.2); }
+    .ctrl-btn--danger { background: #C81E4A; color: white; width: 58px; height: 58px; font-size: 1.4rem; }
+    .ctrl-btn--danger:hover { background: #a01838; }
+    .ctrl-btn--off { background: rgba(200,30,74,.22); color: #FF6B8A; border: 1px solid rgba(200,30,74,.4); }
+    .ctrl-btn--active-green { background: rgba(76,175,80,.22); color: #66BB6A; border: 1px solid rgba(76,175,80,.4); }
+    .ctrl-label {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      font-size: .62rem; color: rgba(255,255,255,.45); font-weight: 600;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+
+    /* ── Panel lateral ─────────────────────────────────────────── */
+    .conf-side {
+      grid-column: 2; grid-row: 2 / 4;
+      background: #111827; border-left: 1px solid rgba(255,255,255,.08);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* Tabs */
+    .conf-tabs {
+      display: flex; border-bottom: 1px solid rgba(255,255,255,.08); flex-shrink: 0;
+    }
+    .conf-tab {
+      flex: 1; padding: var(--sp-3) var(--sp-2);
+      background: none; border: none; cursor: pointer;
+      font-size: .78rem; font-weight: 600;
+      color: rgba(255,255,255,.4);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      font-family: var(--font-body);
+      transition: color .15s, border-color .15s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .conf-tab.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+    .conf-tab-count {
+      min-width: 18px; height: 18px; border-radius: 99px;
+      background: rgba(255,255,255,.12); color: rgba(255,255,255,.6);
+      font-size: .65rem; font-weight: 800;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0 4px;
+    }
+    .conf-tab.active .conf-tab-count { background: var(--color-accent); color: #fff; }
+
+    /* Control bar (chat toggle + visible para pro) */
+    .conf-chat-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.2); flex-shrink: 0;
+    }
+    .conf-chat-bar__label { font-size: .75rem; color: rgba(255,255,255,.5); font-weight: 600; }
+    .toggle-switch { position: relative; width: 40px; height: 22px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,.15); border-radius: 99px; cursor: pointer;
+      transition: background .2s;
+    }
+    .toggle-slider:before {
+      content: ''; position: absolute;
+      width: 16px; height: 16px; border-radius: 50%;
+      left: 3px; top: 3px; background: white;
+      transition: transform .2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--color-accent); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+    /* Lista de mensajes / preguntas */
+    .conf-msg-list {
+      flex: 1; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 0;
+      padding: 0;
+    }
+    .conf-msg-item {
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      transition: background .12s;
+    }
+    .conf-msg-item:hover { background: rgba(255,255,255,.04); }
+
+    /* Quién escribió: solo lo ve el profesional */
+    .conf-msg-author-pro {
+      display: flex; align-items: center; gap: var(--sp-2);
+      margin-bottom: 4px;
+    }
+    .conf-msg-author-pro__avatar {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(82,183,136,.3);
+      font-size: .6rem; font-weight: 700; color: var(--color-accent);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .conf-msg-author-pro__name { font-size: .7rem; color: var(--color-accent); font-weight: 700; }
+    .conf-msg-author-pro__badge {
+      font-size: .6rem; color: rgba(255,255,255,.35);
+      background: rgba(255,255,255,.08); border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    .conf-msg-text {
+      font-size: .83rem; color: rgba(255,255,255,.82);
+      line-height: 1.5;
+    }
+    .conf-msg-time { font-size: .65rem; color: rgba(255,255,255,.3); margin-top: 3px; }
+
+    /* Highlight para preguntas */
+    .conf-msg-item--question { border-left: 3px solid rgba(82,183,136,.5); }
+    .conf-msg-item--question .conf-msg-text::before {
+      content: '❓ ';
+    }
+
+    /* Input de pregunta */
+    .conf-input-area {
+      padding: var(--sp-3) var(--sp-4);
+      border-top: 1px solid rgba(255,255,255,.08);
+      background: #111827; flex-shrink: 0;
+    }
+    .conf-chat-disabled-notice {
+      padding: var(--sp-4); text-align: center;
+      font-size: .78rem; color: rgba(255,255,255,.35);
+      display: none;
+    }
+    .conf-input-row {
+      display: flex; gap: var(--sp-2); align-items: flex-end;
+    }
+    .conf-input {
+      flex: 1; background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-md);
+      color: white; padding: var(--sp-2) var(--sp-3);
+      font-family: var(--font-body); font-size: .83rem; resize: none;
+      min-height: 38px; max-height: 90px; line-height: 1.5;
+    }
+    .conf-input::placeholder { color: rgba(255,255,255,.3); }
+    .conf-input:focus { outline: none; border-color: var(--color-accent); }
+    .conf-send-btn {
+      width: 38px; height: 38px; border-radius: 50%; border: none;
+      background: var(--color-accent); color: white; cursor: pointer;
+      font-size: 1rem; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background .15s, transform .1s;
+    }
+    .conf-send-btn:hover { background: #3aac77; }
+    .conf-send-btn:active { transform: scale(.9); }
+    .conf-anon-notice {
+      font-size: .67rem; color: rgba(255,255,255,.3);
+      margin-top: 4px; text-align: center;
+    }
+
+    /* Tab asistentes */
+    .conf-attendee-list { overflow-y: auto; flex: 1; }
+    .conf-attendee-item {
+      display: flex; align-items: center; gap: var(--sp-3);
+      padding: var(--sp-3) var(--sp-4);
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .conf-attendee-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 700; flex-shrink: 0;
+    }
+    .conf-attendee-name { font-size: .82rem; color: rgba(255,255,255,.75); flex: 1; }
+    .conf-attendee-role { font-size: .65rem; padding: 2px 7px; border-radius: 99px; font-weight: 700; }
+
+    /* Botón escribir (PM) en asistentes */
+    .conf-write-btn {
+      background: rgba(82,183,136,.12);
+      border: 1px solid rgba(82,183,136,.25);
+      color: var(--color-accent);
+      border-radius: var(--radius-md);
+      padding: 3px 8px;
+      font-size: .68rem; font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .conf-write-btn:hover {
+      background: rgba(82,183,136,.25);
+      transform: scale(1.04);
+    }
+
+    /* Tab info */
+    .conf-info-body { overflow-y: auto; flex: 1; padding: var(--sp-5); }
+    .conf-info-row { display: flex; justify-content: space-between; font-size: .84rem; padding: var(--sp-2) 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .conf-info-label { color: rgba(255,255,255,.45); }
+    .conf-info-value { color: rgba(255,255,255,.85); font-weight: 500; }
+
+    /* Tab contenido oculto/visible */
+    .conf-panel-section { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    .conf-panel-section.active { display: flex; }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .45; }
+    }
+    @media (max-width: 768px) {
+      .conf-layout { grid-template-columns: 1fr; grid-template-rows: 60px 1fr 260px 72px; }
+      .conf-side { grid-column: 1; grid-row: 3; }
+      .conf-controls { grid-row: 4; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="conf-layout" role="main">
+
+  <!-- ══ HEADER ════════════════════════════════════════════════ -->
+  <header class="conf-header" role="banner">
+    <a href="home-profesional.html" class="conf-logo" aria-label="Volver al inicio">🍀 Trébol</a>
+
+    <div class="conf-header__title">
+      <div class="conf-header__event-name">Mindfulness para el estrés laboral</div>
+      <div class="conf-header__meta">
+        <div class="conf-live-dot">
+          <div class="live-pulse" aria-hidden="true"></div>
+          EN VIVO
+        </div>
+        <div class="conf-attendee-count">👥 <span id="attendee-count">342</span> asistentes</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.35);">12 mayo 2026 · 6PM – 8PM</div>
+      </div>
+    </div>
+
+    <!-- Chip: chat state visible solo para el profesional -->
+    <div id="chat-status-chip"
+         style="display:flex;align-items:center;gap:6px;background:rgba(82,183,136,.15);border:1px solid rgba(82,183,136,.35);border-radius:99px;padding:4px 12px;font-size:.72rem;color:var(--color-accent);font-weight:700;flex-shrink:0;">
+      <span id="chat-chip-dot" style="width:7px;height:7px;border-radius:50%;background:var(--color-accent);"></span>
+      <span id="chat-chip-text">Chat activo</span>
+    </div>
+
+    <div class="conf-timer" id="conf-timer" role="timer" aria-label="Duración de la conferencia">00:00:00</div>
+  </header>
+
+  <!-- ══ STREAM AREA ═══════════════════════════════════════════ -->
+  <div class="conf-stream" aria-label="Transmisión en vivo">
+
+    <div class="conf-stream__placeholder" role="img" aria-label="Video de Dra. Valentina Ríos">
+      <div class="conf-stream__avatar" aria-hidden="true">VR</div>
+      <div>
+        <div class="conf-stream__name">Dra. Valentina Ríos</div>
+        <div class="conf-stream__role">Psicóloga Clínica · Ponente</div>
+      </div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,.3);">Cámara activada · transmitiendo</div>
+    </div>
+
+    <div class="conf-stream__ponente-chip" aria-label="Ponente activo">
+      <div class="conf-stream__ponente-dot" aria-hidden="true"></div>
+      Dra. Valentina Ríos — Ponente
+    </div>
+
+    <div class="conf-self-cam" aria-label="Tu previsualización de cámara">
+      <span style="font-size:1.4rem;">👩‍⚕️</span>
+      <span>Tú</span>
+    </div>
+  </div>
+
+  <!-- ══ CONTROLES ═════════════════════════════════════════════ -->
+  <div class="conf-controls" role="toolbar" aria-label="Controles de la conferencia">
+
+    <div class="ctrl-label">
+      <button class="ctrl-btn ctrl-btn--normal" id="btn-cam"
+        onclick="toggleCtrl('cam')" aria-label="Cámara" aria-pressed="true" title="Cámara">📷</button>
+      Cámara
+    </div>
+
+    <div class="ctrl-label">
+      <button class="ctrl-btn ctrl-btn--normal" id="btn-mic"
+        onclick="toggleCtrl('mic')" aria-label="Micrófono" aria-pressed="true" title="Micrófono">🎤</button>
+      Micrófono
+    </div>
+
+    <div class="ctrl-label">
+      <button class="ctrl-btn ctrl-btn--normal" id="btn-screen"
+        onclick="toggleCtrl('screen')" aria-label="Compartir pantalla" aria-pressed="false" title="Compartir pantalla">🖥</button>
+      Pantalla
+    </div>
+
+    <!-- Toggle habilitar/deshabilitar chat — solo el administrador/profesional lo ve -->
+    <div class="ctrl-label">
+      <button class="ctrl-btn ctrl-btn--active-green" id="btn-chat-toggle"
+        onclick="toggleChatEnabled()" aria-label="Habilitar o deshabilitar preguntas" title="Preguntas">💬</button>
+      Preguntas
+    </div>
+
+    <div class="ctrl-label">
+      <button class="ctrl-btn ctrl-btn--normal"
+        onclick="openModal('attendees-modal')" aria-label="Ver lista de asistentes" title="Asistentes">👥</button>
+      Asistentes
+    </div>
+
+    <div class="ctrl-label" style="margin-left:var(--sp-4);">
+      <button class="ctrl-btn ctrl-btn--danger"
+        onclick="openModal('end-conf-modal')" aria-label="Terminar conferencia" title="Terminar">📵</button>
+      Terminar
+    </div>
+  </div>
+
+  <!-- ══ PANEL LATERAL ═════════════════════════════════════════ -->
+  <aside class="conf-side" aria-label="Panel de la conferencia">
+
+    <div class="conf-tabs" role="tablist">
+      <button class="conf-tab active" role="tab" data-ctab="tab-questions" aria-selected="true">
+        ❓ Preguntas <span class="conf-tab-count" id="q-count">5</span>
+      </button>
+      <button class="conf-tab" role="tab" data-ctab="tab-attendees" aria-selected="false">
+        👥 Asistentes
+      </button>
+      <button class="conf-tab" role="tab" data-ctab="tab-info" aria-selected="false">
+        ℹ️ Info
+      </button>
+    </div>
+
+    <!-- ─ TAB: PREGUNTAS ─────────────────────────────────── -->
+    <div class="conf-panel-section active" id="tab-questions">
+
+      <!-- Barra de control del chat (solo pro puede ver/usar el toggle) -->
+      <div class="conf-chat-bar" id="chat-control-bar">
+        <div>
+          <div class="conf-chat-bar__label">Preguntas de asistentes</div>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:2px;">Habilitando, los asistentes podrán escribir</div>
+        </div>
+        <label class="toggle-switch" aria-label="Habilitar preguntas">
+          <input type="checkbox" id="chat-toggle-check" checked onchange="syncChatToggle()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Lista de mensajes -->
+      <div class="conf-msg-list" id="msg-list" role="log" aria-live="polite" aria-label="Preguntas de asistentes">
+
+        <!-- El profesional ve solo el alias; los usuarios ven solo el texto de la pregunta -->
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-author-pro">
+            <div class="conf-msg-author-pro__avatar">LV</div>
+            <span class="conf-msg-author-pro__name">Luna Verde</span>
+          </div>
+          <div class="conf-msg-text">¿Las técnicas de respiración funcionan también para crisis de pánico nocturnas?</div>
+          <div class="conf-msg-time">6:04 PM</div>
+        </div>
+
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-author-pro">
+            <div class="conf-msg-author-pro__avatar" style="background:rgba(66,133,244,.3);color:#64B5F6;">RP</div>
+            <span class="conf-msg-author-pro__name">Río Profundo</span>
+          </div>
+          <div class="conf-msg-text">¿Hay alguna diferencia entre mindfulness y meditación? ¿Cuál recomienda para principiantes?</div>
+          <div class="conf-msg-time">6:07 PM</div>
+        </div>
+
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-author-pro">
+            <div class="conf-msg-author-pro__avatar" style="background:rgba(255,167,38,.3);color:#FFB74D;">SA</div>
+            <span class="conf-msg-author-pro__name">Sol Amanecer</span>
+          </div>
+          <div class="conf-msg-text">¿Cuántos minutos al día son suficientes para ver resultados con la práctica de mindfulness?</div>
+          <div class="conf-msg-time">6:12 PM</div>
+        </div>
+
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-author-pro">
+            <div class="conf-msg-author-pro__avatar" style="background:rgba(186,104,200,.3);color:#CE93D8;">VM</div>
+            <span class="conf-msg-author-pro__name">Viento Marino</span>
+          </div>
+          <div class="conf-msg-text">¿El mindfulness puede ayudar con el insomnio relacionado al estrés laboral?</div>
+          <div class="conf-msg-time">6:18 PM</div>
+        </div>
+
+        <div class="conf-msg-item conf-msg-item--question">
+          <div class="conf-msg-author-pro">
+            <div class="conf-msg-author-pro__avatar" style="background:rgba(77,182,172,.3);color:#80CBC4;">CF</div>
+            <span class="conf-msg-author-pro__name">Camino Forestal</span>
+          </div>
+          <div class="conf-msg-text">¿Existe alguna app que recomiende para practicar lo aprendido en casa?</div>
+          <div class="conf-msg-time">6:22 PM</div>
+        </div>
+
+      </div>
+
+      <!-- Input -->
+      <div class="conf-input-area" id="input-area">
+        <div class="conf-chat-disabled-notice" id="chat-disabled-notice">
+          🔇 Las preguntas están deshabilitadas por el ponente
+        </div>
+        <div class="conf-input-row" id="input-row">
+          <textarea class="conf-input" id="msg-input" rows="1"
+            placeholder="Escribe tu pregunta…"
+            aria-label="Escribe tu pregunta"
+            onkeydown="handleMsgKey(event)"></textarea>
+          <button class="conf-send-btn" onclick="sendMsg()" aria-label="Enviar pregunta">➤</button>
+        </div>
+        <div class="conf-anon-notice">
+          Solo tú ves el alias de cada pregunta · el público no ve quién escribió
+        </div>
+      </div>
+    </div>
+
+    <!-- ─ TAB: ASISTENTES ────────────────────────────────── -->
+    <div class="conf-panel-section" id="tab-attendees">
+
+      <div style="padding:var(--sp-3) var(--sp-4);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <span style="font-size:.75rem;color:rgba(255,255,255,.5);font-weight:600;">CONECTADOS</span>
+        <span style="font-size:.78rem;color:var(--color-accent);font-weight:700;">342 asistentes</span>
+      </div>
+
+      <div class="conf-attendee-list" role="list">
+
+        <!-- El profesional ve alias + rol -->
+        <div class="conf-attendee-item" role="listitem">
+          <div class="conf-attendee-avatar" style="background:linear-gradient(135deg,#1A3C34,#2D6A4F);">VR</div>
+          <span class="conf-attendee-name">Dra. Valentina Ríos</span>
+          <span class="conf-attendee-role" style="background:rgba(82,183,136,.2);color:var(--color-accent);">Ponente</span>
+        </div>
+        <div class="conf-attendee-item" role="listitem">
+          <div class="conf-attendee-avatar" style="background:#1565C0;">JM</div>
+          <span class="conf-attendee-name">Dr. Jorge Morales</span>
+          <span class="conf-attendee-role" style="background:rgba(66,133,244,.2);color:#64B5F6;">Profesional</span>
+          <button class="conf-write-btn" onclick="openPM('Dr. Jorge Morales','Profesional')" aria-label="Escribir a Dr. Jorge Morales">✉️ Escribir</button>
+        </div>
+        <div class="conf-attendee-item" role="listitem">
+          <div class="conf-attendee-avatar" style="background:rgba(82,183,136,.25);color:var(--color-accent);">LV</div>
+          <span class="conf-attendee-name">Luna Verde</span>
+          <span class="conf-attendee-role" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);">Usuario</span>
+          <button class="conf-write-btn" onclick="openPM('Luna Verde','Usuario')" aria-label="Escribir a Luna Verde">✉️ Escribir</button>
+        </div>
+        <div class="conf-attendee-item" role="listitem">
+          <div class="conf-attendee-avatar" style="background:rgba(66,133,244,.2);color:#64B5F6;">RP</div>
+          <span class="conf-attendee-name">Río Profundo</span>
+          <span class="conf-attendee-role" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);">Usuario</span>
+          <button class="conf-write-btn" onclick="openPM('Río Profundo','Usuario')" aria-label="Escribir a Río Profundo">✉️ Escribir</button>
+        </div>
+        <div class="conf-attendee-item" role="listitem">
+          <div class="conf-attendee-avatar" style="background:rgba(255,167,38,.2);color:#FFB74D;">SA</div>
+          <span class="conf-attendee-name">Sol Amanecer</span>
+          <span class="conf-attendee-role" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);">Usuario</span>
+          <button class="conf-write-btn" onclick="openPM('Sol Amanecer','Usuario')" aria-label="Escribir a Sol Amanecer">✉️ Escribir</button>
+        </div>
+
+        <div style="padding:var(--sp-4);text-align:center;">
+          <div style="font-size:.75rem;color:rgba(255,255,255,.3);margin-bottom:var(--sp-2);">y 337 asistentes más</div>
+          <div style="font-size:.68rem;color:rgba(255,255,255,.2);">Los demás asistentes no son visibles entre sí para preservar la privacidad</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─ TAB: INFO ───────────────────────────────────────── -->
+    <div class="conf-panel-section" id="tab-info">
+      <div class="conf-info-body">
+        <div style="margin-bottom:var(--sp-5);">
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-accent);margin-bottom:var(--sp-3);">Información del evento</div>
+          <div class="conf-info-row"><span class="conf-info-label">📅 Fecha</span><span class="conf-info-value">12 mayo 2026</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">🕕 Horario</span><span class="conf-info-value">6:00 PM – 8:00 PM</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">🏷 Categoría</span><span class="conf-info-value">Bienestar · Mindfulness</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">💰 Precio</span><span class="conf-info-value" style="color:var(--color-accent);">Entrada libre</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">👥 Capacidad</span><span class="conf-info-value">342 / 400 inscritos</span></div>
+          <div class="conf-info-row"><span class="conf-info-label">🎙 Modalidad</span><span class="conf-info-value">Conferencia online</span></div>
+        </div>
+
+        <div style="margin-bottom:var(--sp-5);">
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-accent);margin-bottom:var(--sp-3);">Privacidad en sala</div>
+          <div style="background:rgba(82,183,136,.08);border:1px solid rgba(82,183,136,.2);border-radius:var(--radius-md);padding:var(--sp-3);font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6;">
+            ✅ Todos los asistentes usan su <strong style="color:rgba(255,255,255,.8);">seudónimo</strong> en esta sala.<br>
+            ✅ Las preguntas son <strong style="color:rgba(255,255,255,.8);">completamente anónimas</strong> para el público: nadie del auditorio ve quién escribió, solo el texto.<br>
+            ✅ Solo el <strong style="color:rgba(255,255,255,.8);">ponente ve el alias</strong> de quien envió cada pregunta.<br>
+            ✅ Los usuarios no pueden interactuar entre sí ni verse en la lista de asistentes.
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-accent);margin-bottom:var(--sp-3);">Control del chat</div>
+          <div style="font-size:.78rem;color:rgba(255,255,255,.45);line-height:1.6;">
+            Usa el botón <strong style="color:rgba(255,255,255,.65);">💬 Preguntas</strong> en la barra de controles para habilitar o deshabilitar las preguntas de los asistentes en tiempo real. Recomendado: habilitar solo en los momentos destinados a preguntas.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- ══ MODAL: Mensaje privado ══════════════════════════════ -->
+<div id="pm-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pm-modal-title" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon" aria-hidden="true">✉️</div>
+      <div>
+        <div class="modal-title" id="pm-modal-title">Mensaje privado</div>
+        <div class="modal-subtitle" id="pm-modal-sub">Enviando a <strong id="pm-recipient-name"></strong></div>
+      </div>
+      <button class="modal-close" onclick="closePM()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="pm-body">Mensaje</label>
+        <textarea id="pm-body" class="form-textarea" rows="4"
+          placeholder="Escribe tu mensaje…"
+          aria-label="Cuerpo del mensaje"
+          oninput="updatePmCount()"
+          maxlength="500"></textarea>
+        <div style="text-align:right;font-size:.72rem;color:var(--color-text-muted);margin-top:4px;"><span id="pm-count">0</span>/500</div>
+      </div>
+      <div style="font-size:.72rem;color:var(--color-text-muted);background:rgba(82,183,136,.06);border:1px solid rgba(82,183,136,.15);border-radius:var(--radius-md);padding:var(--sp-2) var(--sp-3);">
+        🔒 Este mensaje es privado. Solo tú y el destinatario pueden verlo.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePM()">Cancelar</button>
+      <button class="btn btn-primary" onclick="sendPrivateMsg()">Enviar mensaje</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Terminar conferencia ══════════════════════════ -->
+<div id="end-conf-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="end-conf-title">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon danger" aria-hidden="true">📵</div>
+      <div>
+        <div class="modal-title" id="end-conf-title">¿Terminar la conferencia?</div>
+        <div class="modal-subtitle">Se desconectarán todos los asistentes</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p>¿Confirmas que deseas finalizar <strong>Mindfulness para el estrés laboral</strong>? Los <strong>342 asistentes</strong> serán desconectados y se generará el resumen del evento.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('end-conf-modal')">Cancelar</button>
+      <button class="btn btn-danger" onclick="endConference()">Sí, terminar conferencia</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Lista completa de asistentes ═══════════════════ -->
+<div id="attendees-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="attendees-modal-title">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="attendees-modal-title">Asistentes conectados</div>
+        <div class="modal-subtitle">342 personas · tú ves sus alias · ellos no se ven entre sí</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('attendees-modal')" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:360px;overflow-y:auto;">
+      <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+        <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:1px solid var(--color-border-light);">
+          <div class="avatar avatar-xs" style="background:var(--color-primary);">VR</div>
+          <div><span style="font-weight:600;">Dra. Valentina Ríos</span> <span style="font-size:.72rem;color:var(--color-text-muted);">· ponente</span></div>
+          <span class="badge badge-success" style="font-size:.65rem;">Ponente</span>
+        </div>
+        <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:1px solid var(--color-border-light);">
+          <div class="avatar avatar-xs" style="background:#1565C0;">JM</div>
+          <div><span style="font-weight:600;">Dr. Jorge Morales</span> <span style="font-size:.72rem;color:var(--color-text-muted);">· profesional</span></div>
+          <span class="badge badge-primary" style="font-size:.65rem;">Profesional</span>
+        </div>
+        <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:1px solid var(--color-border-light);">
+          <div class="avatar avatar-xs" style="background:rgba(82,183,136,.3);color:var(--color-primary);">LV</div>
+          <div><span style="font-weight:600;">Luna Verde</span> <span style="font-size:.72rem;color:var(--color-text-muted);">· seudónimo</span></div>
+          <span class="badge badge-muted" style="font-size:.65rem;">Usuario</span>
+        </div>
+        <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:1px solid var(--color-border-light);">
+          <div class="avatar avatar-xs" style="background:#1976D2;color:white;">RP</div>
+          <div><span style="font-weight:600;">Río Profundo</span> <span style="font-size:.72rem;color:var(--color-text-muted);">· seudónimo</span></div>
+          <span class="badge badge-muted" style="font-size:.65rem;">Usuario</span>
+        </div>
+        <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:1px solid var(--color-border-light);">
+          <div class="avatar avatar-xs" style="background:#F57C00;color:white;">SA</div>
+          <div><span style="font-weight:600;">Sol Amanecer</span> <span style="font-size:.72rem;color:var(--color-text-muted);">· seudónimo</span></div>
+          <span class="badge badge-muted" style="font-size:.65rem;">Usuario</span>
+        </div>
+        <div style="padding:var(--sp-4);text-align:center;color:var(--color-text-muted);font-size:.8rem;">
+          + 337 asistentes más con seudónimo
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('attendees-modal')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/db.js"></script>
+<script>
+  // ── Timer ──────────────────────────────────────────────────
+  startSessionTimer('conf-timer');
+
+  // ── Tabs del panel lateral ─────────────────────────────────
+  document.querySelectorAll('.conf-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.conf-tab').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.conf-panel-section').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      document.getElementById(tab.dataset.ctab).classList.add('active');
+    });
+  });
+
+  // ── Controles (cámara, mic, pantalla) ─────────────────────
+  const ctrlState = { cam: true, mic: true, screen: false };
+  const ctrlEmoji = { cam: ['📷','📷'], mic: ['🎤','🔇'], screen: ['🖥','🖥'] };
+  function toggleCtrl(type) {
+    ctrlState[type] = !ctrlState[type];
+    const btn = document.getElementById('btn-' + type);
+    if (ctrlState[type]) {
+      btn.classList.remove('ctrl-btn--off');
+      btn.classList.add('ctrl-btn--normal');
+    } else {
+      btn.classList.remove('ctrl-btn--normal');
+      btn.classList.add('ctrl-btn--off');
+    }
+    const labels = { cam: ['Cámara activada','Cámara desactivada'], mic: ['Micrófono activo','Micrófono silenciado'], screen: ['Pantalla compartida','Pantalla detenida'] };
+    showToast({ title: labels[type][ctrlState[type] ? 0 : 1], type: ctrlState[type] ? 'success' : 'info' });
+  }
+
+  // ── Toggle chat ────────────────────────────────────────────
+  let chatEnabled = true;
+  function syncChatToggle() {
+    chatEnabled = document.getElementById('chat-toggle-check').checked;
+    updateChatUI();
+  }
+  function toggleChatEnabled() {
+    chatEnabled = !chatEnabled;
+    document.getElementById('chat-toggle-check').checked = chatEnabled;
+    updateChatUI();
+  }
+  function updateChatUI() {
+    const btn     = document.getElementById('btn-chat-toggle');
+    const notice  = document.getElementById('chat-disabled-notice');
+    const row     = document.getElementById('input-row');
+    const chip    = document.getElementById('chat-status-chip');
+    const chipTxt = document.getElementById('chat-chip-text');
+    const chipDot = document.getElementById('chat-chip-dot');
+
+    if (chatEnabled) {
+      btn.classList.remove('ctrl-btn--off');
+      btn.classList.add('ctrl-btn--active-green');
+      notice.style.display = 'none';
+      row.style.display = 'flex';
+      chip.style.background = 'rgba(82,183,136,.15)';
+      chip.style.borderColor = 'rgba(82,183,136,.35)';
+      chip.style.color = 'var(--color-accent)';
+      chipDot.style.background = 'var(--color-accent)';
+      chipTxt.textContent = 'Chat activo';
+      showToast({ title: 'Preguntas habilitadas', message: 'Los asistentes pueden enviar preguntas', type: 'success' });
+    } else {
+      btn.classList.remove('ctrl-btn--active-green');
+      btn.classList.add('ctrl-btn--off');
+      notice.style.display = 'block';
+      row.style.display = 'none';
+      chip.style.background = 'rgba(200,30,74,.12)';
+      chip.style.borderColor = 'rgba(200,30,74,.35)';
+      chip.style.color = '#FF6B8A';
+      chipDot.style.background = '#FF6B8A';
+      chipTxt.textContent = 'Chat desactivado';
+      showToast({ title: 'Preguntas deshabilitadas', message: 'Los asistentes no pueden enviar preguntas', type: 'info' });
+    }
+  }
+
+  // ── Enviar pregunta (simulado — vista profesional) ─────────
+  let qCount = 5;
+  function sendMsg() {
+    const input = document.getElementById('msg-input');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    qCount++;
+    document.getElementById('q-count').textContent = String(qCount);
+
+    const list = document.getElementById('msg-list');
+    const item = document.createElement('div');
+    item.className = 'conf-msg-item conf-msg-item--question';
+    const now = new Date();
+    const timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0') + ' PM';
+    item.innerHTML = `
+      <div class="conf-msg-author-pro">
+        <div class="conf-msg-author-pro__avatar" style="background:rgba(82,183,136,.3);color:var(--color-accent);">VR</div>
+        <span class="conf-msg-author-pro__name">Valentina R.</span>
+        <span class="conf-msg-author-pro__badge">ponente · tú</span>
+      </div>
+      <div class="conf-msg-text">${escapeHtml(text)}</div>
+      <div class="conf-msg-time">${timeStr}</div>`;
+    list.appendChild(item);
+    list.scrollTop = list.scrollHeight;
+    input.value = '';
+    input.style.height = 'auto';
+  }
+
+  function handleMsgKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Auto-resize textarea
+  document.getElementById('msg-input').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 90) + 'px';
+  });
+
+  // ── Terminar conferencia ───────────────────────────────────
+  function endConference() {
+    closeModal('end-conf-modal');
+    showToast({ title: 'Conferencia finalizada', message: 'Todos los asistentes han sido desconectados', type: 'success' });
+    setTimeout(() => { window.location.href = 'home-profesional.html'; }, 1800);
+  }
+
+  // ── Mensaje privado (PM) ───────────────────────────────────
+  let pmRecipient = '';
+  function openPM(alias, role) {
+    pmRecipient = alias;
+    document.getElementById('pm-recipient-name').textContent = alias + ' (' + role + ')';
+    document.getElementById('pm-body').value = '';
+    document.getElementById('pm-count').textContent = '0';
+    const bd = document.getElementById('pm-modal-backdrop');
+    bd.style.display = 'flex';
+    bd.style.alignItems = 'center';
+    bd.style.justifyContent = 'center';
+    setTimeout(() => document.getElementById('pm-body').focus(), 80);
+  }
+  function closePM() {
+    document.getElementById('pm-modal-backdrop').style.display = 'none';
+  }
+  function updatePmCount() {
+    document.getElementById('pm-count').textContent = document.getElementById('pm-body').value.length;
+  }
+  // Mapa alias → clave localStorage (la misma que lee mensajes-usuario.html / mensajes-profesional.html)
+  const PM_KEY_MAP = {
+    'Luna Verde':        'trebol_pm_luna_verde',
+    'Río Profundo':      'trebol_pm_rio_profundo',
+    'Sol Amanecer':      'trebol_pm_sol_amanecer',
+    'Dr. Jorge Morales': 'trebol_pm_jorge_morales',
+  };
+
+  function sendPrivateMsg() {
+    const body = document.getElementById('pm-body').value.trim();
+    if (!body) { showToast({ title: 'Escribe un mensaje', type: 'warning' }); return; }
+
+    // Persiste en localStorage para que el destinatario lo vea en su página de mensajes
+    const now = new Date();
+    const t   = (now.getHours() % 12 || 12) + ':' + String(now.getMinutes()).padStart(2,'0') + (now.getHours() >= 12 ? ' PM' : ' AM');
+    const key = PM_KEY_MAP[pmRecipient] || ('trebol_pm_' + pmRecipient.toLowerCase().replace(/\s+/g,'_'));
+    let stored;
+    try { stored = JSON.parse(localStorage.getItem(key) || '[]'); } catch { stored = []; }
+    stored.push({ from: 'Dra. Valentina Ríos', avatar: 'VR', bg: 'linear-gradient(135deg,#1A3C34,#2D6A4F)', text: body, time: t });
+    localStorage.setItem(key, JSON.stringify(stored));
+
+    closePM();
+    showToast({ title: 'Mensaje enviado', message: 'Tu mensaje privado fue enviado a ' + pmRecipient, type: 'success' });
+  }
+  document.getElementById('pm-modal-backdrop').addEventListener('click', e => {
+    if (e.target === document.getElementById('pm-modal-backdrop')) closePM();
+  });
+
+  // ── Contador de asistentes (simulación) ───────────────────
+  setInterval(() => {
+    const delta = Math.random() > .5 ? 1 : -1;
+    const cnt = document.getElementById('attendee-count');
+    let n = parseInt(cnt.textContent) + delta;
+    if (n < 330) n = 330;
+    if (n > 400) n = 400;
+    cnt.textContent = n;
+  }, 5000);
+</script>
+</body>
+</html>
