@@ -132,10 +132,12 @@
       </div>
 
       <!-- Sub-tabs -->
-      <div class="tabs-wrapper" role="tablist" aria-label="Vista de citas" style="margin-bottom:var(--sp-5);">
-        <button class="tab-item active" role="tab" aria-selected="true" onclick="switchTab(this,'proximas')">📆 Próximas</button>
-        <button class="tab-item" role="tab" aria-selected="false" onclick="switchTab(this,'historial')">🗂 Historial</button>
-      </div>
+      <nav class="prof-tabs-bar" aria-label="Vista de citas" style="margin-bottom:var(--sp-5);">
+        <ul class="prof-tabs-bar__list" role="tablist">
+          <li><button class="prof-tab-link active" role="tab" aria-selected="true" onclick="switchTab(this,'proximas')"><span class="tab-icon">📆</span>Próximas</button></li>
+          <li><button class="prof-tab-link" role="tab" aria-selected="false" onclick="switchTab(this,'historial')"><span class="tab-icon">🗂</span>Historial</button></li>
+        </ul>
+      </nav>
 
       <!-- TAB: Próximas -->
       <div id="proximas">
@@ -375,7 +377,7 @@
   }
 
   function switchTab(btn, tabId) {
-    document.querySelectorAll('.tabs-wrapper .tab-item').forEach(b => {
+    document.querySelectorAll('.prof-tabs-bar .prof-tab-link').forEach(b => {
       b.classList.remove('active'); b.setAttribute('aria-selected','false');
     });
     btn.classList.add('active'); btn.setAttribute('aria-selected','true');

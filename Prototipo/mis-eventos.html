@@ -112,6 +112,29 @@
         </div>
       </div>
 
+      <!-- ── Eventos de hoy ── -->
+      <section aria-label="Eventos de hoy" style="margin-bottom:var(--sp-6);">
+        <h2 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.125rem;margin-bottom:var(--sp-4);">📅 Eventos de hoy</h2>
+        <div style="background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-primary-light) 100%);border-radius:var(--radius-xl);padding:var(--sp-6) var(--sp-7);display:flex;align-items:center;justify-content:space-between;gap:var(--sp-6);flex-wrap:wrap;box-shadow:var(--shadow-md);">
+          <div style="display:flex;align-items:center;gap:var(--sp-5);">
+            <div style="background:rgba(255,255,255,0.15);border-radius:var(--radius-xl);width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-size:1.75rem;flex-shrink:0;">🎪</div>
+            <div>
+              <div style="color:#fff;font-size:1.125rem;font-weight:700;font-family:var(--font-display);margin-bottom:4px;">Mindfulness para el estrés laboral</div>
+              <div style="color:rgba(255,255,255,0.8);font-size:0.875rem;display:flex;gap:var(--sp-4);flex-wrap:wrap;">
+                <span>🕕 Hoy · 6PM – 8PM</span>
+                <span>👥 342 de 400 inscritos</span>
+                <span>💰 Entrada libre</span>
+                <span class="badge" style="background:rgba(255,255,255,0.25);color:#fff;font-size:0.7rem;">EN VIVO PRONTO</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.35);" onclick="openModal('detail-sala-1')" aria-label="Ver detalle de Mindfulness">Ver detalle</button>
+            <a href="sala-profesional.html" class="btn btn-sm" style="background:#fff;color:var(--color-primary);font-weight:700;" aria-label="Ingresar al evento Mindfulness">▶ Ingresar al evento</a>
+          </div>
+        </div>
+      </section>
+
       <!-- Table -->
       <div class="table-wrapper">
         <div class="table-toolbar">
@@ -141,8 +164,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td><strong>Mindfulness para el estrés laboral</strong></td>
+              <tr style="background:var(--color-accent-pale);">
+                <td>
+                  <strong>Mindfulness para el estrés laboral</strong>
+                  <span class="badge badge-success" style="margin-left:6px;font-size:0.65rem;">HOY</span>
+                </td>
                 <td><span class="badge badge-success">Abierta</span></td>
                 <td>342</td>
                 <td>400</td>
@@ -150,6 +176,7 @@
                 <td>15 May 2026 · 6PM</td>
                 <td>
                   <div class="d-flex gap-2">
+                    <a href="sala-profesional.html" class="btn btn-primary btn-sm" aria-label="Ingresar al evento Mindfulness">▶ Ingresar</a>
                     <button class="btn btn-ghost btn-sm" onclick="openModal('detail-sala-1')" aria-label="Ver detalle de Mindfulness">Ver detalle</button>
                     <button class="btn btn-danger btn-sm"
                       onclick="toggleRoomStatus(this,'Mindfulness para el estrés laboral')"
