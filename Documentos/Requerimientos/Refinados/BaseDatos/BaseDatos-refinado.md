@@ -1,6 +1,6 @@
 # Base de Datos — Proyecto Trébol
 
-> **Versión:** 1.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
+> **Versión:** 2.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
 > **Motor:** SQL Server | **ORM:** Entity Framework Core | **Tecnología:** .NET Core 10
 > **Convenciones:** PascalCase para tablas y columnas | NVARCHAR para texto | DATETIME2 para fechas
 
@@ -287,7 +287,26 @@ CREATE TABLE TokenRecuperacion (
 
     CONSTRAINT PK_TokenRecuperacion       PRIMARY KEY (TokenId),
     CONSTRAINT UQ_TokenRecuperacion_Token UNIQUE (Token),
-    CONSTRAINT CK_TokenRecuperacion_Tipo  CHECK (TipoEntidad IN ('Usuario', 'Profesional'))
+    CONSTRAINT CK_TokenRecuperacion_Tipo  CHECK (TipoEntidad IN ('Usuario', 'Profesional', 'Admin'))
+);
+```
+
+### 3.9 Administrador
+
+> Cuenta de administrador del sistema. Gestiona la aprobación/rechazo de registros de profesionales desde la **Bandeja de Notificaciones**.
+
+```sql
+CREATE TABLE Administrador (
+    AdministradorId     INT             IDENTITY(1,1) NOT NULL,
+    NombreCompleto      NVARCHAR(200)   NOT NULL,
+    Correo              NVARCHAR(254)   NOT NULL,
+    PasswordHash        NVARCHAR(500)   NOT NULL,         -- Hash Argon2 con salt embebido. Generado en Capa Helpers.
+    Estado              BIT             NOT NULL DEFAULT 1,
+    FechaCreacion       DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+    FechaModificacion   DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_Administrador        PRIMARY KEY (AdministradorId),
+    CONSTRAINT UQ_Administrador_Correo UNIQUE (Correo)
 );
 ```
 
@@ -541,7 +560,7 @@ CREATE TABLE Pago (
     CONSTRAINT PK_Pago              PRIMARY KEY (PagoId),
     CONSTRAINT FK_Pago_Inscripcion  FOREIGN KEY (InscripcionId) REFERENCES Inscripcion(InscripcionId),
     CONSTRAINT CK_Pago_MetodoPago   CHECK (MetodoPago IN (
-        'TarjetaCredito', 'TarjetaDebito', 'PSE', 'Transferencia'
+        'TarjetaCredito', 'TarjetaDebito', 'PSE', 'Transferencia', 'Efecty'
     )),
     CONSTRAINT CK_Pago_Estado       CHECK (Estado IN ('Pendiente', 'Aprobado', 'Rechazado')),
     CONSTRAINT CK_Pago_Monto        CHECK (Monto > 0)
@@ -560,6 +579,32 @@ CREATE TABLE LogPago (
 
     CONSTRAINT PK_LogPago       PRIMARY KEY (LogId),
     CONSTRAINT FK_LogPago_Pago  FOREIGN KEY (PagoId) REFERENCES Pago(PagoId)
+);
+```
+
+### 7.4 PagoCita
+
+> Pago de cita privada. Se registra cuando el usuario completa el proceso de pago en `pago-cita.html`. Incluye la tarifa fija de la plataforma ($5.000 COP).
+
+```sql
+CREATE TABLE PagoCita (
+    PagoCitaId          INT             IDENTITY(1,1) NOT NULL,
+    CitaId              INT             NOT NULL,
+    Monto               DECIMAL(10,2)   NOT NULL,        -- Tarifa base del profesional
+    TarifaPlataforma    DECIMAL(10,2)   NOT NULL DEFAULT 5000,  -- Tarifa fija $5.000 COP
+    MetodoPago          NVARCHAR(25)    NOT NULL,
+    Estado              NVARCHAR(15)    NOT NULL DEFAULT 'Pendiente',
+    ReferenciaPassarela NVARCHAR(200)   NULL,
+    FechaPago           DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+    FechaModificacion   DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_PagoCita              PRIMARY KEY (PagoCitaId),
+    CONSTRAINT FK_PagoCita_Cita         FOREIGN KEY (CitaId) REFERENCES Cita(CitaId),
+    CONSTRAINT CK_PagoCita_MetodoPago   CHECK (MetodoPago IN (
+        'TarjetaCredito', 'TarjetaDebito', 'PSE', 'Efecty'
+    )),
+    CONSTRAINT CK_PagoCita_Estado       CHECK (Estado IN ('Pendiente', 'Aprobado', 'Rechazado')),
+    CONSTRAINT CK_PagoCita_Monto        CHECK (Monto > 0)
 );
 ```
 
@@ -607,12 +652,15 @@ CREATE TABLE ComentarioProfesional (
     ProfesionalId   INT             NOT NULL,
     UsuarioId       INT             NOT NULL,
     Texto           NVARCHAR(MAX)   NOT NULL,
+    Puntuacion      TINYINT         NULL,           -- Estrellas 1–5; NULL si el usuario comenta sin valorar
     Estado          BIT             NOT NULL DEFAULT 1,
     FechaCreacion   DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+    FechaModificacion DATETIME2(0)  NOT NULL DEFAULT GETDATE(),
 
     CONSTRAINT PK_ComentarioProfesional         PRIMARY KEY (ComentarioId),
     CONSTRAINT FK_ComentProf_Profesional        FOREIGN KEY (ProfesionalId) REFERENCES Profesional(ProfesionalId),
-    CONSTRAINT FK_ComentProf_Usuario            FOREIGN KEY (UsuarioId)     REFERENCES Usuario(UsuarioId)
+    CONSTRAINT FK_ComentProf_Usuario            FOREIGN KEY (UsuarioId)     REFERENCES Usuario(UsuarioId),
+    CONSTRAINT CK_ComentProf_Puntuacion         CHECK (Puntuacion IS NULL OR Puntuacion BETWEEN 1 AND 5)
 );
 ```
 
@@ -629,6 +677,88 @@ CREATE TABLE RespuestaComentario (
     CONSTRAINT PK_RespuestaComentario        PRIMARY KEY (RespuestaId),
     CONSTRAINT FK_Respuesta_Comentario       FOREIGN KEY (ComentarioId)  REFERENCES ComentarioProfesional(ComentarioId),
     CONSTRAINT FK_Respuesta_Profesional      FOREIGN KEY (ProfesionalId) REFERENCES Profesional(ProfesionalId)
+);
+```
+
+### 8.5 Conversacion
+
+> Canal de mensajería privada entre un Usuario y un Profesional. Cada par tiene exactamente una conversación (split-panel en `mensajes-usuario.html` y `mensajes-profesional.html`).
+
+```sql
+CREATE TABLE Conversacion (
+    ConversacionId  INT          IDENTITY(1,1) NOT NULL,
+    UsuarioId       INT          NOT NULL,
+    ProfesionalId   INT          NOT NULL,
+    FechaCreacion   DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_Conversacion           PRIMARY KEY (ConversacionId),
+    CONSTRAINT UQ_Conversacion_Relacion  UNIQUE (UsuarioId, ProfesionalId),
+    CONSTRAINT FK_Conv_Usuario           FOREIGN KEY (UsuarioId)     REFERENCES Usuario(UsuarioId),
+    CONSTRAINT FK_Conv_Profesional       FOREIGN KEY (ProfesionalId) REFERENCES Profesional(ProfesionalId)
+);
+```
+
+### 8.6 MensajePrivado
+
+> Mensaje individual dentro de una conversación privada. El profesional siempre ve el alias del usuario; nunca su nombre real.
+
+```sql
+CREATE TABLE MensajePrivado (
+    MensajePrivadoId    INT             IDENTITY(1,1) NOT NULL,
+    ConversacionId      INT             NOT NULL,
+    AutorId             INT             NOT NULL,
+    TipoAutor           NVARCHAR(15)    NOT NULL,       -- 'Usuario', 'Profesional'
+    Texto               NVARCHAR(MAX)   NOT NULL,
+    Leido               BIT             NOT NULL DEFAULT 0,
+    FechaCreacion       DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_MensajePrivado         PRIMARY KEY (MensajePrivadoId),
+    CONSTRAINT FK_MsgPriv_Conversacion   FOREIGN KEY (ConversacionId) REFERENCES Conversacion(ConversacionId),
+    CONSTRAINT CK_MsgPriv_TipoAutor      CHECK (TipoAutor IN ('Usuario', 'Profesional'))
+);
+```
+
+### 8.7 ColaboracionProfesional
+
+> Vinculación entre dos profesionales (sección **Mis Colegas**). Permite visualizar estado de conexión (En línea / En consulta / Desconectado) y gestionar derivaciones.
+
+```sql
+CREATE TABLE ColaboracionProfesional (
+    ColaboracionId  INT             IDENTITY(1,1) NOT NULL,
+    ProfesionalId1  INT             NOT NULL,
+    ProfesionalId2  INT             NOT NULL,
+    Estado          NVARCHAR(20)    NOT NULL DEFAULT 'Pendiente',  -- 'Activa', 'Pendiente', 'Inactiva'
+    FechaCreacion   DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+    FechaModificacion DATETIME2(0)  NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_ColaboracionProfesional    PRIMARY KEY (ColaboracionId),
+    CONSTRAINT UQ_Colaboracion_Relacion      UNIQUE (ProfesionalId1, ProfesionalId2),
+    CONSTRAINT FK_Colab_Prof1                FOREIGN KEY (ProfesionalId1) REFERENCES Profesional(ProfesionalId),
+    CONSTRAINT FK_Colab_Prof2                FOREIGN KEY (ProfesionalId2) REFERENCES Profesional(ProfesionalId),
+    CONSTRAINT CK_Colab_Estado               CHECK (Estado IN ('Activa', 'Pendiente', 'Inactiva')),
+    CONSTRAINT CK_Colab_DiferenteProfesional CHECK (ProfesionalId1 <> ProfesionalId2)
+);
+```
+
+### 8.8 Notificacion
+
+> Notificaciones del sistema para el Administrador. Generadas automáticamente al registrarse un nuevo profesional; también soporta alertas de sistema.
+
+```sql
+CREATE TABLE Notificacion (
+    NotificacionId  INT             IDENTITY(1,1) NOT NULL,
+    Tipo            NVARCHAR(30)    NOT NULL,       -- 'RegistroProfesional', 'Sistema'
+    EntidadId       INT             NULL,           -- ProfesionalId si Tipo = 'RegistroProfesional'
+    Titulo          NVARCHAR(300)   NOT NULL,
+    Descripcion     NVARCHAR(MAX)   NULL,
+    Estado          NVARCHAR(15)    NOT NULL DEFAULT 'Pendiente',  -- 'Pendiente', 'Aprobada', 'Rechazada', 'Leida'
+    Leida           BIT             NOT NULL DEFAULT 0,
+    FechaCreacion   DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+    FechaModificacion DATETIME2(0)  NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_Notificacion  PRIMARY KEY (NotificacionId),
+    CONSTRAINT CK_Notif_Tipo    CHECK (Tipo IN ('RegistroProfesional', 'Sistema')),
+    CONSTRAINT CK_Notif_Estado  CHECK (Estado IN ('Pendiente', 'Aprobada', 'Rechazada', 'Leida'))
 );
 ```
 
@@ -650,7 +780,7 @@ CREATE TABLE Sesion (
 
     CONSTRAINT PK_Sesion        PRIMARY KEY (SesionId),
     CONSTRAINT UQ_Sesion_Token  UNIQUE (Token),
-    CONSTRAINT CK_Sesion_Tipo   CHECK (TipoEntidad IN ('Usuario', 'Profesional')),
+    CONSTRAINT CK_Sesion_Tipo   CHECK (TipoEntidad IN ('Usuario', 'Profesional', 'Admin')),
     CONSTRAINT CK_Sesion_Estado CHECK (Estado IN ('Activa', 'Expirada', 'Cerrada'))
 );
 ```
@@ -675,14 +805,15 @@ CREATE TABLE Configuracion (
 
 -- Datos iniciales requeridos
 INSERT INTO Configuracion (Clave, Valor, Descripcion) VALUES
-    ('ProfesionalDestacadoId',  '0',    'ID del profesional destacado en el Landing Page'),
-    ('ComisionPlataforma',      '15',   'Porcentaje de comisión retenido por la plataforma'),
-    ('PaginacionDefault',       '10',   'Número de registros por página en listados'),
-    ('TokenValidacionHoras',    '1',    'Horas de vigencia del token de validación de usuario'),
-    ('TokenActivacionHoras',    '24',   'Horas de vigencia del token de activación de profesional'),
-    ('TokenRecuperacionHoras',  '1',    'Horas de vigencia del token de recuperación de contraseña'),
-    ('CorreoAdministrador',     '',     'Correo del administrador para recibir solicitudes de profesionales'),
-    ('TamanioMaximoPdfMB',      '5',    'Tamaño máximo permitido para archivos PDF en MB');
+    ('ProfesionalDestacadoId',  '0',      'ID del profesional destacado en el ticker del Landing Page'),
+    ('TarifaFijaCita',          '5000',   'Tarifa fija en COP cobrada por la plataforma en cada pago de cita privada'),
+    ('ComisionPlataforma',      '15',     'Porcentaje de comisión retenido por la plataforma sobre pagos de eventos'),
+    ('PaginacionDefault',       '10',     'Número de registros por página en listados'),
+    ('TokenValidacionHoras',    '1',      'Horas de vigencia del token de validación de usuario'),
+    ('TokenActivacionHoras',    '24',     'Horas de vigencia del token de activación de profesional'),
+    ('TokenRecuperacionHoras',  '1',      'Horas de vigencia del token de recuperación de contraseña'),
+    ('CorreoAdministrador',     '',       'Correo del administrador para recibir solicitudes de profesionales'),
+    ('TamanioMaximoPdfMB',      '5',      'Tamaño máximo permitido para archivos PDF en MB');
 ```
 
 ---
@@ -746,6 +877,25 @@ CREATE INDEX IX_MensajeEvento_EventoId ON MensajeEvento(EventoId);
 
 -- Comentarios profesional
 CREATE INDEX IX_ComentProf_ProfesionalId ON ComentarioProfesional(ProfesionalId);
+
+-- Mensajería privada
+CREATE INDEX IX_Conversacion_UsuarioId       ON Conversacion(UsuarioId);
+CREATE INDEX IX_Conversacion_ProfesionalId   ON Conversacion(ProfesionalId);
+CREATE INDEX IX_MensajePrivado_Conversacion  ON MensajePrivado(ConversacionId);
+CREATE INDEX IX_MensajePrivado_Leido         ON MensajePrivado(Leido);
+
+-- Colaboración entre profesionales
+CREATE INDEX IX_Colaboracion_Prof1   ON ColaboracionProfesional(ProfesionalId1);
+CREATE INDEX IX_Colaboracion_Prof2   ON ColaboracionProfesional(ProfesionalId2);
+CREATE INDEX IX_Colaboracion_Estado  ON ColaboracionProfesional(Estado);
+
+-- PagoCita
+CREATE INDEX IX_PagoCita_CitaId  ON PagoCita(CitaId);
+CREATE INDEX IX_PagoCita_Estado  ON PagoCita(Estado);
+
+-- Notificaciones
+CREATE INDEX IX_Notificacion_Estado ON Notificacion(Estado);
+CREATE INDEX IX_Notificacion_Leida  ON Notificacion(Leida);
 ```
 
 ---
@@ -909,6 +1059,70 @@ SELECT
     )                               AS TotalMeGusta
 FROM Profesional p
 WHERE p.Estado = 'ACTIVO';
+```
+
+### 12.6 vw_DirectorioProfesionales
+
+> Directorio completo de profesionales activos con métricas de popularidad y calificación. Usada en **Especialistas**, **Psícologos** y **Mis Mentores**.
+
+```sql
+CREATE VIEW vw_DirectorioProfesionales AS
+SELECT
+    p.ProfesionalId,
+    p.NombreCompleto,
+    ISNULL(p.Alias, p.NombreCompleto)   AS NombreVisible,
+    p.FotoPerfil,
+    p.AnosExperiencia,
+    p.ValorPorHora,
+    p.SobreMi,
+    ci.Nombre                           AS Ciudad,
+    pa.Nombre                           AS Pais,
+    p.Estado,
+    (
+        SELECT COUNT(*) FROM Seguidor s
+        WHERE s.ProfesionalId = p.ProfesionalId
+    )                                   AS TotalSeguidores,
+    (
+        SELECT AVG(CAST(c.Puntuacion AS FLOAT))
+        FROM ComentarioProfesional c
+        WHERE c.ProfesionalId = p.ProfesionalId
+          AND c.Puntuacion IS NOT NULL
+          AND c.Estado = 1
+    )                                   AS PromedioCalificacion,
+    (
+        SELECT COUNT(*)
+        FROM ComentarioProfesional c
+        WHERE c.ProfesionalId = p.ProfesionalId
+          AND c.Puntuacion IS NOT NULL
+          AND c.Estado = 1
+    )                                   AS TotalCalificaciones
+FROM Profesional p
+LEFT JOIN Ciudad ci ON ci.CiudadId = p.CiudadId
+LEFT JOIN Pais   pa ON pa.PaisId   = p.PaisId
+WHERE p.Estado = 'ACTIVO';
+```
+
+### 12.7 vw_CalificacionResumenProfesional
+
+> Resumen estadístico de calificaciones por profesional. Usada en la pestaña **Comentarios** del perfil orador para mostrar el score y las barras de distribución.
+
+```sql
+CREATE VIEW vw_CalificacionResumenProfesional AS
+SELECT
+    p.ProfesionalId,
+    COUNT(c.ComentarioId)                               AS TotalCalificaciones,
+    ROUND(AVG(CAST(c.Puntuacion AS FLOAT)), 1)          AS Promedio,
+    SUM(CASE WHEN c.Puntuacion = 5 THEN 1 ELSE 0 END)  AS Estrellas5,
+    SUM(CASE WHEN c.Puntuacion = 4 THEN 1 ELSE 0 END)  AS Estrellas4,
+    SUM(CASE WHEN c.Puntuacion = 3 THEN 1 ELSE 0 END)  AS Estrellas3,
+    SUM(CASE WHEN c.Puntuacion = 2 THEN 1 ELSE 0 END)  AS Estrellas2,
+    SUM(CASE WHEN c.Puntuacion = 1 THEN 1 ELSE 0 END)  AS Estrellas1
+FROM Profesional p
+LEFT JOIN ComentarioProfesional c
+    ON  c.ProfesionalId = p.ProfesionalId
+    AND c.Puntuacion IS NOT NULL
+    AND c.Estado = 1
+GROUP BY p.ProfesionalId;
 ```
 
 ---
@@ -1163,6 +1377,20 @@ BEGIN
     IF @EntidadId IS NOT NULL
     BEGIN
         SET @TipoEntidad = 'Profesional';
+        SET @Resultado   = 'OK';
+        RETURN;
+    END
+
+    -- Buscar en Administradores
+    SELECT @EntidadId = AdministradorId
+    FROM Administrador
+    WHERE Correo       = @Correo
+      AND PasswordHash = @PasswordHash
+      AND Estado       = 1;
+
+    IF @EntidadId IS NOT NULL
+    BEGIN
+        SET @TipoEntidad = 'Admin';
         SET @Resultado   = 'OK';
         RETURN;
     END
@@ -1570,6 +1798,118 @@ BEGIN
 END;
 ```
 
+### 13.13 sp_EnviarMensajePrivado
+
+```sql
+CREATE PROCEDURE sp_EnviarMensajePrivado
+    @AutorId        INT,
+    @TipoAutor      NVARCHAR(15),   -- 'Usuario', 'Profesional'
+    @DestinoId      INT,
+    @Texto          NVARCHAR(MAX),
+    @MensajeId      INT OUTPUT,
+    @Resultado      NVARCHAR(50) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @ConversacionId INT;
+    DECLARE @UsuarioId      INT;
+    DECLARE @ProfesionalId  INT;
+
+    IF @TipoAutor = 'Usuario'
+    BEGIN
+        SET @UsuarioId     = @AutorId;
+        SET @ProfesionalId = @DestinoId;
+    END
+    ELSE
+    BEGIN
+        SET @UsuarioId     = @DestinoId;
+        SET @ProfesionalId = @AutorId;
+    END
+
+    -- Obtener o crear la conversación
+    SELECT @ConversacionId = ConversacionId
+    FROM Conversacion
+    WHERE UsuarioId = @UsuarioId AND ProfesionalId = @ProfesionalId;
+
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        IF @ConversacionId IS NULL
+        BEGIN
+            INSERT INTO Conversacion (UsuarioId, ProfesionalId)
+            VALUES (@UsuarioId, @ProfesionalId);
+            SET @ConversacionId = SCOPE_IDENTITY();
+        END
+
+        INSERT INTO MensajePrivado (ConversacionId, AutorId, TipoAutor, Texto)
+        VALUES (@ConversacionId, @AutorId, @TipoAutor, @Texto);
+
+        SET @MensajeId = SCOPE_IDENTITY();
+        SET @Resultado = 'OK';
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        SET @Resultado = 'ERROR';
+        THROW;
+    END CATCH
+END;
+```
+
+### 13.14 sp_ObtenerDirectorioProfesionales
+
+```sql
+CREATE PROCEDURE sp_ObtenerDirectorioProfesionales
+    @Busqueda           NVARCHAR(200)   = NULL,
+    @CiudadId           INT             = NULL,
+    @EspecialidadId     INT             = NULL,
+    @OrdenPor           NVARCHAR(20)    = 'Popular',  -- 'Popular', 'AZ', 'Reciente', 'Tarifa'
+    @Pagina             INT             = 1,
+    @RegistrosPorPagina INT             = 10
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @Offset INT = (@Pagina - 1) * @RegistrosPorPagina;
+
+    SELECT
+        d.ProfesionalId,
+        d.NombreVisible,
+        d.FotoPerfil,
+        d.AnosExperiencia,
+        d.ValorPorHora,
+        d.SobreMi,
+        d.Ciudad,
+        d.Pais,
+        d.TotalSeguidores,
+        d.PromedioCalificacion,
+        d.TotalCalificaciones,
+        STRING_AGG(e.Nombre, ', ')  AS Especialidades
+    FROM vw_DirectorioProfesionales d
+    LEFT JOIN ProfesionalEspecialidad pe ON pe.ProfesionalId = d.ProfesionalId
+    LEFT JOIN Especialidad e             ON e.EspecialidadId  = pe.EspecialidadId
+    WHERE
+        (@Busqueda IS NULL OR
+             d.NombreVisible LIKE '%' + @Busqueda + '%' OR
+             d.SobreMi       LIKE '%' + @Busqueda + '%')
+        AND (@CiudadId      IS NULL OR d.ProfesionalId IN (
+            SELECT ProfesionalId FROM Profesional WHERE CiudadId = @CiudadId))
+        AND (@EspecialidadId IS NULL OR d.ProfesionalId IN (
+            SELECT ProfesionalId FROM ProfesionalEspecialidad WHERE EspecialidadId = @EspecialidadId))
+    GROUP BY
+        d.ProfesionalId, d.NombreVisible, d.FotoPerfil,
+        d.AnosExperiencia, d.ValorPorHora, d.SobreMi,
+        d.Ciudad, d.Pais, d.TotalSeguidores,
+        d.PromedioCalificacion, d.TotalCalificaciones
+    ORDER BY
+        CASE WHEN @OrdenPor = 'Popular'  THEN d.TotalSeguidores    END DESC,
+        CASE WHEN @OrdenPor = 'AZ'       THEN d.NombreVisible       END ASC,
+        CASE WHEN @OrdenPor = 'Tarifa'   THEN d.ValorPorHora        END ASC,
+        CASE WHEN @OrdenPor = 'Reciente' THEN d.ProfesionalId       END DESC
+    OFFSET @Offset ROWS FETCH NEXT @RegistrosPorPagina ROWS ONLY;
+END;
+```
+
 ---
 
 ## Diagrama de Relaciones (Resumen)
@@ -1615,4 +1955,4 @@ Sesion   ──► (Usuario | Profesional) por TipoEntidad
 
 ---
 
-*Documento refinado v1 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*
+*Documento refinado v2 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*

@@ -1,6 +1,6 @@
-# Vista de Citas — Perfil Profesional — Proyecto Trébol
+# Gestión de Citas — Profesional — Proyecto Trébol
 
-> **Versión:** 1.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
+> **Versión:** 2.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
 > **Tecnología:** .NET Core 10 | **Plataforma:** Web MVC | **Base de datos:** SQL Server
 > **Fase:** 3 — Herramientas del Profesional | **Apetito:** 1–2 semanas
 
@@ -8,14 +8,14 @@
 
 ## 1. Problema
 
-El profesional necesita una vista completa durante la cita en vivo que le permita monitorear al paciente (indicador de conexión), gestionar los controles de sesión, registrar recomendaciones clínicas, acceder al historial del paciente y mover la cita si es necesario.
+El profesional necesita una vista dedicada para gestionar todas sus citas privadas: ver las próximas y el historial, filtrar por estado y tipo, confirmar o cancelar citas pendientes, agendar nuevas citas, e ingresar a una sala activa directamente desde la lista.
 
 ---
 
 ## 2. Apetito
 
 **1 a 2 semanas.**
-Vista de cita activa con indicador de usuario conectado, controles de sesión, contador de duración, registro de recomendaciones clínicas, historial clínico (en citas de seguimiento) y opción de mover la cita.
+Vista de gestión de citas con resumen operativo del día, tabla filtrable, tabs Próximas/Historial, modal de detalle de cita, modal de nueva cita e ingreso directo a sala activa.
 
 ---
 
@@ -23,50 +23,100 @@ Vista de cita activa con indicador de usuario conectado, controles de sesión, c
 
 ### ✅ Dentro del scope
 
-- Indicador de usuario en línea (visible cuando el usuario se conecta)
-- Control de cámara: abrir/cerrar
-- Control de audio: abrir/cerrar
-- Contador de duración de la sesión (inicia cuando comienza la cita)
-- Registro, edición y visualización de recomendaciones clínicas con fecha y hora automática
-- Acceso al historial clínico del paciente (solo en citas de seguimiento)
-- Botón cerrar sesión (con confirmación en **modal**)
-- Botón mover cita (con calendario de espacios disponibles)
+- Franja de 4 métricas: Citas hoy / Esta semana / Pendientes de confirmar / Completadas del mes
+- Barra de filtros: búsqueda por nombre de paciente, filtro estado, filtro tipo
+- Pestañas internas: Próximas | Historial
+- Tabla de citas con columnas: Paciente · Tipo · Fecha · Hora · Duración · Estado · Acciones
+- Acción "Ingresar" (citas activas o del día) → navega a `sala-profesional.html`
+- Acción "Ver" → abre modal detalle
+- Acción "Confirmar" (citas pendientes) con spinner y actualización inline del badge
+- Acción "Cancelar" con modal de confirmación y notificación automática al paciente
+- Modal "Detalle de cita": todos los datos de la cita + botón "Ingresar a cita"
+- Modal "Nueva cita": campos completos para agendar manualmente
+- Badge especial "Hoy" en citas del día actual
 
 ### ❌ Fuera del scope (No-Gos)
 
-- Grabación de la sesión (fuera del scope por razones éticas y legales)
-- Facturación o cobro durante la cita (corresponde al módulo financiero)
-- Derivación a otro especialista (corresponde al módulo de derivaciones)
-- Chat de texto completo (solo comunicación por controles básicos en esta vista)
+- Sala de videollamada en vivo (corresponde a `SalaProfesional-refinado.md`)
+- Cobro o procesamiento de pagos durante la cita
+- Derivación a otro especialista (módulo independiente)
+- Notas clínicas dentro de la lista (se gestionan en la sala)
 
 ---
 
 ## 4. Solución Visible
 
-### Área principal de la cita
+### Franja de métricas (stats strip)
+
+| Indicador | Descripción |
+|---|---|
+| Citas hoy | Número de citas programadas para el día actual |
+| Esta semana | Total de citas de la semana en curso |
+| Pendientes de confirmar | Citas con estado Pendiente que requieren acción del profesional |
+| Completadas (mes) | Citas finalizadas en el mes actual |
+
+### Barra de filtros y acciones
 
 | Elemento | Descripción |
 |---|---|
-| Vista del usuario | Cámara del paciente en la pantalla principal |
-| Vista propia del profesional | Ventana pequeña con la cámara del profesional |
-| Indicador de usuario en línea | Muestra si el paciente está conectado a la sesión |
-| Contador de duración | Inicia automáticamente al comenzar la cita (`HH:MM:SS`) |
+| Búsqueda por paciente | Campo de texto; filtra por nombre o alias del paciente en tiempo real |
+| Filtro Estado | Select: Confirmada / Pendiente / Completada / Cancelada |
+| Filtro Tipo | Select: Asesoría / Seguimiento / Sala pública |
+| Botón "+ Nueva cita" | Abre el modal de creación de cita |
 
-### Barra de controles
+### Pestañas internas
 
-| Control | Descripción |
+| Tab | Contenido |
 |---|---|
-| Abrir / Cerrar cámara | El profesional activa o desactiva su transmisión de video |
-| Abrir / Cerrar audio | El profesional habilita o silencia su micrófono |
-| Cerrar sesión | Abre **modal de confirmación** antes de finalizar la cita |
-| Mover cita | Abre el calendario del profesional mostrando solo los espacios disponibles |
+| 📆 Próximas | Citas con estado Confirmada o Pendiente |
+| 🗂 Historial | Citas con estado Completada o Cancelada |
 
-### Panel lateral — información clínica
+### Tabla — Columnas
 
-| Sección | Descripción |
+| Columna | Descripción |
 |---|---|
-| Recomendaciones | Campo editable para crear/editar notas clínicas de la sesión; el sistema registra automáticamente la fecha y hora de cada entrada |
-| Historial clínico | Disponible únicamente en **citas de seguimiento** (no en asesorías puntuales); muestra el historial del paciente |
+| Paciente | Alias protegido del paciente (nunca nombre real) |
+| Tipo | Asesoría / Seguimiento / Primera consulta / Sala pública |
+| Fecha | `DD MMM YYYY` |
+| Hora | `H[MM]AM/PM` |
+| Duración | Minutos acordados (30 / 50 / 60 / 90 min) |
+| Estado | Badge de color: Confirmada (verde) / Pendiente (amarillo) / Completada (gris) / Cancelada (rojo) / Hoy (verde brillante) |
+| Acciones | Botones contextuales según estado |
+
+### Botones de acción por estado de cita
+
+| Estado | Acciones disponibles |
+|---|---|
+| Confirmada (hoy) | [Ingresar] → sala-profesional.html · [Ver] |
+| Confirmada (futura) | [Ver] |
+| Pendiente | [Confirmar] · [Cancelar] · [Ver] |
+| Completada | [Ver nota] |
+| Cancelada | — |
+
+### Modal — Detalle de cita
+
+| Campo | Descripción |
+|---|---|
+| Paciente | Alias |
+| Tipo | Asesoría / Seguimiento / Primera consulta |
+| Fecha y hora | Formato completo |
+| Duración | En minutos |
+| Modalidad | Videollamada / Presencial |
+| Notas previas | Texto clínico introductorio visible solo para el profesional |
+| Footer del modal | [Cerrar] [Ingresar a cita → sala-profesional.html] |
+
+### Modal — Nueva cita
+
+| Campo | Requerido | Descripción |
+|---|---|---|
+| Paciente | Sí | Alias o correo del paciente |
+| Tipo | Sí | Asesoría / Seguimiento / Primera consulta |
+| Modalidad | Sí | Videollamada / Presencial |
+| Fecha | Sí | Date picker |
+| Hora | Sí | Time picker |
+| Duración | Sí | 30 / 50 / 60 / 90 min |
+| Notas para el paciente | No | Texto de hasta 500 chars |
+| Footer | — | [Cancelar] [Agendar] con loading 1.2s y toast de éxito |
 
 ---
 
@@ -74,23 +124,23 @@ Vista de cita activa con indicador de usuario conectado, controles de sesión, c
 
 | Acción | Resultado |
 |---|---|
-| Ver indicador de usuario en línea | Confirma que el paciente está conectado antes de iniciar |
-| Abrir / Cerrar cámara | Activa o detiene la transmisión de video propia |
-| Abrir / Cerrar audio | Habilita o silencia el micrófono |
-| Crear recomendación | El sistema guarda el texto con fecha y hora automática |
-| Editar recomendación existente | El sistema actualiza el registro con nueva fecha/hora de modificación |
-| Ver historial clínico | Solo disponible en citas de seguimiento; muestra el historial del paciente |
-| Hacer clic en "Cerrar sesión" | Abre modal de confirmación; al confirmar, la cita se marca como finalizada |
-| Hacer clic en "Mover cita" | Abre el calendario del profesional con solo los espacios disponibles para elegir nueva fecha/hora |
+| Filtrar por paciente | La tabla filtra en tiempo real por alias/nombre |
+| Filtrar por estado/tipo | La tabla muestra solo las citas que coinciden |
+| Cambiar entre tabs | Alterna entre vista Próximas e Historial |
+| Confirmar cita pendiente | Botón muestra spinner → badge cambia a "Confirmada" → paciente recibe notificación |
+| Cancelar cita | `showConfirm()` → al confirmar, estado pasa a Cancelada + notificación al paciente |
+| Ver detalle | Se abre modal con toda la información de la cita |
+| Ingresar a cita | Navega a `sala-profesional.html` con el contexto de la cita |
+| Crear nueva cita | Llena el modal → loading 1.2s → toast éxito + notificación al paciente |
 
 ---
 
 ## 6. Restricciones
 
-- El historial clínico **solo está disponible en citas de tipo seguimiento**; en asesorías puntuales no se muestra.
-- El profesional **no puede** cerrar la sesión sin pasar por el **modal de confirmación**.
-- El calendario para mover la cita muestra **únicamente los espacios disponibles** del profesional (sin horarios bloqueados ni ya ocupados).
-- Las recomendaciones registradas durante la sesión son **visibles solo para el profesional y el usuario de esa cita** (el usuario las ve en modo lectura).
+- Los pacientes se muestran siempre por **alias** (nunca nombre real), garantizando privacidad.
+- El botón "Ingresar" solo aparece para citas del **día actual** con estado Confirmada.
+- El cancelar una cita siempre pasa por `showConfirm()` antes de ejecutar la acción.
+- La acción "Confirmar" deshabilita el botón durante el procesamiento para evitar doble envío.
 
 ---
 
@@ -98,13 +148,13 @@ Vista de cita activa con indicador de usuario conectado, controles de sesión, c
 
 | Regla | Detalle |
 |---|---|
-| Contador de duración | Inicia automáticamente cuando la cita comienza; se detiene al cerrar la sesión |
-| Fecha/hora de recomendaciones | El sistema las registra automáticamente en el momento de la creación o edición |
-| Historial clínico | Solo accesible en citas de tipo **Seguimiento**; bloqueado en **Asesorías** |
-| Mover cita | Requiere autorización del usuario; si no acepta, se negocia o se realiza devolución del dinero (flujo fuera de este scope) |
-| Cerrar sesión | Siempre con confirmación en **modal** para evitar cierres accidentales |
+| Badge "Hoy" | Se aplica a la cita cuya fecha coincide con la fecha actual del servidor |
+| Cancelación | Genera notificación automática al paciente |
+| Confirmación | Cambia estado de Pendiente → Confirmada en tiempo real |
+| Privacidad de alias | El profesional ve siempre alias (ej: "Luna Verde", "Anónimo #7") |
 | Formato de fechas | `DD MMM YYYY` |
 | Formato de horas | `H[MM]AM/PM` |
+| Sala pública en citas | Aparece en tabla como tipo "Sala pública"; botón "Ingresar" lleva a `sala-conferencia-profesional.html` |
 
 ---
 
@@ -112,10 +162,9 @@ Vista de cita activa con indicador de usuario conectado, controles de sesión, c
 
 | Riesgo | Mitigación |
 |---|---|
-| Cierre accidental de la sesión | Modal de confirmación obligatorio antes de finalizar |
-| Recomendaciones perdidas si se cierra sin guardar | Autosave de recomendaciones al escribir |
-| Conexión inestable del profesional | Mostrar indicador de estado de conexión; soportar reconexión automática |
-| El usuario no acepta mover la cita | Definir en el módulo de gestión de citas el flujo de negociación o devolución |
+| Cancelación accidental | Modal de confirmación obligatorio |
+| Doble confirmación de cita | Botón se deshabilita durante el procesamiento |
+| Cita no encontrada por filtros | Mostrar estado vacío claro con opción de limpiar filtros |
 
 ---
 
@@ -123,13 +172,10 @@ Vista de cita activa con indicador de usuario conectado, controles de sesión, c
 
 | Dato | Tabla / Campo |
 |---|---|
-| Datos de la cita | `Citas` (CitaId, UsuarioId, ProfesionalId, FechaHora, Estado, Tipo) |
-| Estado del usuario (en línea) | Control en tiempo real vía WebSocket o señalización del servidor |
-| Duración de la sesión | Calculada en tiempo real: Ahora - FechaHoraInicio |
-| Recomendaciones | `Recomendaciones` (CitaId, ProfesionalId, Texto, FechaCreacion, FechaModificacion) |
-| Historial clínico | `HistorialClinico` (UsuarioId, ProfesionalId) — solo tipo Seguimiento |
-| Horarios disponibles para mover | `HorariosDisponibles` (ProfesionalId, Estado = Disponible) |
-| Tipo de cita | `Citas.Tipo` (Seguimiento / Asesoria) |
+| Lista de citas | `Citas` (CitaId, ProfesionalId, UsuarioId, Fecha, Hora, Tipo, Modalidad, Estado, Duracion) |
+| Alias del paciente | `Usuarios.Alias` |
+| Notas de cita | `NotasCita` (CitaId, ProfesionalId, Texto) |
+| Métricas del día/semana/mes | Calculadas con `COUNT` por `ProfesionalId` + rango de fechas |
 
 ---
 
@@ -137,13 +183,13 @@ Vista de cita activa con indicador de usuario conectado, controles de sesión, c
 
 | Métrica | Criterio |
 |---|---|
-| Indicador de usuario funcional | El indicador refleja correctamente si el usuario está conectado |
-| Contador de duración preciso | El contador inicia al comenzar la cita y se detiene al cerrarla |
-| Recomendaciones guardadas | Las notas se persisten con fecha/hora automática |
-| Historial clínico restringido | Solo se muestra en citas de tipo Seguimiento |
-| Cerrar sesión con confirmación | Nunca se cierra la sesión sin pasar por el modal de confirmación |
-| Mover cita funcional | El calendario muestra solo espacios disponibles del profesional |
+| Filtros funcionales | Búsqueda y filtros retornan resultados correctos en tiempo real |
+| Badge "Hoy" correcto | Solo aparece en citas cuya fecha = fecha actual |
+| Confirmación sin doble envío | El botón queda deshabilitado durante el loading |
+| Cancelación con notificación | El paciente recibe notificación automática tras cancelar |
+| Modal de detalle completo | Muestra todos los campos definidos sin datos vacíos |
 
 ---
 
-*Documento refinado v1 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*
+*Documento refinado v2 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*
+

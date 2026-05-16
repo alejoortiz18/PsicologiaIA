@@ -1,8 +1,227 @@
 # Registro de Profesional — Proyecto Trébol
 
-> **Versión:** 1.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
+> **Versión:** 2.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
 > **Tecnología:** .NET Core 10 | **Plataforma:** Web MVC | **Base de datos:** SQL Server
 > **Fase:** 1 — Público | **Apetito:** 1–2 semanas
+
+---
+
+## 1. Problema
+
+Los psicólogos y terapeutas certificados necesitan registrarse con un proceso de validación riguroso que garantice la autenticidad de su identidad y habilitación profesional ante COLPSIC, antes de poder ofrecer servicios en la plataforma.
+
+---
+
+## 2. Apetito
+
+**1 a 2 semanas.**
+Formulario con 3 secciones (datos personales + datos profesionales + documentos adjuntos), drag & drop de PDFs (máx. 5 MB), nota de espera de 3–5 días, modal de éxito → estado "Pendiente".
+
+---
+
+## 3. Límites
+
+### ✅ Dentro del scope
+
+- **Sección 1 — Información personal:** nombre, email, cédula, celular
+- **Sección 2 — Información profesional:** N° tarjeta COLPSIC
+- **Sección 3 — Documentos:** PDF cédula + PDF tarjeta profesional (drag & drop, máx. 5 MB c/u)
+- Validación de unicidad: correo, documento, N° tarjeta COLPSIC
+- Nota de aprobación: "La aprobación toma 3 a 5 días hábiles"
+- Modal de éxito al enviar: "¡Solicitud enviada!" → estado "Pendiente de aprobación"
+- Creación de cuenta en estado **PENDIENTE DE VALIDACIÓN**
+- Notificación al administrador con los documentos adjuntos
+- Flujo de activación por token tras aprobación del admin (vigencia: **1 día**)
+
+### ❌ Fuera del scope (No-Gos)
+
+- Panel Admin para gestión de validaciones (módulo Admin)
+- Completar perfil extendido — módulo de Perfil Profesional
+- Registro con redes sociales
+
+---
+
+## 4. Solución Visible
+
+### Sección 1 — Información personal
+
+| Campo | Obligatorio | Notas |
+|---|---|---|
+| Nombre completo | Sí | Nombre y apellidos |
+| Correo electrónico | Sí | Único; usado como identificador de acceso |
+| N° de cédula de identidad | Sí | Único en la plataforma |
+| Número de celular | Sí | Con código de país |
+
+### Sección 2 — Información profesional
+
+| Campo | Obligatorio | Notas |
+|---|---|---|
+| N° tarjeta profesional COLPSIC | Sí | Único; será verificado automáticamente contra COLPSIC |
+
+> Nota visible: *"Tu número de tarjeta profesional será verificado ante el Colegio Colombiano de Psicólogos (COLPSIC)."*
+
+### Sección 3 — Documentos adjuntos
+
+| Documento | Obligatorio | Formato | Tamaño máximo |
+|---|---|---|---|
+| Copia PDF de cédula de identidad | Sí | Solo PDF | 5 MB |
+| Copia PDF de tarjeta profesional COLPSIC | Sí | Solo PDF | 5 MB |
+
+#### Zona de carga (drag & drop)
+
+| Elemento | Descripción |
+|---|---|
+| Área de arrastre | Zona punteada con ícono 📎 y texto "Arrastra tu archivo PDF aquí o [haz clic para seleccionar]" |
+| Vista previa al cargar | Nombre del archivo + tamaño + ícono ✓ verde |
+| Botón eliminar | ✕ junto al archivo cargado para reemplazarlo |
+| Validación de tipo | Solo acepta `.pdf`; muestra error si se sube otro formato |
+| Validación de tamaño | Máx. 5 MB; muestra error si supera el límite |
+
+### Nota de aprobación (banner informativo)
+
+```
+ℹ️ El proceso de revisión y aprobación de tu solicitud toma entre 3 y 5 días hábiles.
+   Recibirás una notificación por correo con el resultado.
+```
+
+### Botones del formulario
+
+| Elemento | Descripción |
+|---|---|
+| Botón **[Enviar solicitud]** | CTA verde; spinner activo; deshabilitado durante el envío |
+| Link **[Volver al inicio]** | → Landing Page sin generar registro |
+
+### Modal de éxito (al enviar)
+
+| Elemento | Descripción |
+|---|---|
+| Ícono ✅ | Confirmación visual |
+| Título | "¡Solicitud enviada!" |
+| Mensaje | "Tu solicitud está en revisión. Recibirás un correo con el resultado en 3 a 5 días hábiles. Estado: **Pendiente de aprobación**." |
+| Botón **[Ir al inicio]** | → Landing Page |
+
+### Vista de creación de contraseña (desde el correo de aprobación)
+
+| Elemento | Descripción |
+|---|---|
+| Título | "¡Fuiste aprobado! Crea tu contraseña" |
+| Campo nueva contraseña | Enmascarado; toggle 👁; reglas visibles |
+| Campo confirmar contraseña | Validación en tiempo real |
+| Botón **[Activar cuenta]** | Spinner; deshabilitado durante el proceso |
+| **Modal de éxito** | "¡Tu cuenta profesional está activa!" + [Ir al Login] |
+| **Modal token expirado** | "Este enlace ha expirado." + [Solicitar nuevo enlace] |
+
+---
+
+## 5. Acciones del Usuario
+
+| Acción | Resultado |
+|---|---|
+| Completar formulario + adjuntar PDFs + clic [Enviar solicitud] | Valida → crea cuenta PENDIENTE → notifica admin → modal de éxito |
+| Duplicado de correo / documento / tarjeta | Modal de error con el campo duplicado específico |
+| Recibir correo de aprobación | Enlace + token para crear contraseña (vigencia: 1 día) |
+| Clic en enlace de aprobación | Vista de creación de contraseña |
+| Crear contraseña y clic [Activar cuenta] | Cuenta ACTIVO; modal de éxito → Login |
+| Recibir correo de rechazo | Notificación con motivo del rechazo |
+| Token expirado → [Solicitar nuevo enlace] | Sistema reenvía correo |
+| Clic [Volver al inicio] | → Landing Page |
+
+---
+
+## 6. Flujo del Sistema
+
+```
+1. El profesional completa los 3 secciones y adjunta los 2 PDFs.
+2. Validación frontend: todos los campos obligatorios; archivos en PDF y < 5 MB.
+3. El sistema verifica unicidad de correo, documento y tarjeta COLPSIC.
+   → Si hay duplicado: modal de error.
+4. El sistema crea cuenta con Estado = PENDIENTE DE VALIDACIÓN.
+5. El sistema envía datos y documentos al correo del administrador.
+6. El sistema intenta validar el N° de tarjeta ante COLPSIC (API externa).
+   → Éxito: marca la tarjeta como pre-validada.
+   → Fallo (API no disponible): notifica al admin para revisión manual.
+7. El admin revisa los documentos:
+   → Aprobado:
+     - Estado → HABILITADO.
+     - Sistema envía correo con enlace + token para crear contraseña (vigencia: 1 día).
+   → Rechazado:
+     - Estado → RECHAZADO.
+     - Sistema notifica al profesional con el motivo del rechazo.
+8. El profesional crea su contraseña usando el enlace.
+9. Sistema aplica Hash + Salt (Argon2). Estado → ACTIVO. Token invalidado.
+10. Modal de éxito → Login.
+```
+
+---
+
+## 7. Restricciones
+
+- No se puede registrar con correo, documento o N° COLPSIC ya existentes.
+- La cuenta permanece **PENDIENTE** hasta la aprobación del administrador.
+- Un profesional en estado PENDIENTE o RECHAZADO **no puede iniciar sesión**.
+- El token de contraseña tiene vigencia de **1 día** (mayor que el del usuario por el proceso de revisión).
+- Solo se aceptan archivos **PDF** para los documentos; límite de **5 MB por archivo**.
+- **La contraseña nunca se almacena en texto plano.** Hash + Salt con **Argon2**. Implementado en la **Capa Helpers**.
+
+---
+
+## 8. Reglas de Negocio
+
+| Regla | Detalle |
+|---|---|
+| Unicidad correo | No se permiten dos cuentas con el mismo correo |
+| Unicidad cédula | No se permiten dos cuentas con la misma cédula |
+| Unicidad tarjeta COLPSIC | No se permiten dos cuentas con el mismo número de tarjeta |
+| Formato documentos | Solo archivos **PDF**; máx. **5 MB** por archivo |
+| Validación COLPSIC | Automática (API); fallback a revisión manual si la API no responde |
+| Token activación | Vigencia: **1 día**; de un solo uso |
+| Encriptación | **Hash + Salt (Argon2)** — nunca texto plano. Implementado en la **Capa Helpers** |
+| Anti-doble envío | Botón deshabilitado durante el envío |
+
+---
+
+## 9. Riesgos
+
+| Riesgo | Mitigación |
+|---|---|
+| API COLPSIC no disponible | Flujo alternativo de revisión manual; flag en la BD para marcar validación pendiente |
+| Documentos PDF muy pesados | Límite de 5 MB + validación antes de subir |
+| Correo de aprobación llega como spam | Configurar SPF, DKIM, DMARC |
+| Token expirado antes de usarlo | Ofrecer siempre reenvío; el admin puede reiniciar el envío |
+
+---
+
+## 10. Datos Necesarios
+
+| Dato | Tabla / Campo |
+|---|---|
+| Nombre completo | `Profesionales.NombreCompleto` |
+| Correo | `Profesionales.Correo` (único) |
+| N° cédula | `Profesionales.NumeroDocumento` (único) |
+| Celular | `Profesionales.Celular` |
+| N° tarjeta COLPSIC | `Profesionales.NumeroTarjetaProfesional` (único) |
+| PDF cédula | `Profesionales.UrlDocumentoIdentidad` (ruta del archivo) |
+| PDF tarjeta profesional | `Profesionales.UrlTarjetaProfesional` (ruta del archivo) |
+| Estado de cuenta | `Profesionales.Estado` (PENDIENTE / HABILITADO / ACTIVO / RECHAZADO) |
+| Token de activación | `TokensActivacion` (Token, ProfesionalId, FechaExpiracion, Usado) |
+| Hash contraseña | `Profesionales.PasswordHash` — Argon2, Capa Helpers |
+
+---
+
+## 11. Métricas de Éxito
+
+| Métrica | Criterio |
+|---|---|
+| Registro sin duplicados | Rechaza correo, cédula y tarjeta duplicados con modal correcto |
+| Modal de éxito visible | Se muestra inmediatamente tras enviar la solicitud |
+| Notificación al admin | El correo con documentos llega al administrador tras el registro |
+| Validación COLPSIC | El sistema intenta la validación automática y registra el resultado |
+| Correo de aprobación entregado | El profesional recibe el enlace tras la aprobación del admin |
+| Activación exitosa | El profesional puede iniciar sesión tras crear su contraseña |
+
+---
+
+*Documento refinado v2 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*
 
 ---
 

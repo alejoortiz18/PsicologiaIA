@@ -1,8 +1,192 @@
-# Home — Vista Principal del Usuario — Proyecto Trébol
+# Home — Dashboard del Usuario — Proyecto Trébol
 
-> **Versión:** 1.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
+> **Versión:** 2.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
 > **Tecnología:** .NET Core 10 | **Plataforma:** Web MVC | **Base de datos:** SQL Server
 > **Fase:** 2 — Experiencia del Usuario | **Apetito:** 1–2 semanas
+
+---
+
+## 1. Problema
+
+El usuario autenticado necesita una vista central que le muestre de un vistazo su actividad relevante (citas próximas, eventos inscritos, mensajes, profesionales seguidos), le permita acceder rápidamente a su próxima cita y descubrir eventos y profesionales sugeridos.
+
+---
+
+## 2. Apetito
+
+**1 a 2 semanas.**
+Dashboard con saludo personalizado, 4 KPI cards, sección de próxima cita destacada, eventos recomendados, profesionales sugeridos y botones de acceso rápido.
+
+---
+
+## 3. Límites
+
+### ✅ Dentro del scope
+
+- Saludo personalizado: "Buenos días / tardes / noches, [Nombre]"
+- 4 tarjetas KPI: Próximas citas · Eventos inscritos · Profesionales seguidos · Mensajes sin leer
+- Sección "Tu próxima cita" — card destacada con botón "Ingresar"
+- Sección "Eventos recomendados" — 3 cards con botón "Inscribirse"
+- Sección "Profesionales sugeridos" — cards con botón "Seguir"
+- Botones de acceso rápido al menú principal
+
+### ❌ Fuera del scope (No-Gos)
+
+- Modal de detalle de sala (corresponde al módulo `DetalleSala`)
+- Proceso de inscripción y pago (corresponde a `InscripcionPago`)
+- Dashboard del Profesional (es una vista independiente: `HomeProfesional`)
+- Listado paginado completo de eventos (corresponde al directorio)
+
+---
+
+## 4. Solución Visible
+
+### Encabezado — Saludo personalizado
+
+| Elemento | Descripción |
+|---|---|
+| Saludo dinámico | "Buenos días, María" / "Buenas tardes, María" / "Buenas noches, María" según hora del servidor |
+| Subtítulo | Frase motivacional o resumen breve de actividad ("Tienes 2 citas esta semana") |
+
+### Strip de 4 KPI Cards
+
+| Card | Valor | Ícono | Color |
+|---|---|---|---|
+| **Próximas citas** | Total de citas programadas futuras | 📅 | Verde |
+| **Eventos inscritos** | Total de eventos activos en los que está inscrito | 🎟 | Azul |
+| **Profesionales seguidos** | Total de profesionales que sigue | 👥 | Morado |
+| **Mensajes sin leer** | Cantidad de mensajes no leídos en la bandeja | 💬 | Naranja |
+
+Cada card es **clickeable** y navega a la sección correspondiente del sidebar.
+
+### Sección "Tu próxima cita" — Card destacada
+
+| Elemento | Descripción |
+|---|---|
+| Avatar del profesional | Imagen circular del profesional de la cita |
+| Nombre del profesional | Nombre completo |
+| Tipo de cita | Psicológica / Asesoría puntual |
+| Fecha y hora | Formato `DD MMM YYYY · H:MMAM/PM` |
+| Estado | Badge "Programada" (verde) |
+| Botón **"Ingresar"** | Solo activo el día de la cita → `sala-usuario.html` |
+| Botón **"Ver mis citas"** | Navega a `citas-usuario.html` |
+| Mensaje si no hay citas | "No tienes citas próximas. [Agendar cita]" |
+
+### Sección "Eventos recomendados" — 3 cards
+
+| Campo | Descripción |
+|---|---|
+| Imagen / banner del evento | Imagen representativa de la sala |
+| Título del evento | Nombre de la sala |
+| Orador | Avatar + nombre del profesional |
+| Fecha y hora | Formato `DD MMM YYYY · H:MMAM/PM` |
+| Cupos restantes | `X cupos disponibles` |
+| Precio | `$XX.000 COP` o "Entrada libre" |
+| Botón **"Inscribirse"** | → `inscripcion-pago.html` con datos precargados |
+| Botón **"Ver detalle"** | Abre modal de `DetalleSala` |
+
+Los eventos recomendados se seleccionan por: especialidades del profesional que el usuario sigue + categorías de eventos anteriores.
+
+### Sección "Profesionales sugeridos"
+
+| Campo | Descripción |
+|---|---|
+| Avatar circular | Foto del profesional |
+| Nombre | Nombre completo o alias |
+| Especialidad | Especialidad principal |
+| Rating | Estrellas ★ + puntaje numérico |
+| Seguidores | Número de seguidores |
+| Botón **"+ Seguir"** | Sigue al profesional; cambia a "✓ Siguiendo" (toggle) |
+| Botón **"Ver perfil"** | → `perfil-orador.html` |
+
+### Botones de acceso rápido
+
+| Botón | Destino |
+|---|---|
+| Mis citas | `citas-usuario.html` |
+| Mis eventos | Sección eventos inscritos en `perfil-usuario.html` |
+| Buscar especialistas | `especialistas.html` |
+| Mensajes | `mensajes-usuario.html` |
+
+---
+
+## 5. Acciones del Usuario
+
+| Acción | Resultado |
+|---|---|
+| Clic en KPI card "Próximas citas" | Navega a `citas-usuario.html` |
+| Clic en KPI card "Eventos inscritos" | Navega a tab Eventos en `perfil-usuario.html` |
+| Clic en KPI card "Profesionales seguidos" | Navega a `mis-mentores.html` |
+| Clic en KPI card "Mensajes sin leer" | Navega a `mensajes-usuario.html` |
+| Clic en "Ingresar" (próxima cita) | Navega a `sala-usuario.html` (solo el día de la cita) |
+| Clic en "Inscribirse" (evento recomendado) | Navega a `inscripcion-pago.html` |
+| Clic en "+ Seguir" (profesional sugerido) | Sigue al profesional; botón cambia a "✓ Siguiendo" |
+| Clic en "Ver perfil" (profesional sugerido) | Navega a `perfil-orador.html` |
+
+---
+
+## 6. Restricciones
+
+- El botón **"Ingresar"** en la próxima cita solo está activo **el día de la cita** (validado con fecha del servidor).
+- Si el usuario no tiene citas próximas, la sección muestra un mensaje vacío con CTA para agendar.
+- Si no hay eventos recomendados, se muestran los más populares de la plataforma.
+- Los profesionales sugeridos excluyen los que el usuario ya sigue.
+
+---
+
+## 7. Reglas de Negocio
+
+| Regla | Detalle |
+|---|---|
+| Saludo dinámico | Mañana: 6h–12h · Tarde: 12h–18h · Noche: 18h–6h (hora del servidor) |
+| KPI cards | Calculadas en tiempo real al cargar el dashboard |
+| Próxima cita destacada | La cita con `FechaHora` más próxima y `Estado = Programada` |
+| "Ingresar" activo | Solo si `fecha_servidor == fecha_cita` |
+| Eventos recomendados | Basados en afinidad (especialidades seguidas + historial); fallback: Top 3 populares |
+| Profesionales sugeridos | Excluyen los ya seguidos; ordenados por rating y seguidores |
+| Formato fechas | `DD MMM YYYY` |
+| Formato horas | 12H (ej: `3PM`, `3:30PM`) |
+
+---
+
+## 8. Riesgos
+
+| Riesgo | Mitigación |
+|---|---|
+| Dashboard lento con muchas consultas simultáneas | Caché por usuario con TTL corto (1–2 minutos) para KPIs |
+| Usuario sin datos suficientes para recomendaciones | Fallback a contenido popular de la plataforma |
+| Botón "Ingresar" activo antes del horario | Validar con timestamp del servidor, no del cliente |
+
+---
+
+## 9. Datos Necesarios
+
+| Dato | Tabla / Campo |
+|---|---|
+| Nombre del usuario | `Usuarios.NombreCompleto` |
+| KPI — Próximas citas | `COUNT(Citas)` donde `UsuarioId` y `Estado = Programada` y `FechaHora >= Hoy` |
+| KPI — Eventos inscritos | `COUNT(Inscripciones)` donde `UsuarioId` y `Estado = Confirmada` y evento vigente |
+| KPI — Profesionales seguidos | `COUNT(Seguidores)` donde `UsuarioId` |
+| KPI — Mensajes sin leer | `COUNT(Mensajes)` donde `DestinatarioId = UsuarioId` y `Leido = false` |
+| Próxima cita | `Citas` (UsuarioId, Estado = Programada, TOP 1 por FechaHora ASC) |
+| Eventos recomendados | `Salas` + `Eventos` (activos, afinidad o popularidad, TOP 3) |
+| Profesionales sugeridos | `Profesionales` (no seguidos por el usuario, ORDER BY rating DESC) |
+
+---
+
+## 10. Métricas de Éxito
+
+| Métrica | Criterio |
+|---|---|
+| Carga del dashboard | Menos de **2 segundos** |
+| KPIs correctos | Los 4 valores coinciden con la base de datos en tiempo real |
+| Próxima cita visible | Se muestra la cita más cercana con datos correctos |
+| "Ingresar" condicional | Solo activo el día de la cita |
+| Recomendaciones relevantes | Se muestran 3 eventos y profesionales según afinidad o popularidad |
+
+---
+
+*Documento refinado v2 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*
 
 ---
 

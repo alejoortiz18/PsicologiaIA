@@ -1,6 +1,6 @@
 # Plan de Ejecución — Proyecto Trébol
 
-> **Versión:** 1.0 | **Fecha:** Mayo 2026
+> **Versión:** 2.0 | **Fecha:** Mayo 2026
 > **Tecnología:** .NET Core 10 | **Plataforma:** Web MVC | **Base de datos:** SQL Server
 > **Metodología:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
 > **Principio:** El tiempo es fijo; el scope se ajusta. Cada tarea es un ciclo de construcción concreto y entregable.
@@ -68,14 +68,15 @@
 ### T-00.2 — Crear tablas de Usuarios y Autenticación
 
 **Apetito:** 1 día
-**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Sección 3
+**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Secciones 3 y 3.9
 
 **Entregable:**
-- Tablas de usuarios y tokens creadas con constraints y claves únicas
+- Tablas de usuarios, administrador y tokens creadas con constraints y claves únicas
 
 **Tareas:**
 - [ ] Crear tabla `Usuario` (con campo `PasswordHash` — hash Argon2, nunca texto plano)
 - [ ] Crear tabla `Profesional` (con campo `PasswordHash` — hash Argon2, nunca texto plano)
+- [ ] Crear tabla `Administrador` (con campo `PasswordHash` — hash Argon2; campos: AdminId, Nombre, Correo, PasswordHash, Estado, FechaCreacion)
 - [ ] Crear tabla `ProfesionalEspecialidad`
 - [ ] Crear tabla `ProfesionalEstudio`
 - [ ] Crear tabla `ProfesionalIdioma`
@@ -102,13 +103,13 @@
 
 ---
 
-### T-00.4 — Crear tablas de Salas, Eventos e Interacción Social
+### T-00.4 — Crear tablas de Salas, Eventos, Mensajería e Interacción Social
 
-**Apetito:** 1 día
-**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Secciones 5, 7 y 8
+**Apetito:** 1.5 días
+**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Secciones 5, 7, 8.5, 8.6, 8.7 y 8.8
 
 **Entregable:**
-- Tablas de salas, eventos, inscripciones, pagos e interacción social creadas
+- Tablas de salas, eventos, inscripciones, pagos, mensajería, colaboración y notificaciones creadas
 
 **Tareas:**
 - [ ] Crear tabla `Sala`
@@ -121,32 +122,39 @@
 - [ ] Crear tabla `MeGusta`
 - [ ] Crear tabla `ComentarioProfesional`
 - [ ] Crear tabla `RespuestaComentario`
+- [ ] Crear tabla `Conversacion` (ConversacionId, UsuarioId, ProfesionalId, FechaInicio, UltimoMensaje, Estado)
+- [ ] Crear tabla `MensajePrivado` (MensajeId, ConversacionId, EmisorTipo, EmisorId, Contenido, FechaEnvio, Leido)
+- [ ] Crear tabla `ColaboracionProfesional` (ColaboracionId, ProfesionalSolicitanteId, ProfesionalReceptorId, Estado, FechaSolicitud, FechaAceptacion)
+- [ ] Crear tabla `Notificacion` (NotificacionId, DestinatarioTipo, DestinatarioId, Tipo, Titulo, Mensaje, Leida, FechaCreacion, FechaLectura, EntidadRelacionadaTipo, EntidadRelacionadaId)
+- [ ] Verificar constraints y FK entre tablas nuevas y existentes
 
 ---
 
-### T-00.5 — Crear tablas de Citas e Historial Clínico
+### T-00.5 — Crear tablas de Citas, Pago de Cita e Historial Clínico
 
 **Apetito:** 0.5 día
-**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Sección 6
+**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Secciones 6 y 7.4
 
 **Entregable:**
-- Tablas del módulo de citas privadas creadas
+- Tablas del módulo de citas privadas y pagos de cita creadas
 
 **Tareas:**
 - [ ] Crear tabla `Cita`
+- [ ] Crear tabla `PagoCita` (PagoCitaId, CitaId, UsuarioId, ProfesionalId, MontoBase, ComisionPlataforma, Total, MetodoPago, Estado, FechaTransaccion, ReferenciaPago)
 - [ ] Crear tabla `Recomendacion`
 - [ ] Crear tabla `ComentarioPrivado`
 - [ ] Crear tabla `HistorialClinico`
+- [ ] Verificar FK de `PagoCita` con `Cita`, `Usuario` y `Profesional`
 
 ---
 
 ### T-00.6 — Crear índices y vistas
 
-**Apetito:** 0.5 día
-**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Secciones 11 y 12
+**Apetito:** 1 día
+**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Secciones 11, 12, 12.6 y 12.7
 
 **Entregable:**
-- Todos los índices creados; vistas funcionales y verificadas
+- Todos los índices creados; vistas (incluidas las nuevas de directorio y calificaciones) funcionales y verificadas
 
 **Tareas:**
 - [ ] Crear índices sobre columnas de búsqueda y filtro (correo, estado, FK, fechas)
@@ -155,14 +163,16 @@
 - [ ] Crear vista `vw_ProximasCitasUsuario`
 - [ ] Crear vista `vw_ProximasCitasProfesional`
 - [ ] Crear vista `vw_ResumenProfesional`
+- [ ] Crear vista `vw_DirectorioProfesionales` (Sección 12.6 — agrega nombre, especialidades, calificación promedio, seguidores, tarifa, ciudad, estado verificado, badge COLPSIC)
+- [ ] Crear vista `vw_CalificacionResumenProfesional` (Sección 12.7 — distribución de estrellas: total por 1★–5★, promedio ponderado, total de reseñas)
 - [ ] Verificar resultados de cada vista con datos de prueba manuales
 
 ---
 
 ### T-00.7 — Crear Stored Procedures
 
-**Apetito:** 1 día
-**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Sección 13
+**Apetito:** 1.5 días
+**Documento de referencia:** [BaseDatos-refinado.md](../../Requerimientos/Refinados/BaseDatos/BaseDatos-refinado.md) — Secciones 13, 13.13 y 13.14
 
 > **Nota:** Los SPs reciben el hash ya generado. La encriptación Argon2 ocurre en la Capa Helpers, nunca dentro del SP.
 
@@ -174,7 +184,7 @@
 - [ ] Crear `sp_ActivarUsuario` (recibe `@PasswordHash` generado con Argon2 en Helpers)
 - [ ] Crear `sp_RegistrarProfesional`
 - [ ] Crear `sp_AprobarProfesional`
-- [ ] Crear `sp_ValidarLogin` (compara hash Argon2; nunca texto plano)
+- [ ] Crear `sp_ValidarLogin` (compara hash Argon2 contra `Usuario`, `Profesional` **y `Administrador`**; retorna `TipoEntidad`; nunca texto plano)
 - [ ] Crear `sp_GenerarTokenRecuperacion`
 - [ ] Crear `sp_RestablecerPassword` (recibe `@PasswordHash` generado con Argon2 en Helpers)
 - [ ] Crear `sp_ObtenerSalasActivas`
@@ -182,6 +192,8 @@
 - [ ] Crear `sp_ConfirmarPago`
 - [ ] Crear `sp_AgendarCita`
 - [ ] Crear `sp_ToggleSeguidor`
+- [ ] Crear `sp_EnviarMensajePrivado` (Sección 13.13 — recibe ConversacionId o crea una nueva si no existe, inserta en `MensajePrivado`, actualiza `UltimoMensaje` en `Conversacion`, valida que el emisor tenga permiso para iniciar el hilo)
+- [ ] Crear `sp_ObtenerDirectorioProfesionales` (Sección 13.14 — usa `vw_DirectorioProfesionales`; acepta parámetros: @Busqueda, @Ciudad, @Especialidad, @Orden, @Pagina, @TamañoPagina; retorna página de resultados + total de registros)
 - [ ] Probar cada SP con EXEC manual desde SQL Server Management Studio
 
 ---
@@ -508,15 +520,16 @@
 **Documento de referencia:** [PerfilOrador-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/PerfilOrador/PerfilOrador-refinado.md)
 
 **Entregable:**
-- Vista pública del perfil del profesional con 3 tabs funcionales
+- Vista pública del perfil del profesional con **4 tabs** funcionales y sistema de calificaciones
 
 **Tareas:**
 - [ ] Crear `PerfilOradorController` con acción `Detalle(int profesionalId)`
-- [ ] Tab 1: información del profesional (nombre, foto, especialidades, idiomas, seguidores, "Sobre mí", "Cómo trabajo")
-- [ ] Tab 2: salas creadas por el profesional con historial de mensajes
-- [ ] Tab 3: comentarios públicos al profesional con lógica de visibilidad por rol
+- [ ] Tab 1 — Cuenta: información del profesional (nombre, foto, especialidades, idiomas, seguidores, "Sobre mí", "Cómo trabajo"), calificación promedio (4.9/5), barra de distribución de estrellas desde `vw_CalificacionResumenProfesional`
+- [ ] Tab 2 — Salas: salas creadas por el profesional con próximas fechas, cupos y botón inscribirse
+- [ ] Tab 3 — Comentarios: comentarios públicos con lógica de visibilidad por rol (usuarios ven todos; profesional puede responder los suyos)
+- [ ] Tab 4 — Calendario: disponibilidad del profesional con modal de agendar cita → `pago-cita` (redirige a T-03.11)
 - [ ] Botón seguir / dejar de seguir (llama a `sp_ToggleSeguidor`)
-- [ ] Lógica de visibilidad de comentarios (usuarios ven todos; profesional puede responder los suyos)
+- [ ] Navegación por tabs sin recarga de página completa
 
 ---
 
@@ -538,22 +551,25 @@
 
 ---
 
-### T-03.7 — Citas del Usuario
+### T-03.7 — Citas del Usuario (Lista)
 
 **Apetito:** 1–2 semanas
 **Documento de referencia:** [CitasUsuario-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Citas/CitasUsuario-refinado.md)
 
 **Entregable:**
-- Vista de cita activa para el usuario con controles de sesión y recomendaciones
+- Vista de **lista de citas** del usuario con estadísticas, tabs de estado y acciones por cita
 
 **Tareas:**
-- [ ] Crear `CitasController` (Usuario) con vista de cita activa
-- [ ] Pantalla principal: cámara del profesional + vista propia (ventana pequeña)
-- [ ] Controles: cámara, audio, enviar mensaje
-- [ ] Historial de la cita: fecha, hora, estado, duración
-- [ ] Recomendaciones del profesional visibles durante la sesión
-- [ ] Campo de comentario privado del usuario (solo visible para sí mismo)
-- [ ] Opción de anonimato: mostrar nombre real o alias
+- [ ] Crear `CitasController` (Usuario) con acción `Index`
+- [ ] Tira de estadísticas superior: total citas, citas completadas, próxima cita (fecha y profesional)
+- [ ] Tabs de filtro: **Próximas** | **Historial** (activo por defecto: Próximas)
+- [ ] Tabla de citas con columnas: Profesional, Especialidad, Tipo, Fecha, Hora, Duración, Estado, Acciones
+- [ ] Botón **Unirse** (citas en estado Confirmada y fecha próxima) → navega a sala-usuario (T-03.9)
+- [ ] Botón **Ver detalle** → modal con resumen completo de la cita (profesional, notas, recomendaciones)
+- [ ] Botón **Cancelar** → modal de confirmación con mensaje de política de cancelación
+- [ ] Botón principal **Agendar cita** → flujo de agendamiento (T-04.8)
+- [ ] Paginación 10 registros por página
+- [ ] Mensaje de estado vacío si no hay citas en la tab activa
 
 ---
 
@@ -571,6 +587,150 @@
 
 ---
 
+### T-03.9 — Sala Privada del Usuario
+
+**Apetito:** 1–2 semanas
+**Documento de referencia:** [SalaUsuario-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Salas/SalaUsuario-refinado.md)
+
+**Entregable:**
+- Sala de videollamada para citas privadas desde la perspectiva del usuario
+
+**Tareas:**
+- [ ] Crear `SalaUsuarioController` con acción `Unirse(int citaId)`
+- [ ] Área de video principal (placeholder WebRTC; integración real en T-05.5)
+- [ ] Ventana de vista propia (picture-in-picture, esquina inferior derecha)
+- [ ] Tira de controles: Micrófono (toggle), Cámara (toggle), Compartir pantalla, Chat (toggle panel), Participantes, Colgar (botón rojo)
+- [ ] Panel lateral de Chat (toggle): lista de mensajes, input + enviar
+- [ ] Información de sesión visible: nombre del profesional, tipo de cita, contador de duración (MM:SS)
+- [ ] Botón "Reportar problema" (abre modal con textarea y envío)
+- [ ] Modal de confirmación al colgar: "¿Seguro que deseas terminar la sesión?" → Confirmar → `citas-usuario` (T-03.7)
+- [ ] Proteger acceso: solo el usuario dueño de la cita puede entrar, y solo si el estado es `Confirmada`
+
+---
+
+### T-03.10 — Sala de Conferencia del Usuario (Asistente)
+
+**Apetito:** 1–2 semanas
+**Documento de referencia:** [SalaConferenciaUsuario-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Salas/SalaConferenciaUsuario-refinado.md)
+
+**Entregable:**
+- Sala de conferencia desde la perspectiva del asistente/usuario inscrito
+
+**Tareas:**
+- [ ] Crear `SalaConferenciaController` acción `AsistenteUnirse(int eventoId)`
+- [ ] Video del presentador ocupa 70–80% del ancho; panel lateral ocupa el resto
+- [ ] Panel lateral con dos tabs: **Chat** | **Participantes**
+- [ ] Chat: burbujas de mensajes, input + enviar (mensajes van a `MensajeEvento`)
+- [ ] Participantes: lista con avatar y alias; contador total visible en encabezado del panel
+- [ ] Botón "✋ Levantar la mano" (toggle; envía evento SignalR al moderador — infraestructura T-05.5)
+- [ ] Badge "🔴 En vivo" pulsante en la parte superior de la pantalla
+- [ ] Modal de salida suave: "¿Deseas salir de la sala?" → Salir → `home-usuario`
+- [ ] Deshabilitar controles de cámara y micrófono propios (modo asistente, solo escucha)
+
+---
+
+### T-03.11 — Pago de Cita
+
+**Apetito:** 3–5 días
+**Documento de referencia:** [PagoCita-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/PagoCita/PagoCita-refinado.md)
+
+**Entregable:**
+- Checkout independiente para el pago de citas privadas con registro en tabla `PagoCita`
+
+**Tareas:**
+- [ ] Crear `PagoCitaController` con acción `Index(int citaId)`
+- [ ] Layout sin sidebar (página de pago de flujo completo)
+- [ ] Resumen del agendamiento: profesional (alias + especialidad), tipo de cita, fecha, hora, duración
+- [ ] Desglose de precio: Tarifa base, Comisión plataforma ($5.000 COP), **Total**
+- [ ] Tres métodos de pago con selector radio: **Tarjeta de crédito/débito**, **PSE**, **Efecty**
+- [ ] Formulario condicional: si Tarjeta → mostrar campos número, nombre, vencimiento, CVV (enmascarados); si PSE → selector banco + tipo persona; si Efecty → instrucciones de código
+- [ ] Validación frontend de campos de pago antes de enviar
+- [ ] Al confirmar: crear registro en `PagoCita` con estado `PendientePago` → llamar pasarela → actualizar a `PagoAprobado` o `PagoRechazado`
+- [ ] Modal de éxito: "Pago realizado — Tu cita está confirmada" + botón → `citas-usuario` (T-03.7)
+- [ ] Modal de fallo: mensaje descriptivo + opción de reintentar o cambiar método
+
+---
+
+### T-03.12 — Calendario del Usuario
+
+**Apetito:** 3–5 días
+**Documento de referencia:** [CalendarioUsuario-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/CalendarioUsuario/CalendarioUsuario-refinado.md)
+
+**Entregable:**
+- Calendario personal con citas y eventos inscritos, vistas semana/mes/día
+
+**Tareas:**
+- [ ] Crear `CalendarioUsuarioController` con acción `Index`
+- [ ] Barra de herramientas: botón **[Hoy]**, flechas **[‹]** **[›]**, título de período actual
+- [ ] Pills de vista: **Semana** | **Mes** | **Día** (semana activa por defecto)
+- [ ] Leyenda de colores: rosa = cita privada, verde = sala/conferencia
+- [ ] Vista semana: cuadrícula de 7 columnas × rango 08:00–21:00 con bloques de eventos proporcionales a la duración
+- [ ] Bloques de evento: mostrar nombre del profesional/sala, hora inicio–fin, color según tipo
+- [ ] Clic en bloque → modal de detalle: nombre, profesional/orador, fecha, hora, duración, estado, botón acción (Unirse / Ver sala)
+- [ ] Vista mes: grilla de calendario mensual con puntos de color en días con eventos
+- [ ] Vista día: columna única con todos los eventos del día seleccionado
+
+---
+
+### T-03.13 — Mensajería del Usuario
+
+**Apetito:** 1 semana
+**Documento de referencia:** [MensajesUsuario-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Mensajeria/MensajesUsuario-refinado.md)
+
+**Entregable:**
+- Chat del usuario con sus profesionales usando tablas `Conversacion` + `MensajePrivado`
+
+**Tareas:**
+- [ ] Crear `MensajeriaController` acción `IndexUsuario`
+- [ ] Layout de dos paneles: panel izquierdo (lista de conversaciones) + panel derecho (chat activo)
+- [ ] Panel izquierdo: avatar del profesional (alias), último mensaje truncado, timestamp, badge de no leídos; ordenado por `UltimoMensaje` DESC
+- [ ] Panel derecho: encabezado con alias del profesional + "Ver perfil del profesional" (→ T-03.5), burbujas de mensajes (propios a la derecha, del profesional a la izquierda), input de texto + botón Enviar
+- [ ] Al enviar: llamar a `sp_EnviarMensajePrivado` → actualizar UI sin recargar (fetch/AJAX)
+- [ ] Marcar mensajes como leídos al abrir la conversación
+- [ ] Solo usuarios con cita activa o que sigan al profesional pueden iniciar hilo nuevo
+- [ ] Alias exclusivo: nunca mostrar nombre real del profesional en este módulo
+- [ ] Estado vacío: "Aún no tienes conversaciones activas"
+
+---
+
+### T-03.14 — Directorio de Especialistas y Psicólogos
+
+**Apetito:** 1 semana
+**Documentos de referencia:** [Especialistas-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Directorios/Especialistas-refinado.md), [Psicologos-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Directorios/Psicologos-refinado.md)
+
+**Entregable:**
+- Directorios filtrables de especialistas y psicólogos con toggle de seguimiento
+
+**Tareas:**
+- [ ] Crear `DirectorioController` con acciones `Especialistas` y `Psicologos`
+- [ ] Tira de estadísticas: Total profesionales, Verificados, Que sigues
+- [ ] Barra de búsqueda y filtros: nombre, ciudad, especialidad, ordenar por (Relevancia / A-Z / Mayor calificación / Más seguidores)
+- [ ] Tarjetas de profesional (datos desde `vw_DirectorioProfesionales`): avatar, nombre, especialidad principal, tags de especialidades secundarias, calificación ★ (promedio), número de seguidores, tarifa por hora, ciudad, badge "Verificado" (COLPSIC)
+- [ ] Botón **[Ver perfil]** → T-03.5 (PerfilOrador)
+- [ ] Botón **[+ Seguir]** / **[✓ Siguiendo]** con toggle que llama a `sp_ToggleSeguidor`; animación de cambio de estado inmediata
+- [ ] Paginación 10 registros por página con total visible ("Mostrando X de Y profesionales")
+- [ ] Para `Psicologos`: mismo componente con filtro predeterminado en especialidad Psicología y badge COLPSIC destacado
+
+---
+
+### T-03.15 — Mis Mentores
+
+**Apetito:** 3–5 días
+**Documento de referencia:** [MisMentores-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Directorios/MisMentores-refinado.md)
+
+**Entregable:**
+- Lista de profesionales seguidos por el usuario con opción de dejar de seguir
+
+**Tareas:**
+- [ ] Crear acción `MisMentores` en `DirectorioController`
+- [ ] Estadísticas dinámicas: total seguidos, especialistas, psicólogos (recalcular al deseguir)
+- [ ] Filtros: búsqueda por nombre/alias, tipo (Especialista / Psicólogo), ordenar (Reciente / A-Z / Popular)
+- [ ] Tarjetas de mentor: mismos datos que directorio (avatar, especialidad, calificación, seguidores, tarifa)
+- [ ] Botón **[✓ Siguiendo]** → al hacer clic mostrar modal: "¿Dejar de seguir a [alias]? Ya no aparecerá en tu lista de mentores." → Confirmar → llamar `sp_ToggleSeguidor` → eliminar tarjeta con animación
+- [ ] Estado vacío: "Aún no sigues a ningún profesional. Explora el directorio." + botón → T-03.14
+
+---
+
 ## Fase 4 — Herramientas del Profesional
 
 > **Objetivo:** El profesional autenticado puede gestionar su perfil, salas, eventos, citas y su historial clínico.
@@ -580,15 +740,18 @@
 ### T-04.1 — Home del Profesional
 
 **Apetito:** 1 semana
+**Documento de referencia:** [HomeProfesional-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Home/HomeProfesional-refinado.md)
 
 **Entregable:**
-- Dashboard profesional con métricas y accesos rápidos
+- Dashboard profesional con métricas, próxima cita y solicitudes pendientes
 
 **Tareas:**
 - [ ] Crear `HomeProfesionalController` con acción `Index`
-- [ ] Métricas desde `vw_ResumenProfesional`: ingresos, seguidores, salas, eventos, me gusta
-- [ ] Saldo a favor (próximo pago)
-- [ ] Próximas citas desde `vw_ProximasCitasProfesional`
+- [ ] Tira de 4 KPIs: Citas hoy, Salas activas, Mensajes sin leer, Ingresos del mes
+- [ ] Tarjeta de próxima cita con datos del paciente (alias), tipo, fecha/hora y botón "Unirse"
+- [ ] Sección de solicitudes pendientes de cita (con accept/reject rápido)
+- [ ] Métricas adicionales desde `vw_ResumenProfesional`: ingresos totales, seguidores, salas, eventos
+- [ ] Saldo a favor (próximo pago) desde tabla `PagoCita` en estado pendiente de desembolso
 
 ---
 
@@ -598,15 +761,16 @@
 **Documento de referencia:** [PerfilProfesional-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/PerfilProfesional/PerfilProfesional-refinado.md)
 
 **Entregable:**
-- Vista de perfil propio con 4 tabs editables y restricción de sesión única
+- Vista de perfil propio con **5 tabs** editables y restricción de sesión única
 
 **Tareas:**
 - [ ] Crear `PerfilProfesionalController` con acción `Index`
-- [ ] Tab 1: formulario de información personal editable (excepto nombre, correo, documento, tarjeta)
+- [ ] Tab 1 — Información personal: formulario editable (excepto nombre, correo, documento, tarjeta COLPSIC)
   - Campos editables: celular, foto, país, ciudad, especialidades, idiomas, ocupación, género, "Sobre mí", "Cómo trabajo", años de experiencia, valor por hora
-- [ ] Tab 2: salas y eventos propios con inscritos y detalle
-- [ ] Tab 3: calendario de disponibilidad con horarios bloqueados y ocupados
-- [ ] Tab 4: próximas citas privadas y eventos agendados
+- [ ] Tab 2 — Salas: salas y eventos propios con inscritos y detalle (src: perfil-pro-salas.html)
+- [ ] Tab 3 — Calendario: disponibilidad con horarios bloqueados y ocupados (src: perfil-pro-calendario.html)
+- [ ] Tab 4 — Citas: próximas citas privadas y eventos agendados (src: perfil-pro-citas.html)
+- [ ] Tab 5 — Indicadores: KPI dashboard del profesional (src: perfil-pro-kpi.html) → ver T-04.13
 - [ ] Validar sesión única activa del profesional (un dispositivo a la vez)
 
 ---
@@ -628,23 +792,25 @@
 
 ---
 
-### T-04.4 — Citas del Profesional
+### T-04.4 — Citas del Profesional (Lista)
 
 **Apetito:** 1–2 semanas
 **Documento de referencia:** [CitasProfesional-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Citas/CitasProfesional-refinado.md)
 
 **Entregable:**
-- Vista de cita activa del profesional con controles, recomendaciones clínicas e historial
+- Vista de **lista de citas** del profesional con estadísticas, tabs, acciones y modal de nueva cita
 
 **Tareas:**
-- [ ] Crear `CitasController` (Profesional) con vista de cita activa
-- [ ] Indicador de usuario en línea
-- [ ] Controles: cámara, audio
-- [ ] Contador de duración de la sesión
-- [ ] Registro, edición y visualización de recomendaciones clínicas con fecha y hora automática
-- [ ] Acceso al historial clínico del paciente (solo en citas de seguimiento)
-- [ ] Botón cerrar sesión (con confirmación en modal)
-- [ ] Botón mover cita (con calendario de espacios disponibles)
+- [ ] Crear `CitasController` (Profesional) con acción `Index`
+- [ ] Tira de estadísticas superior: total citas, citas hoy, pacientes activos, próxima cita
+- [ ] Tabs de filtro: **Próximas** | **Historial** (activo por defecto: Próximas)
+- [ ] Tabla de citas con columnas: Paciente (alias), Tipo, Fecha, Hora, Duración, Estado, Acciones
+- [ ] Botón **Iniciar sesión** (citas próximas confirmadas) → navega a sala-profesional (T-04.9)
+- [ ] Botón **Ver detalle** → modal con resumen completo (paciente en alias, notas clínicas, recomendaciones)
+- [ ] Botón **Cancelar** → modal de confirmación
+- [ ] Botón principal **+ Nueva cita** → modal de agendar cita (seleccionar paciente, tipo, fecha/hora)
+- [ ] Paginación 10 registros por página
+- [ ] Paciente siempre mostrado con alias (nunca nombre real)
 
 ---
 
@@ -712,26 +878,130 @@
 
 ---
 
+### T-04.9 — Sala Privada del Profesional
+
+**Apetito:** 1–2 semanas
+**Documento de referencia:** [SalaProfesional-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Salas/SalaProfesional-refinado.md)
+
+**Entregable:**
+- Sala de videollamada para citas privadas desde la perspectiva del profesional
+
+**Tareas:**
+- [ ] Crear `SalaProfesionalController` con acción `Iniciar(int citaId)`
+- [ ] Mismo layout de video que T-03.9 (área principal + pip + controles)
+- [ ] Panel lateral con tres tabs: **Chat** | **Notas clínicas** | **Historial del paciente**
+- [ ] Tab Notas clínicas: textarea privada (no visible para el paciente), guardado automático cada 30 segundos en `HistorialClinico`, indicador de guardado
+- [ ] Tab Historial del paciente: citas anteriores (alias, fecha, duración, notas), solo visible para citas de tipo Seguimiento
+- [ ] Paciente siempre mostrado con alias (nunca nombre real)
+- [ ] Botón **"Terminar sesión"** (color danger) → modal: "¿Finalizar la consulta? Las notas se guardarán automáticamente." → Confirmar → guardar notas → redirigir a `citas-profesional` (T-04.4)
+- [ ] Controles de micrófono, cámara, compartir pantalla, colgar (igual que sala usuario)
+- [ ] Proteger acceso: solo el profesional dueño de la cita puede entrar
+
+---
+
+### T-04.10 — Sala de Conferencia del Profesional (Moderador)
+
+**Apetito:** 1–2 semanas
+**Documento de referencia:** [SalaConferenciaProfesional-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Salas/SalaConferenciaProfesional-refinado.md)
+
+**Entregable:**
+- Sala de conferencia desde la perspectiva del orador/moderador con controles de moderación
+
+**Tareas:**
+- [ ] Crear acción `ModeradorUnirse(int eventoId)` en `SalaConferenciaController`
+- [ ] Mismo layout base que T-03.10 (video principal + panel lateral Chat|Participantes)
+- [ ] Panel lateral con tab adicional: **Moderación**
+- [ ] Tab Moderación: lista de manos levantadas (alias + botón Aprobar / Denegar), lista completa de participantes con botón silenciar individualmente
+- [ ] Controles adicionales del moderador: compartir pantalla, compartir diapositivas, silenciar todos
+- [ ] Botón **"Finalizar sala"** (danger, borde rojo) → modal: "Todos los asistentes serán desconectados. ¿Deseas finalizar la sala?" → Confirmar → emitir evento SignalR de cierre (T-05.5) → redirigir a `mis-eventos` (T-04.3)
+- [ ] Badge "🔴 En vivo" pulsante igual que vista asistente
+- [ ] Contador de participantes en tiempo real vía SignalR
+
+---
+
+### T-04.11 — Mensajería del Profesional
+
+**Apetito:** 1 semana
+**Documento de referencia:** [MensajesProfesional-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Mensajeria/MensajesProfesional-refinado.md)
+
+**Entregable:**
+- Chat del profesional con sus pacientes; alias obligatorio en todo momento
+
+**Tareas:**
+- [ ] Crear acción `IndexProfesional` en `MensajeriaController`
+- [ ] Mismo layout de dos paneles que T-03.13
+- [ ] Panel izquierdo: pacientes listados siempre con alias, último mensaje, badge no leídos; ordenado por `UltimoMensaje` DESC
+- [ ] Panel derecho: alias del paciente en encabezado (**NUNCA** nombre real, en ningún estado de la UI), burbujas de mensajes, input + enviar
+- [ ] Al enviar: llamar a `sp_EnviarMensajePrivado` → actualizar UI sin recargar
+- [ ] Marcar mensajes como leídos al abrir la conversación; actualizar badge en panel izquierdo
+- [ ] El profesional no puede iniciar conversaciones nuevas; solo responder hilos iniciados por usuarios
+- [ ] Estado vacío: "No tienes conversaciones activas"
+
+---
+
+### T-04.12 — Mis Colegas
+
+**Apetito:** 1 semana
+**Documento de referencia:** [MisColegas-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/Directorios/MisColegas-refinado.md)
+
+**Entregable:**
+- Gestión de red de colegas del profesional con estados de presencia y privacidad de pacientes
+
+**Tareas:**
+- [ ] Crear `MisColegasController` con acción `Index`
+- [ ] Estadísticas superiores: Profesionales vinculados, Pacientes compartidos, Derivaciones activas
+- [ ] Filtros: búsqueda por nombre/alias, tipo de especialidad, estado (Todos / En línea / En consulta / Desconectado)
+- [ ] Tarjetas de colega: avatar, alias, especialidad, indicador de estado con colores (verde=En línea, amarillo=En consulta, gris=Desconectado)
+- [ ] Botón **[Ver pacientes]** → modal con nota de privacidad: "Solo se muestran pacientes que han dado consentimiento para derivación" + lista con alias únicamente
+- [ ] Botón **[💬 Mensaje]** → abre conversación en T-04.11
+- [ ] Botón **[Ver perfil]** → T-03.5 (PerfilOrador)
+- [ ] Botón **[Desvincular]** → modal de confirmación → actualizar `ColaboracionProfesional` a estado Inactivo → eliminar tarjeta con animación
+- [ ] CRUD sobre tabla `ColaboracionProfesional`: enviar solicitud, aceptar, rechazar, desvincular
+
+---
+
+### T-04.13 — Indicadores KPI del Profesional
+
+**Apetito:** 3–5 días
+**Documento de referencia:** [PerfilProfesional-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/PerfilProfesional/PerfilProfesional-refinado.md) — Tab 5 (perfil-pro-kpi.html)
+
+**Entregable:**
+- Dashboard de indicadores de desempeño con gráfico de barras y tabla de detalle
+
+**Tareas:**
+- [ ] Implementar acción `Indicadores` en `PerfilProfesionalController` (también accesible como Tab 5 del perfil)
+- [ ] Selector de período: **[Todo]** | **[Este año]** | **[Este mes]** (recalcula todos los KPIs al cambiar)
+- [ ] 6 tarjetas KPI: Consultas totales, Clientes únicos, Ingresos generados, **Saldo por pagar** (destacado con color diferente), Salas creadas, Eventos realizados
+- [ ] Caja de saldo pendiente resaltada: banco, IBAN/cuenta, fecha estimada de pago
+- [ ] Gráfico de barras CSS-puro (sin librería externa): 6 meses recientes, barra por mes, valor visible encima de cada barra
+- [ ] Tabla de detalle: listado de citas/eventos del período con fecha, tipo, ingreso, estado de pago
+- [ ] Todos los datos desde `vw_ResumenProfesional` + consultas a `PagoCita` filtradas por período
+
+---
+
 ## Fase 5 — Sistema Interno y Administración
 
 > **Objetivo:** El administrador puede validar profesionales, moderar contenido y consultar métricas del sistema.
 
 ---
 
-### T-05.1 — Panel de Administración — Verificación Profesional
+### T-05.1 — Panel de Administración — Verificación Profesional y Bandeja de Notificaciones
 
 **Apetito:** 1 semana
+**Documento de referencia:** [BandejaNotificaciones-refinado.md](../../Requerimientos/Refinados/FuncionalidadesPaginas/BandejaNotificaciones/BandejaNotificaciones-refinado.md)
 
 **Entregable:**
-- El administrador puede ver solicitudes pendientes, aprobar o rechazar profesionales con motivo
+- El administrador puede ver solicitudes pendientes, aprobar o rechazar profesionales, y gestionar todas las notificaciones del sistema
 
 **Tareas:**
-- [ ] Crear `AdminController` con sección de verificación
-- [ ] Listado de profesionales en estado `PENDIENTE_VALIDACION`
-- [ ] Vista de detalle con documentos adjuntos
-- [ ] Botón Aprobar → llama a `sp_AprobarProfesional(@Aprobado = 1)` → genera token de activación
-- [ ] Botón Rechazar → modal para ingresar motivo → `sp_AprobarProfesional(@Aprobado = 0, @MotivoRechazo)`
-- [ ] Notificación automática al profesional en ambos casos
+- [ ] Crear `AdminController` con secciones de verificación y bandeja
+- [ ] Tabs de filtro en bandeja: **Todas** | **Pendientes** | **Aprobadas** | **Rechazadas** | **Sistema** (usa tabla `Notificacion` con filtro por `Tipo`)
+- [ ] Lista de notificaciones con punto de estado de color (naranja=Pendiente, verde=Aprobada, rojo=Rechazada, gris=Sistema), título, mensaje truncado, timestamp, indicador leída/no leída
+- [ ] Botón **"Marcar todas leídas"** → UPDATE masivo en `Notificacion` para el administrador
+- [ ] Clic en notificación de tipo `SolicitudProfesional` → panel de detalle con documentos adjuntos (cédula, tarjeta profesional en PDF)
+- [ ] Botón **Aprobar** → llama a `sp_AprobarProfesional(@Aprobado = 1)` → genera token de activación → notifica al profesional por correo
+- [ ] Botón **Rechazar** → textarea de motivo (campo requerido, mínimo 20 caracteres) → `sp_AprobarProfesional(@Aprobado = 0, @MotivoRechazo)` → notifica al profesional por correo
+- [ ] Paginación 10 registros por página con total visible
 
 ---
 
@@ -786,18 +1056,25 @@
 
 ---
 
-### T-05.5 — Mensajería entre Profesionales
+### T-05.5 — Infraestructura de Video en Tiempo Real (SignalR/WebRTC)
 
-**Apetito:** 1 semana
+**Apetito:** 1–2 semanas
+**Habilita:** T-03.9, T-03.10, T-04.9, T-04.10
 
 **Entregable:**
-- Los profesionales pueden enviarse mensajes directos entre sí
+- Infraestructura compartida de comunicación en tiempo real para las 4 salas de video del sistema
 
 **Tareas:**
-- [ ] Crear sistema de mensajería básico entre profesionales
-- [ ] Listado de conversaciones
-- [ ] Vista de conversación con historial de mensajes
-- [ ] Límite de mensajes iniciales del usuario al profesional (2 mensajes antes de respuesta)
+- [ ] Instalar paquetes NuGet: `Microsoft.AspNetCore.SignalR` y configurar en `Program.cs`
+- [ ] Crear `VideoHub` (SignalR Hub) en `Trebol.Web/Hubs/` con grupos por sala (`JoinRoom`, `LeaveRoom`)
+- [ ] Implementar señalización WebRTC: eventos `Offer`, `Answer`, `IceCandidate` entre peers
+- [ ] Eventos de sala privada (T-03.9 / T-04.9): `UserJoined`, `UserLeft`, `SessionEnded`
+- [ ] Eventos de conferencia (T-03.10 / T-04.10): `AttendeeJoined`, `AttendeeLeft`, `HandRaised`, `HandLowered`, `HandApproved`, `HandDenied`, `ParticipantMuted`, `AllMuted`, `RoomClosed`
+- [ ] Gestión de estado de conexión: reconexia automática, indicador de estado en UI (Conectado / Reconectando / Desconectado)
+- [ ] Listas de participantes en tiempo real: actualización instantánea al entrar/salir
+- [ ] Autorizar acceso al Hub mediante cookie de sesión (solo usuarios/profesionales autenticados con cita/inscripción válida)
+- [ ] Prueba de integración: dos navegadores en sala privada → verificar establecimiento de conexión peer-to-peer
+- [ ] Prueba de integración: moderador finaliza sala → verificar que todos los asistentes reciben evento `RoomClosed`
 
 ---
 
@@ -806,12 +1083,12 @@
 | # | Tarea | Fase | Apetito | Estado |
 |---|---|---|---|---|
 | T-00.1 | BD — Catálogos base | 0 | 1 día | `[ ]` |
-| T-00.2 | BD — Usuarios y autenticación | 0 | 1 día | `[ ]` |
+| T-00.2 | BD — Usuarios, Administrador y autenticación | 0 | 1 día | `[ ]` |
 | T-00.3 | BD — Disponibilidad y cuentas bancarias | 0 | 0.5 día | `[ ]` |
-| T-00.4 | BD — Salas, eventos, inscripciones, social | 0 | 1 día | `[ ]` |
-| T-00.5 | BD — Citas e historial clínico | 0 | 0.5 día | `[ ]` |
-| T-00.6 | BD — Índices y vistas | 0 | 0.5 día | `[ ]` |
-| T-00.7 | BD — Stored Procedures | 0 | 1 día | `[ ]` |
+| T-00.4 | BD — Salas, eventos, mensajería, social | 0 | 1.5 días | `[ ]` |
+| T-00.5 | BD — Citas, PagoCita e historial clínico | 0 | 0.5 día | `[ ]` |
+| T-00.6 | BD — Índices y vistas (+ directorio y calificaciones) | 0 | 1 día | `[ ]` |
+| T-00.7 | BD — Stored Procedures (+ mensajería + directorio) | 0 | 1.5 días | `[ ]` |
 | T-01.1 | Arquitectura — Solución y proyectos | 1 | 0.5 día | `[ ]` |
 | T-01.2 | Arquitectura — EF Core y AppDbContext | 1 | 0.5 día | `[ ]` |
 | T-01.3 | Arquitectura — PasswordHelper (Argon2) | 1 | 0.5 día | `[ ]` |
@@ -827,24 +1104,36 @@
 | T-03.2 | Home del Usuario | 3 | 1–2 semanas | `[ ]` |
 | T-03.3 | Detalle de Sala (Modal) | 3 | 3–5 días | `[ ]` |
 | T-03.4 | Inscripción y Pago | 3 | 2–3 semanas | `[ ]` |
-| T-03.5 | Perfil del Orador (Público) | 3 | 1–2 semanas | `[ ]` |
+| T-03.5 | Perfil del Orador — 4 tabs (Cuenta/Salas/Comentarios/Calendario) | 3 | 1–2 semanas | `[ ]` |
 | T-03.6 | Perfil del Usuario | 3 | 1 semana | `[ ]` |
-| T-03.7 | Citas del Usuario | 3 | 1–2 semanas | `[ ]` |
+| T-03.7 | Citas del Usuario (Lista — Próximas/Historial) | 3 | 1–2 semanas | `[ ]` |
 | T-03.8 | Mis Eventos (Usuario) | 3 | 3–5 días | `[ ]` |
+| T-03.9 | Sala Privada del Usuario | 3 | 1–2 semanas | `[ ]` |
+| T-03.10 | Sala de Conferencia del Usuario (Asistente) | 3 | 1–2 semanas | `[ ]` |
+| T-03.11 | Pago de Cita | 3 | 3–5 días | `[ ]` |
+| T-03.12 | Calendario del Usuario | 3 | 3–5 días | `[ ]` |
+| T-03.13 | Mensajería del Usuario | 3 | 1 semana | `[ ]` |
+| T-03.14 | Directorio de Especialistas y Psicólogos | 3 | 1 semana | `[ ]` |
+| T-03.15 | Mis Mentores | 3 | 3–5 días | `[ ]` |
 | T-04.1 | Home del Profesional | 4 | 1 semana | `[ ]` |
-| T-04.2 | Perfil del Profesional (Propio) | 4 | 1–2 semanas | `[ ]` |
+| T-04.2 | Perfil del Profesional — 5 tabs (Info/Salas/Calendario/Citas/Indicadores) | 4 | 1–2 semanas | `[ ]` |
 | T-04.3 | Mis Eventos (Profesional) | 4 | 1 semana | `[ ]` |
-| T-04.4 | Citas del Profesional | 4 | 1–2 semanas | `[ ]` |
+| T-04.4 | Citas del Profesional (Lista — Próximas/Historial) | 4 | 1–2 semanas | `[ ]` |
 | T-04.5 | Historial Clínico | 4 | 1 semana | `[ ]` |
 | T-04.6 | Gestión de Salas y Eventos | 4 | 1–2 semanas | `[ ]` |
 | T-04.7 | Calendario de Disponibilidad | 4 | 1 semana | `[ ]` |
 | T-04.8 | Agendamiento de Citas (Usuario) | 4 | 1 semana | `[ ]` |
-| T-05.1 | Admin — Verificación Profesional | 5 | 1 semana | `[ ]` |
+| T-04.9 | Sala Privada del Profesional | 4 | 1–2 semanas | `[ ]` |
+| T-04.10 | Sala de Conferencia del Profesional (Moderador) | 4 | 1–2 semanas | `[ ]` |
+| T-04.11 | Mensajería del Profesional | 4 | 1 semana | `[ ]` |
+| T-04.12 | Mis Colegas | 4 | 1 semana | `[ ]` |
+| T-04.13 | Indicadores KPI del Profesional | 4 | 3–5 días | `[ ]` |
+| T-05.1 | Admin — Verificación Profesional y Bandeja Notificaciones | 5 | 1 semana | `[ ]` |
 | T-05.2 | Admin — Moderación y Gestión | 5 | 1–2 semanas | `[ ]` |
-| T-05.3 | Notificaciones y Correos | 5 | 1 semana | `[ ]` |
+| T-05.3 | Notificaciones y Correos Automáticos | 5 | 1 semana | `[ ]` |
 | T-05.4 | Seguridad — Sesiones y Rate Limiting | 5 | 1 semana | `[ ]` |
-| T-05.5 | Mensajería entre Profesionales | 5 | 1 semana | `[ ]` |
+| T-05.5 | Infraestructura de Video en Tiempo Real (SignalR/WebRTC) | 5 | 1–2 semanas | `[ ]` |
 
 ---
 
-*Plan de Ejecución v1.0 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*
+*Plan de Ejecución v2.0 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*

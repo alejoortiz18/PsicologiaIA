@@ -13,11 +13,16 @@
 3. [Componentes — Tablas](#3-componentes--tablas)
 4. [Componentes — Modales y Mensajes](#4-componentes--modales-y-mensajes)
 5. [Componentes — Formularios](#5-componentes--formularios)
+   - 5.5 Formularios de múltiples pasos (Wizard)
 6. [Componentes — Navegación](#6-componentes--navegación)
+   - 6.3 Tabs (prof-tabs-bar — estándar del sistema)
 7. [Componentes — Botones y Acciones](#7-componentes--botones-y-acciones)
 8. [Feedback al Usuario](#8-feedback-al-usuario)
 9. [Tipografía y Colores](#9-tipografía-y-colores)
 10. [Layout y Responsividad](#10-layout-y-responsividad)
+    - 10.4 Layout de dos paneles (mensajería)
+    - 10.5 Componente de calendario (3 vistas)
+    - 10.6 Componente de sala de cita / conferencia
 11. [Animaciones y Transiciones](#11-animaciones-y-transiciones)
 12. [Accesibilidad](#12-accesibilidad)
 13. [Rendimiento Frontend](#13-rendimiento-frontend)
@@ -319,8 +324,26 @@ Próxima cita *
 | `03PM` (cero inicial) | `3PM` |
 | `8 de octubre de 2026 a las 3PM` | `8 Oct 2026 3PM` |
 
-### 5.5 Formularios largos
+### 5.5 Formularios de múltiples pasos (Wizard)
 
+Para flujos que requieren más de un paso secuencial (ej: inscripción, pago):
+
+**Estructura obligatoria:**
+```
+[Paso 1: Confirmación] ─●─ [Paso 2: Pago] ─●─ [Paso 3: Resultado]
+```
+
+**Reglas:**
+- Máximo **3 pasos** por wizard. Si se necesitan más, rediseñar el flujo.
+- El indicador de pasos es visible en todo momento (barra superior con conectores).
+- El paso actual está resaltado; los completados con indicador de check.
+- Cada paso tiene un **botón “Volver”** que regresa al paso anterior sin perder datos.
+- El botón de avance es el **único botón primario** del paso.
+- Los pasos completados permanecen accesibles (el usuario puede volver).
+- El paso de resultado tiene **3 estados obligatorios**: éxito, rechazado/error, sin disponibilidad.
+- El tiempo de procesamiento simulado o real se comunica con un spinner en el botón o en pantalla.
+
+---
 - Si un formulario tiene más de **6 campos**, se divide en **secciones con encabezado**
 - Si supera **12 campos** o tiene flujo de pasos, se usa un **wizard multistep** con indicador de progreso
 - El indicador de progreso muestra: *"Paso 2 de 4"* + barra o dots
@@ -344,9 +367,34 @@ Próxima cita *
 
 ### 6.3 Tabs
 
-- Máximo **6 tabs** visibles horizontalmente
-- El tab activo tiene indicador visual claro (borde inferior o fondo)
-- Los tabs no tienen scroll horizontal — si no caben, se usa un selector `select` o menú desplegable
+- Máximo **6 tabs** visibles horizontalmente.
+- El tab activo tiene indicador visual claro: **borde inferior de 3px en color acento**.
+- Los tabs no tienen scroll horizontal — si no caben, se usa un contenedor con `overflow-x: auto` y `scrollbar: none`.
+
+#### Estilo estándar de tabs (prof-tabs-bar)
+
+En toda la aplicación se usa el componente `prof-tabs-bar` como estándar para navegación por tabs:
+
+```html
+<nav class="prof-tabs-bar" aria-label="[Descripción de la sección]">
+  <ul class="prof-tabs-bar__list" role="tablist">
+    <li><a href="..." class="prof-tab-link active" aria-current="page">
+      <span class="tab-icon">[emoji]</span>[Label]
+    </a></li>
+    <li><a href="..." class="prof-tab-link">
+      <span class="tab-icon">[emoji]</span>[Label]
+      <span class="tab-badge">[n]</span> <!-- opcional: contador -->
+    </a></li>
+  </ul>
+</nav>
+```
+
+**Reglas del componente:**
+- Fondo blanco (`color-surface`), bordes redondeados (`radius-xl`), sombra suave.
+- Tab activo: color primario + borde inferior de 3px en color acento.
+- Badges de conteo: fondo pale cuando inactivo, fondo primario cuando activo.
+- Para tabs que navegan entre páginas: usar `<a href>`. Para tabs que cambian contenido en la misma página: usar `<button>` con `role="tab"`.
+- Iconos via `<span class="tab-icon">`: opacidad 0.75 en inactivo, 1 en activo.
 
 ---
 
@@ -468,10 +516,63 @@ Usar **tokens semánticos**, nunca valores hexadecimales directos en componentes
 - El contenido principal tiene padding horizontal de **24px** en desktop, **16px** en mobile
 - Cards y contenedores tienen `border-radius` consistente definido en el design system
 
+### 10.4 Layout de dos paneles (mensajería)
+
+Para vistas de tipo cliente de correo o mensajería:
+
+```
+[■ Lista de conversaciones (360px) ] [ Chat activo (flex: 1) ]
+```
+
+- Panel izquierdo: **ancho fijo** (~360px), scroll interno en la lista.
+- Panel derecho: ocupa el resto del espacio con `flex: 1`.
+- En mobile (≤ 768px): solo se muestra un panel a la vez; la selección de conversación navega al panel de chat.
+- Las conversaciones muestran: avatar, nombre, etiqueta de rol, preview del último mensaje, hora y badge de no leídos.
+
+### 10.5 Componente de calendario (3 vistas)
+
+El componente de calendario del sistema expone **3 vistas**:
+
+| Vista | Descripción |
+|---|---|
+| Mensual | Cuadrícula 7×6 de días con estados de color |
+| Semanal | Columnas por día con franjas horarias (64px/hora), eventos posicionados absolutamente |
+| Diaria | Una columna con todos los slots del día |
+
+**Reglas del calendario:**
+- La vista activa se selecciona mediante **pills de selección** (Mensual / Semanal / Diaria).
+- La línea de hora actual es **roja** con punto indicador. Auto-scroll a la hora actual al cargar.
+- Los estados de celda se distinguen únicamente por color (no solo por color — también patrón o texto para accesibilidad).
+- El botón **“Hoy”** navega a la fecha actual en cualquier vista.
+- Los eventos clickeables abren un **modal de detalle** (no navegan a otra página).
+- Los slots ocupados no son clickeables y muestran patrón rayado o icono de candado.
+
+**Estados estándar de celdas de calendario:**
+
+| Estado | Color | Descripción |
+|---|---|---|
+| Disponible | Verde | Slot reservable |
+| Ocupado | Gris rayado | Ya tiene cita o evento |
+| Bloqueado | Gris sólido | No disponible por el profesional |
+| Fuera de horario | Rayas diagonales | Fuera del horario laboral |
+| Pasado | Atenuado | Fecha ya transcurrida |
+| Mi reserva | Color acento / rosa | Reserva del usuario actual |
+
+### 10.6 Componente de sala de cita / conferencia
+
+**Sala de cita privada (1:1):**
+- Layout: área de video (60-70% del ancho) + panel lateral fijo (~340px).
+- Controles flotantes sobre el video (círculos con iconos).
+- Panel lateral con **tabs** para organizar información (Sesión / Recomendaciones).
+- Timer de sesión siempre visible en el header.
+
+**Sala de conferencia en vivo:**
+- Misma estructura con panel lateral de **3 tabs**: Preguntas / Asistentes / Info.
+- Chip de estado visible en el header (“EN VIVO”, “Preguntas habilitadas”).
+- El toggle de preguntas produce feedback visual inmediato (chip cambia de color + toast).
 ---
 
 ## 11. Animaciones y Transiciones
-
 > *"Animation should convey meaning, not just look pretty."*
 
 ### 11.1 Duraciones estándar

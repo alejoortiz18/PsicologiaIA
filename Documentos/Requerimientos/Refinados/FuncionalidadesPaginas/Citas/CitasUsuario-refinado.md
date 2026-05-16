@@ -1,21 +1,21 @@
-# Vista de Citas — Perfil Usuario — Proyecto Trébol
+# Vista de Citas del Usuario — Proyecto Trébol
 
-> **Versión:** 1.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
+> **Versión:** 2.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
 > **Tecnología:** .NET Core 10 | **Plataforma:** Web MVC | **Base de datos:** SQL Server
-> **Fase:** 2 — Experiencia del Usuario | **Apetito:** 1–2 semanas
+> **Fase:** 2 — Experiencia del Usuario | **Apetito:** 1 semana
 
 ---
 
 ## 1. Problema
 
-El usuario necesita una vista dedicada durante la cita en vivo que le permita interactuar con el profesional (cámara, audio, mensajes), consultar el historial de la sesión y acceder a las recomendaciones del profesional, con la opción de mantener el anonimato si lo desea.
+El usuario necesita una vista centralizada donde pueda consultar todas sus citas privadas (próximas e historial), filtrarlas por estado o tipo, ingresar directamente a la videollamada del día y cancelar las que no pueda atender.
 
 ---
 
 ## 2. Apetito
 
-**1 a 2 semanas.**
-Vista de cita activa con controles de cámara/audio, historial de sesión, recomendaciones del profesional y comentarios privados del usuario.
+**1 semana.**
+Vista de gestión de citas con strip de estadísticas, filtros, listado en tabs (Próximas / Historial) y acciones contextuales por cita.
 
 ---
 
@@ -23,54 +23,83 @@ Vista de cita activa con controles de cámara/audio, historial de sesión, recom
 
 ### ✅ Dentro del scope
 
-- Visualización de la cámara del profesional (pantalla principal)
-- Controles: activar/desactivar cámara propia, activar/desactivar audio propio, enviar mensaje
-- Historial de la sesión actual: fecha, hora, estado y duración
-- Recomendaciones del profesional visibles durante la sesión
-- Campo de comentario privado del usuario (solo visible para el propio usuario)
-- Opción de anonimato: mostrar nombre real o alias en asesorías puntuales
+- Strip de estadísticas: Próximas · Esta semana · Completadas · Canceladas
+- Barra de filtros: búsqueda por profesional, filtro por estado, filtro por tipo
+- Tabs de contenido: **Próximas** | **Historial**
+- Tabla: columnas Profesional · Tipo · Fecha · Hora · Estado · Acciones
+- CTA principal **"+ Agendar cita"** (botón verde)
+- Acción **"Ingresar"** (solo el día de la cita) → `sala-usuario.html`
+- Acción **"Cancelar"** con modal de confirmación
+- Paginación de 10 registros por página
 
 ### ❌ Fuera del scope (No-Gos)
 
-- Grabación de la sesión (fuera del scope por razones éticas y legales)
-- Chat de texto completo (fuera del scope de esta vista; solo envío de mensaje puntual)
-- Historial clínico completo (corresponde al módulo del profesional)
-- Pago de la cita (corresponde al módulo `InscripcionPago`)
+- Flujo de agendamiento (corresponde al calendario del profesional en `perfil-orador`)
+- Sala de videollamada (corresponde al módulo `SalaUsuario`)
+- Historial clínico ni notas del profesional
+- Proceso de pago de cita (corresponde a `PagoCita`)
 
 ---
 
 ## 4. Solución Visible
 
-### Área principal de la cita
+### Strip de estadísticas (4 tarjetas)
+
+| Tarjeta | Valor | Color |
+|---|---|---|
+| Próximas | Total de citas programadas futuras | Verde |
+| Esta semana | Citas programadas en los próximos 7 días | Azul |
+| Completadas | Total de citas finalizadas exitosamente | Gris-oscuro |
+| Canceladas | Total de citas canceladas | Rojo |
+
+### Barra de filtros
+
+| Filtro | Tipo | Opciones |
+|---|---|---|
+| Búsqueda | Campo de texto | Buscar por nombre del profesional |
+| Estado | Desplegable | Todos / Programada / Completada / Cancelada / Movida |
+| Tipo | Desplegable | Todos / Psicológica / Asesoría puntual |
+
+### Botón CTA principal
+
+| Elemento | Posición | Destino |
+|---|---|---|
+| **"+ Agendar cita"** | Esquina superior derecha | Navega al perfil del orador para agendar desde el calendario |
+
+### Tabs de contenido
+
+| Tab | Condición de las citas mostradas |
+|---|---|
+| **Próximas** | `Estado = Programada` y `FechaHora >= Hoy` |
+| **Historial** | `FechaHora < Hoy` o `Estado` en {Completada, Cancelada, Movida} |
+
+### Tabla de citas
+
+| Columna | Descripción |
+|---|---|
+| **Profesional** | Avatar circular + nombre completo del profesional |
+| **Tipo** | Psicológica / Asesoría puntual |
+| **Fecha** | Formato `DD MMM YYYY` (ej: `12 Jun 2026`) |
+| **Hora** | Formato 12H (ej: `3PM`, `3:30PM`) |
+| **Estado** | Badge de color: Programada (verde) / Completada (azul) / Cancelada (rojo) / Movida (amarillo) |
+| **Acciones** | Botones condicionales según estado y fecha |
+
+### Acciones por fila
+
+| Condición | Botón | Color | Resultado |
+|---|---|---|---|
+| Cita hoy (`fecha == hoy`) + Estado Programada | **"Ingresar"** | Verde sólido | Navega a `sala-usuario.html` |
+| Cita futura + Estado Programada | **"Cancelar"** | Rojo outline | Abre modal de confirmación |
+| Cita completada / cancelada / movida | — | — | Solo lectura, sin acciones |
+
+### Modal de confirmación de cancelación
 
 | Elemento | Descripción |
 |---|---|
-| Pantalla principal | Vista de cámara del profesional (ocupa la mayor parte de la pantalla) |
-| Vista propia | Cámara del usuario (ventana pequeña, posicionada sobre la pantalla principal) |
-| Barra de controles | Botones de control de sesión (cámara, audio, mensaje) |
-
-### Barra de controles
-
-| Control | Descripción |
-|---|---|
-| Activar / Desactivar cámara | Muestra u oculta la cámara propia del usuario |
-| Activar / Desactivar audio | Habilita o silencia el micrófono del usuario |
-| Enviar mensaje | Abre un campo de texto para enviar un mensaje al profesional |
-
-### Panel lateral — información de la sesión
-
-| Sección | Descripción |
-|---|---|
-| Historial de sesión | Fecha (`DD MMM YYYY`), hora (`H[MM]AM/PM`), estado (recibida / cancelada / movida), duración |
-| Recomendaciones del profesional | Notas creadas por el profesional para esta sesión; solo lectura para el usuario |
-| Comentario privado del usuario | Campo editable visible únicamente para el propio usuario |
-
-### Opción de anonimato
-
-| Contexto | Descripción |
-|---|---|
-| Asesoría puntual | El usuario elige si mostrar su **nombre real** o su **alias** durante la sesión |
-| Cita de seguimiento clínico | El profesional tiene acceso al nombre real del usuario para el historial clínico |
+| Título | "¿Cancelar esta cita?" |
+| Cuerpo | Nombre del profesional + fecha + hora de la cita |
+| Botón **"Confirmar cancelación"** | Cancela la cita → actualiza strip + tabla |
+| Botón **"Volver"** | Cierra el modal sin cambios |
 
 ---
 
@@ -78,21 +107,25 @@ Vista de cita activa con controles de cámara/audio, historial de sesión, recom
 
 | Acción | Resultado |
 |---|---|
-| Activar / Desactivar cámara | La transmisión de video propia se habilita o detiene |
-| Activar / Desactivar audio | El micrófono se habilita o silencia |
-| Enviar mensaje | El mensaje se envía al profesional en tiempo real |
-| Ver recomendaciones | El usuario consulta las notas del profesional para esta sesión |
-| Escribir comentario privado | El comentario se guarda y es visible solo para el usuario |
-| Elegir nombre real o alias *(en asesorías)* | El profesional ve el identificador elegido por el usuario |
+| Clic en "+ Agendar cita" | Navega al perfil del orador elegido para agendar desde su calendario |
+| Escribir en búsqueda | Filtra la tabla por nombre del profesional en tiempo real |
+| Seleccionar estado en filtro | La tabla muestra solo citas con ese estado |
+| Seleccionar tipo en filtro | La tabla muestra solo citas del tipo seleccionado |
+| Cambiar de tab (Próximas / Historial) | Alterna la tabla entre citas futuras e históricas |
+| Clic en "Ingresar" | Navega a `sala-usuario.html` (solo disponible el día de la cita) |
+| Clic en "Cancelar" | Abre modal de confirmación |
+| Confirmar cancelación en modal | La cita cambia a Cancelada; strip y tabla se actualizan |
+| Navegar páginas | Paginación de 10 registros por página |
 
 ---
 
 ## 6. Restricciones
 
-- Las recomendaciones del profesional son de **solo lectura** para el usuario; no puede editarlas.
-- El comentario privado del usuario **no es visible** para el profesional.
-- En asesorías, el usuario elige su identificador **antes o al inicio** de la sesión.
-- El historial clínico completo (notas de seguimiento, medicamentos) es visible solo para el profesional.
+- El botón **"Ingresar"** solo aparece el **día de la cita** (validado con la fecha del servidor).
+- Solo se pueden cancelar citas con estado **Programada**.
+- Las citas completadas, canceladas o movidas son de **solo lectura**.
+- Paginación de **10 registros por página** en ambos tabs.
+- Los filtros se combinan (AND lógico entre búsqueda + estado + tipo).
 
 ---
 
@@ -100,12 +133,14 @@ Vista de cita activa con controles de cámara/audio, historial de sesión, recom
 
 | Regla | Detalle |
 |---|---|
-| Cámara del profesional | Es la pantalla principal; ocupa el área central de la vista |
-| Comentario privado | Guardado en base de datos con `UsuarioId`; nunca expuesto al profesional |
-| Anonimato | Solo aplica en **asesorías puntuales**; en seguimiento clínico el nombre real es obligatorio |
-| Historial de sesión | Registrado automáticamente por el sistema (fecha, hora inicio, hora fin, estado) |
+| Disponibilidad de "Ingresar" | `fecha_servidor == fecha_cita` y `estado == Programada` |
+| Cancelación | Solo citas con `Estado = Programada` |
+| Strip estadísticas | Calculado en tiempo real al cargar y tras cada acción |
+| Tab Próximas | `FechaHora >= Hoy` y `Estado = Programada` |
+| Tab Historial | `FechaHora < Hoy` OR `Estado` ∈ {Completada, Cancelada, Movida} |
 | Formato de fechas | `DD MMM YYYY` |
-| Formato de horas | `H[MM]AM/PM` (ej: `3PM`, `3:30PM`) |
+| Formato de horas | 12H (ej: `3PM`, `3:30PM`) |
+| Paginación | 10 registros por página |
 
 ---
 
@@ -113,9 +148,9 @@ Vista de cita activa con controles de cámara/audio, historial de sesión, recom
 
 | Riesgo | Mitigación |
 |---|---|
-| Conexión inestable del usuario | Mostrar indicador de estado de conexión; el sistema debe soportar reconexión |
-| Comentario privado perdido si cierra sin guardar | Guardar automáticamente al escribir (autosave) |
-| El profesional no activa su cámara | Mostrar mensaje de espera mientras la cámara del profesional no esté disponible |
+| Botón "Ingresar" fuera del horario real | Validar con fecha del servidor; no confiar en el cliente |
+| Cancelación accidental | Modal de confirmación obligatorio |
+| Historial muy extenso | Paginación + filtros combinables |
 
 ---
 
@@ -123,12 +158,10 @@ Vista de cita activa con controles de cámara/audio, historial de sesión, recom
 
 | Dato | Tabla / Campo |
 |---|---|
-| Datos de la cita | `Citas` (CitaId, UsuarioId, ProfesionalId, FechaHora, Estado, Tipo) |
-| Duración de la sesión | Calculada: FechaHoraFin - FechaHoraInicio |
-| Recomendaciones del profesional | `Recomendaciones` (CitaId, ProfesionalId, Texto, FechaCreacion) |
-| Comentario privado del usuario | `ComentariosPrivados` (CitaId, UsuarioId, Texto) |
-| Alias del usuario | `Usuarios.Alias` |
-| Tipo de cita | `Citas.Tipo` (Seguimiento / Asesoria) |
+| Citas del usuario | `Citas` (CitaId, UsuarioId, ProfesionalId, FechaHora, Estado, Tipo) |
+| Datos del profesional | `Profesionales.NombreCompleto`, `Profesionales.FotoPerfil` |
+| Strip — contadores | COUNT agrupado por Estado / período sobre `Citas` del usuario |
+| Fecha actual del servidor | `DateTime.Now` (servidor) |
 
 ---
 
@@ -136,12 +169,12 @@ Vista de cita activa con controles de cámara/audio, historial de sesión, recom
 
 | Métrica | Criterio |
 |---|---|
-| Cámara del profesional visible | La vista principal muestra el video del profesional al iniciar la sesión |
-| Controles funcionales | Activar/desactivar cámara y audio operan correctamente |
-| Recomendaciones visibles | El usuario ve las recomendaciones del profesional durante la sesión |
-| Comentario privado guardado | El comentario se persiste y no es visible para el profesional |
-| Historial correcto | Fecha, hora y duración reflejan los datos reales de la sesión |
+| Strip correcto | Los 4 contadores reflejan datos reales de la BD |
+| Filtros funcionales | Los resultados coinciden con los filtros aplicados |
+| Botón "Ingresar" condicional | Solo aparece el día de la cita; no antes ni después |
+| Cancelación exitosa | Estado cambia a Cancelada; strip y tabla se actualizan inmediatamente |
+| Paginación correcta | Máximo 10 registros por página |
 
 ---
 
-*Documento refinado v1 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*
+*Documento refinado v2 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*

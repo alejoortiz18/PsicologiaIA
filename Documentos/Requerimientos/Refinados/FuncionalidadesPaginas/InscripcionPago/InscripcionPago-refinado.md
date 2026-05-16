@@ -1,8 +1,226 @@
 # Inscripción y Pago — Proyecto Trébol
 
-> **Versión:** 1.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
+> **Versión:** 2.0 | **Refinado con:** [Shape Up – Basecamp](https://basecamp.com/shapeup)
 > **Tecnología:** .NET Core 10 | **Plataforma:** Web MVC | **Base de datos:** SQL Server
 > **Fase:** 2 — Experiencia del Usuario | **Apetito:** 2–3 semanas
+
+---
+
+## 1. Problema
+
+Cuando un usuario decide inscribirse a un evento o sala, necesita un flujo de 3 pasos claro y seguro que confirme los detalles del evento, recoja sus datos personales y procese el pago, mostrando una confirmación exitosa al finalizar.
+
+---
+
+## 2. Apetito
+
+**2 a 3 semanas.**
+Wizard de 3 pasos: Detalles del evento → Datos personales → Pago. Integración con métodos de pago (Tarjeta/PSE/Efecty). Modal de éxito con datos de la inscripción.
+
+---
+
+## 3. Límites
+
+### ✅ Dentro del scope
+
+- Wizard visual de 3 pasos con indicador de progreso
+- **Paso 1:** Detalles del evento (solo lectura, precargados)
+- **Paso 2:** Datos personales del usuario (nombre, email, celular, alias)
+- **Paso 3:** Selección de método de pago + formulario condicional de tarjeta
+- Tarifa de servicio fija: **$5.000 COP** adicionales al precio base
+- Métodos de pago: Tarjeta crédito/débito · PSE · Efecty
+- Formulario de tarjeta solo se muestra si el método seleccionado es "Tarjeta"
+- Modal de éxito: "¡Ya estás inscrito!" con datos del evento
+- Validación de cupos en tiempo real antes de confirmar
+
+### ❌ Fuera del scope (No-Gos)
+
+- Panel de administración de pagos (módulo financiero del Admin)
+- Procesamiento de reembolsos automáticos
+- Suscripciones o pagos recurrentes
+- Múltiples monedas (moneda base: COP)
+
+---
+
+## 4. Solución Visible
+
+### Indicador de progreso (3 pasos)
+
+```
+[1. Detalles del evento] → [2. Datos personales] → [3. Pago]
+```
+
+Cada paso muestra un número y etiqueta. El paso activo está resaltado; los completados muestran ✓.
+
+### Paso 1 — Detalles del evento (solo lectura)
+
+| Campo | Descripción |
+|---|---|
+| Título del evento | Nombre de la sala/conferencia |
+| Orador | Avatar + nombre completo del profesional |
+| Fecha | `DD MMM YYYY` |
+| Hora | Formato 12H (ej: `3PM`) |
+| Cupos disponibles | `X cupos restantes` (en tiempo real) |
+| Precio base | Monto en COP o "Entrada libre" |
+| Botón **"Continuar"** | Avanza al paso 2 |
+| Botón **"Cancelar"** | Regresa al perfil del orador sin registro |
+
+### Paso 2 — Datos personales
+
+| Campo | ¿Editable? | Descripción |
+|---|---|---|
+| Nombre completo | No (precargado) | Nombre del usuario en sesión |
+| Correo electrónico | No (precargado) | Email de la cuenta |
+| Número de celular | Sí | Editable por el usuario |
+| Alias | Sí | Nombre que verá el orador |
+| Botón **"Continuar"** | — | Avanza al paso 3 |
+| Botón **"Atrás"** | — | Regresa al paso 1 |
+
+### Paso 3 — Pago
+
+#### Resumen de precio
+
+| Concepto | Monto |
+|---|---|
+| Precio base del evento | `$XX.000 COP` |
+| Tarifa de servicio | `$5.000 COP` |
+| **Total a pagar** | `$XX.000 COP` (suma de los anteriores) |
+
+#### Métodos de pago (radio buttons)
+
+| Método | Ícono | Formulario adicional |
+|---|---|---|
+| Tarjeta crédito / débito | 💳 | Sí — muestra formulario de tarjeta |
+| PSE | 🏦 | No — redirige a portal PSE |
+| Efecty | 💵 | No — muestra código de referencia |
+
+#### Formulario de tarjeta (solo si método = Tarjeta)
+
+| Campo | Validación |
+|---|---|
+| Número de tarjeta | 16 dígitos, formato `XXXX XXXX XXXX XXXX` |
+| Nombre en la tarjeta | Texto libre |
+| Fecha de vencimiento | Formato `MM/YY` |
+| CVV | 3–4 dígitos, enmascarado |
+
+#### Nota de seguridad
+
+```
+🔒 Tus datos de pago están protegidos con encriptación SSL.
+   No almacenamos información de tu tarjeta.
+```
+
+#### Botones del paso 3
+
+| Botón | Acción |
+|---|---|
+| **"Confirmar inscripción"** | Inicia el procesamiento → spinner de carga |
+| **"Atrás"** | Regresa al paso 2 |
+
+### Modal de éxito — "¡Ya estás inscrito!"
+
+| Elemento | Descripción |
+|---|---|
+| Ícono ✅ | Confirmación visual |
+| Título | "¡Ya estás inscrito!" |
+| Nombre del evento | Título de la sala |
+| Fecha y hora | `DD MMM YYYY · H:MMAM/PM` |
+| Orador | Nombre del profesional |
+| Código de inscripción | Identificador único (ej: `TRB-2026-00412`) |
+| Total pagado | Monto en COP |
+| Botón **"Ver mis citas"** | → `citas-usuario.html` |
+| Botón **"Volver al inicio"** | → `home-usuario.html` |
+
+---
+
+## 5. Acciones del Usuario
+
+| Acción | Resultado |
+|---|---|
+| Llegar al paso 1 | Ve los detalles del evento precargados |
+| Clic "Continuar" en paso 1 | Avanza a paso 2; valida cupos en tiempo real |
+| Editar celular / alias en paso 2 | Datos actualizados para la inscripción |
+| Clic "Continuar" en paso 2 | Avanza a paso 3 |
+| Seleccionar "Tarjeta" | Muestra formulario de tarjeta |
+| Seleccionar "PSE" o "Efecty" | Oculta formulario de tarjeta |
+| Clic "Confirmar inscripción" | Procesa el pago → spinner → modal de éxito o error |
+| Modal éxito → "Ver mis citas" | Navega a `citas-usuario.html` |
+| Clic "Cancelar" (paso 1) | Regresa sin generar registro |
+
+---
+
+## 6. Restricciones
+
+- El sistema **valida cupos** en el paso 1 y nuevamente antes de confirmar el pago.
+- El sistema **nunca almacena** datos de tarjeta; el formulario es procesado por la pasarela.
+- El botón "Confirmar inscripción" se **deshabilita** durante el procesamiento (anti-doble envío).
+- Si no hay cupos al confirmar, se muestra modal de error y se inicia reembolso si ya se cobró.
+- Los datos de nombre y email **no son editables**; provienen de la sesión activa.
+
+---
+
+## 7. Reglas de Negocio
+
+| Regla | Detalle |
+|---|---|
+| Tarifa de servicio | Siempre `$5.000 COP` adicionales al precio base |
+| Validación cupos | Doble validación: al avanzar del paso 1 y al confirmar el pago |
+| Evento gratuito (precio = 0) | No se cobra tarifa de servicio; inscripción directa sin pago |
+| Token de inscripción | Generado automáticamente tras confirmación exitosa (formato `TRB-YYYY-XXXXX`) |
+| Correo de confirmación | Se envía solo tras estado **Inscripción confirmada** |
+| Protección doble envío | Botón deshabilitado durante el procesamiento |
+
+---
+
+## 8. Estados de la Inscripción
+
+| Estado | Descripción |
+|---|---|
+| **Pendiente de pago** | Orden generada, pago no procesado |
+| **Pago aprobado** | Pasarela confirmó el pago |
+| **Pago rechazado** | Pasarela rechazó la transacción |
+| **Inscripción confirmada** | Cupo asignado y registro completo |
+| **Sin cupos** | Cupos agotados al momento del pago; reembolso en proceso |
+| **Inscripción cancelada** | El usuario canceló antes de completar |
+
+---
+
+## 9. Riesgos
+
+| Riesgo | Mitigación |
+|---|---|
+| Cupos agotados entre paso 1 y pago | Doble validación; modal informativo y reembolso si aplica |
+| Respuesta lenta de pasarela | Spinner + timeout definido; estado "Pendiente" hasta resolución |
+| Datos de tarjeta expuestos | Formulario procesado 100% por pasarela; no pasa por el servidor propio |
+
+---
+
+## 10. Datos Necesarios
+
+| Dato | Tabla / Campo |
+|---|---|
+| Datos del evento | `Salas.Nombre`, `Salas.Precio`, `Eventos.FechaInicio`, `Eventos.FechaFin` |
+| Orador | `Profesionales.NombreCompleto`, `Profesionales.FotoPerfil` |
+| Cupos disponibles | `Salas.CupoMaximo` - COUNT(`Inscripciones` confirmadas) |
+| Datos del usuario | `Usuarios.NombreCompleto`, `Usuarios.Correo`, `Usuarios.Celular`, `Usuarios.Alias` |
+| Inscripción | `Inscripciones` (InscripcionId, UsuarioId, SalaId, Estado, CodigoInscripcion) |
+| Pago | `Pagos` (PagoId, InscripcionId, Monto, MetodoPago, Estado, FechaPago) |
+
+---
+
+## 11. Métricas de Éxito
+
+| Métrica | Criterio |
+|---|---|
+| Wizard funcional | Los 3 pasos navegan correctamente con Continuar y Atrás |
+| Cupos validados | No se confirman inscripciones cuando no hay cupos |
+| Pago procesado | El estado de inscripción se actualiza correctamente |
+| Modal de éxito visible | Se muestra el código de inscripción y datos del evento |
+| Correo entregado | El correo de confirmación llega en menos de **60 segundos** |
+
+---
+
+*Documento refinado v2 | Mayo 2026 | Metodología [Shape Up – Basecamp](https://basecamp.com/shapeup)*
 
 ---
 
