@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>@ViewData["Title"] — Trébol</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/trebol.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <aside class="sidebar" role="navigation" aria-label="Menú principal">
+        <div class="sidebar__header">
+            <div class="sidebar__logo" aria-hidden="true">🍀</div>
+            <span class="sidebar__brand-name">Trébol</span>
+        </div>
+
+        @await Html.PartialAsync("_MenuLateral")
+
+        <div class="sidebar__footer">
+            <div class="sidebar__user sidebar__user-menu" id="user-menu">
+                <div class="sidebar__user-avatar" id="sidebar-avatar">
+                    @{
+                        var nombre = User.Identity?.Name ?? "U";
+                        var iniciales = string.Join("", nombre.Split(' ').Take(2).Select(p => p.Length > 0 ? p[0].ToString() : "")).ToUpper();
+                        if (iniciales.Length == 0) iniciales = "U";
+                    }
+                    @iniciales
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div class="sidebar__user-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@User.Identity?.Name</div>
+                    <div class="sidebar__user-role">
+                        @if (User.IsInRole("Admin")) { <text>Administrador</text> }
+                        else if (User.IsInRole("Profesional")) { <text>Profesional</text> }
+                        else { <text>Usuario</text> }
+                    </div>
+                </div>
+                <button class="sidebar__user-dots" id="user-dots-btn" aria-label="Opciones de usuario" aria-expanded="false" aria-haspopup="true">⋯</button>
+                <div class="sidebar__user-dropdown" id="user-dropdown" role="menu">
+                    <form asp-controller="Login" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" role="menuitem">
+                            <span>🚪</span> Cerrar sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════ MAIN WRAPPER ═══════════ -->
+    <div class="main-wrapper">
+
+        <!-- Topbar -->
+        <header class="topbar" role="banner">
+            <button class="btn btn-ghost btn-icon" id="sidebar-toggle" aria-label="Abrir menú" style="display:none;">☰</button>
+            <span class="topbar__title">@(ViewData["Title"] ?? "Trébol")</span>
+            <div class="topbar__spacer"></div>
+            <div class="topbar__actions">
+                @RenderSection("TopbarActions", required: false)
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="main-content" role="main">
+            @if (TempData["Mensaje"] != null)
+            {
+                <div style="background:var(--color-success-pale);border:1px solid var(--color-accent);color:var(--color-success);padding:12px 16px;border-radius:var(--radius-md);font-size:.875rem;font-weight:600;margin-bottom:var(--sp-5);">
+                    ✅ @TempData["Mensaje"]
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div style="background:var(--color-danger-pale);border:1px solid var(--color-danger);color:var(--color-danger);padding:12px 16px;border-radius:var(--radius-md);font-size:.875rem;font-weight:600;margin-bottom:var(--sp-5);">
+                    ❌ @TempData["Error"]
+                </div>
+            }
+            @RenderBody()
+        </main>
+
+    </div><!-- /main-wrapper -->
+
+</div><!-- /app-layout -->
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+<script src="~/js/trebol.js" asp-append-version="true"></script>
+<script>
+    // Sidebar toggle (mobile)
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebarToggle) {
+        sidebarToggle.style.display = 'flex';
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible');
+        });
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+        });
+    }
+    // User menu dropdown
+    const dotsBtn = document.getElementById('user-dots-btn');
+    const dropdown = document.getElementById('user-dropdown');
+    if (dotsBtn && dropdown) {
+        dotsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const open = dropdown.classList.toggle('open');
+            dotsBtn.setAttribute('aria-expanded', open);
+        });
+        document.addEventListener('click', () => {
+            dropdown.classList.remove('open');
+            dotsBtn?.setAttribute('aria-expanded', 'false');
+        });
+    }
+    // Sidebar submenu toggles
+    document.querySelectorAll('[data-submenu]').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const id = toggle.dataset.submenu;
+            const sub = document.getElementById(id);
+            if (sub) {
+                const open = sub.style.display !== 'none' && sub.style.display !== '';
+                sub.style.display = open ? 'none' : 'block';
+                toggle.classList.toggle('open', !open);
+            }
+        });
+    });
+</script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>

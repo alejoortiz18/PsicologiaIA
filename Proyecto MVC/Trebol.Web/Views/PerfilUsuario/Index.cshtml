@@ -1,0 +1,59 @@
+@model Trebol.Model.Entities.TrebolEntities.Usuario
+@{
+    ViewData["Title"] = "Mi Perfil";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var initials = string.Concat((Model?.NombreCompleto ?? "??").Split(' ').Take(2).Select(p => p.Length > 0 ? p[0].ToString() : ""));
+}
+
+<h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:var(--sp-6);">👤 Mi perfil</h1>
+
+<div style="max-width:600px;">
+    <div class="card" style="overflow:hidden;margin-bottom:var(--sp-6);">
+        <!-- Header con avatar -->
+        <div style="padding:var(--sp-8);background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-primary-light) 100%);text-align:center;">
+            @if (!string.IsNullOrEmpty(Model?.FotoPerfil))
+            {
+                <img src="@Model.FotoPerfil" class="avatar" style="width:80px;height:80px;font-size:2rem;" alt="foto" />
+            }
+            else
+            {
+                <div class="avatar" style="width:80px;height:80px;font-size:2rem;margin:0 auto;">@initials</div>
+            }
+            <div style="font-family:var(--font-display);font-size:1.25rem;color:white;margin-top:var(--sp-3);">@Model?.NombreCompleto</div>
+            <div style="color:rgba(255,255,255,.7);font-size:.875rem;">@@Model?.Alias</div>
+        </div>
+
+        <!-- Formulario -->
+        <div style="padding:var(--sp-6);">
+            <form asp-action="Actualizar" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+                <input type="hidden" name="UsuarioId" value="@Model?.UsuarioId" />
+
+                <div class="form-group">
+                    <label class="form-label">Nombre completo</label>
+                    <input name="NombreCompleto" class="form-control" value="@Model?.NombreCompleto" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Alias</label>
+                    <input name="Alias" class="form-control" value="@Model?.Alias" />
+                    <div class="form-hint">Tu nombre visible en la plataforma.</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Celular</label>
+                    <input name="Celular" class="form-control" value="@Model?.Celular" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha de nacimiento</label>
+                    <input name="FechaNacimiento" type="date" class="form-control"
+                           value="@Model?.FechaNacimiento?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Foto de perfil</label>
+                    <input type="file" name="foto" class="form-control" accept="image/*" />
+                </div>
+                <button type="submit" class="btn btn-primary w-full">Guardar cambios</button>
+            </form>
+        </div>
+    </div>
+</div>

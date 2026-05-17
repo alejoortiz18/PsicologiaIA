@@ -1,0 +1,259 @@
+@model RegistroProfesionalViewModel
+@{
+    ViewData["Title"] = "Registro profesional";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+}
+
+@section Styles {
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+
+.file-input-wrapper {
+    position: relative;
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-5);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    background: var(--color-surface-2, #f8faf9);
+}
+.file-input-wrapper:hover,
+.file-input-wrapper:focus-within {
+    border-color: var(--color-primary);
+    background: rgba(82,183,136,.06);
+}
+.file-input-wrapper input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+.file-input-wrapper.has-file {
+    border-color: var(--color-primary);
+    background: rgba(82,183,136,.08);
+}
+.file-input-icon  { font-size: 1.75rem; margin-bottom: var(--sp-2); line-height: 1; }
+.file-input-label { font-size: .875rem; color: var(--color-text-muted); line-height: 1.4; }
+.file-name        { font-size: .8125rem; font-weight: 600; color: var(--color-primary); margin-top: var(--sp-2); min-height: 1.2em; }
+</style>
+}
+
+<div class="auth-layout">
+
+    <!-- LEFT PANEL -->
+    <div class="auth-panel auth-panel--left" aria-hidden="true">
+        <div class="auth-illustration">
+            <div class="auth-illustration__tag">🎓 Registro profesional</div>
+            <h1 class="auth-illustration__title">
+                Lleva tu<br>práctica al<br><em>siguiente nivel</em>
+            </h1>
+            <p class="auth-illustration__text">
+                Únete a nuestra comunidad de profesionales verificados. Crea salas, dicta conferencias, agenda citas y genera ingresos desde tu propio espacio.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-6);">
+                <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div style="width:32px;height:32px;border-radius:50%;background:rgba(82,183,136,.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">✅</div>
+                    <span style="color:rgba(255,255,255,.85);font-size:.9rem;">Verificación ante COLPSIC</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div style="width:32px;height:32px;border-radius:50%;background:rgba(82,183,136,.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🎪</div>
+                    <span style="color:rgba(255,255,255,.85);font-size:.9rem;">Crea salas y conferencias</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div style="width:32px;height:32px;border-radius:50%;background:rgba(82,183,136,.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">💰</div>
+                    <span style="color:rgba(255,255,255,.85);font-size:.9rem;">Monetiza tus servicios</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <div style="width:32px;height:32px;border-radius:50%;background:rgba(82,183,136,.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">📅</div>
+                    <span style="color:rgba(255,255,255,.85);font-size:.9rem;">Gestiona tu agenda clínica</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="auth-panel auth-panel--right" style="align-items:flex-start;padding-top:var(--sp-8);">
+        <div class="auth-form" style="max-width:480px;width:100%;">
+
+            <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
+                <div class="auth-form__logo-icon">🍀</div>
+                <span class="auth-form__logo-name">Trébol</span>
+            </a>
+
+            <h2 class="auth-form__title">Registro profesional</h2>
+            <p class="auth-form__subtitle">Tu cuenta será verificada por el equipo de Trébol antes de activarse.</p>
+
+            <form asp-controller="Registro" asp-action="RegistroProfesional" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+                <!-- ── Información personal ─────────────────────────────── -->
+                <div class="form-section">
+                    <div class="form-section__title">Información personal</div>
+
+                    <div class="form-group">
+                        <label asp-for="NombreCompleto" class="form-label">
+                            Nombre completo <span class="required" aria-hidden="true">*</span>
+                        </label>
+                        <input asp-for="NombreCompleto" class="form-control"
+                               placeholder="Ej: Dra. Valentina Ríos Montoya"
+                               autocomplete="name" aria-required="true" />
+                        <div class="form-hint" style="display:flex;align-items:flex-start;gap:6px;">
+                            <span>🪪</span>
+                            <span>Este nombre será siempre visible en la plataforma. Los profesionales no usan alias.</span>
+                        </div>
+                        <span asp-validation-for="NombreCompleto" class="form-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Correo" class="form-label">
+                            Correo electrónico <span class="required" aria-hidden="true">*</span>
+                        </label>
+                        <input asp-for="Correo" class="form-control" type="email"
+                               placeholder="profesional@correo.com"
+                               autocomplete="email" aria-required="true" />
+                        <span asp-validation-for="Correo" class="form-error"></span>
+                    </div>
+
+                    <div class="form-row form-row-2">
+                        <div class="form-group">
+                            <label asp-for="NumeroDocumento" class="form-label">
+                                N.° de cédula <span class="required" aria-hidden="true">*</span>
+                            </label>
+                            <input asp-for="NumeroDocumento" class="form-control"
+                                   placeholder="1234567890"
+                                   autocomplete="off" aria-required="true" />
+                            <span asp-validation-for="NumeroDocumento" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="EspecialidadId" class="form-label">
+                                ID especialidad <span class="required" aria-hidden="true">*</span>
+                            </label>
+                            <input asp-for="EspecialidadId" class="form-control" type="number"
+                                   placeholder="Ej: 1" aria-required="true" />
+                            <span asp-validation-for="EspecialidadId" class="form-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Información profesional ──────────────────────────── -->
+                <div class="form-section">
+                    <div class="form-section__title">Información profesional</div>
+
+                    <div class="form-group">
+                        <label asp-for="NumeroRegistro" class="form-label">
+                            N.° de tarjeta profesional (COLPSIC) <span class="required" aria-hidden="true">*</span>
+                        </label>
+                        <input asp-for="NumeroRegistro" class="form-control"
+                               placeholder="Ej: PSI-0001234" aria-required="true" />
+                        <div class="form-hint">Se verificará automáticamente ante el registro de COLPSIC.</div>
+                        <span asp-validation-for="NumeroRegistro" class="form-error"></span>
+                    </div>
+                </div>
+
+                <!-- ── Documentos adjuntos ──────────────────────────────── -->
+                <div class="form-section">
+                    <div class="form-section__title">Documentos adjuntos</div>
+
+                    <!-- Fotocopia cédula -->
+                    <div class="form-group">
+                        <label asp-for="FotocopiaCedula" class="form-label">
+                            Copia PDF de la cédula de identidad <span class="required" aria-hidden="true">*</span>
+                        </label>
+                        <div class="file-input-wrapper" id="wrapper-cedula"
+                             role="button" tabindex="0" aria-label="Cargar PDF de cédula"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.querySelector('input').click();">
+                            <input asp-for="FotocopiaCedula" type="file" accept=".pdf"
+                                   aria-label="Seleccionar PDF de cédula"
+                                   onchange="fileSelected(this,'cedula-name','wrapper-cedula')" />
+                            <div class="file-input-icon">📄</div>
+                            <div class="file-input-label">Haz clic para seleccionar o arrastra el archivo aquí</div>
+                            <div class="file-input-label" style="margin-top:4px;">Solo PDF · Máximo 5 MB</div>
+                            <div class="file-name" id="cedula-name"></div>
+                        </div>
+                        <span asp-validation-for="FotocopiaCedula" class="form-error"></span>
+                    </div>
+
+                    <!-- Fotocopia tarjeta profesional -->
+                    <div class="form-group">
+                        <label asp-for="FotocopiaTarjeta" class="form-label">
+                            Copia PDF de la tarjeta profesional <span class="required" aria-hidden="true">*</span>
+                        </label>
+                        <div class="file-input-wrapper" id="wrapper-tarjeta"
+                             role="button" tabindex="0" aria-label="Cargar PDF tarjeta profesional"
+                             onkeydown="if(event.key==='Enter'||event.key===' ')this.querySelector('input').click();">
+                            <input asp-for="FotocopiaTarjeta" type="file" accept=".pdf"
+                                   aria-label="Seleccionar PDF de tarjeta profesional"
+                                   onchange="fileSelected(this,'tarjeta-name','wrapper-tarjeta')" />
+                            <div class="file-input-icon">🪪</div>
+                            <div class="file-input-label">Haz clic para seleccionar o arrastra el archivo aquí</div>
+                            <div class="file-input-label" style="margin-top:4px;">Solo PDF · Máximo 5 MB</div>
+                            <div class="file-name" id="tarjeta-name"></div>
+                        </div>
+                        <span asp-validation-for="FotocopiaTarjeta" class="form-error"></span>
+                    </div>
+                </div>
+
+                <!-- ── Aviso proceso de aprobación ─────────────────────── -->
+                <div style="background:var(--color-info-pale,#e8f0fe);border-radius:var(--radius-lg);padding:var(--sp-4);margin-bottom:var(--sp-6);border:1px solid rgba(21,101,192,.2);">
+                    <div style="display:flex;gap:var(--sp-3);align-items:flex-start;">
+                        <span style="font-size:1.125rem;">⏱</span>
+                        <div>
+                            <div style="font-weight:600;font-size:.875rem;margin-bottom:4px;color:var(--color-info,#1565C0);">Proceso de aprobación</div>
+                            <p style="font-size:.8125rem;color:#1565C0;line-height:1.6;margin:0;">
+                                Tu solicitud será revisada por el equipo de Trébol en un plazo de <strong>3 a 5 días hábiles</strong>. Recibirás un correo con el resultado.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">
+                    <span class="btn-text">Enviar solicitud de registro</span>
+                </button>
+            </form>
+
+            <div class="auth-footer-link" style="margin-top:var(--sp-5);">
+                ¿Ya tienes cuenta? <a asp-controller="Login" asp-action="Index">Iniciar sesión</a>
+            </div>
+            <div class="auth-footer-link" style="margin-top:12px;">
+                <a asp-controller="Registro" asp-action="SeleccionPerfil" style="color:var(--color-text-muted);font-size:.8125rem;">← Volver a selección de perfil</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+    function fileSelected(input, nameId, wrapperId) {
+        var wrapper = document.getElementById(wrapperId);
+        var nameEl  = document.getElementById(nameId);
+        if (!input.files || !input.files.length) return;
+        nameEl.textContent = '📎 ' + input.files[0].name;
+        wrapper.classList.add('has-file');
+    }
+    // Drag-and-drop support
+    document.querySelectorAll('.file-input-wrapper').forEach(function(w) {
+        w.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            w.style.borderColor = 'var(--color-primary)';
+        });
+        w.addEventListener('dragleave', function() {
+            if (!w.classList.contains('has-file')) w.style.borderColor = '';
+        });
+        w.addEventListener('drop', function(e) {
+            e.preventDefault();
+            var input = w.querySelector('input[type="file"]');
+            if (e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+    </script>
+}

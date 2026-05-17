@@ -1,0 +1,43 @@
+@model IEnumerable<Trebol.Model.DTOs.Mensajeria.ConversacionDto>
+@{
+    ViewData["Title"] = "Mensajes";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+<h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:var(--sp-6);">💬 Conversaciones</h1>
+
+@if (!Model.Any())
+{
+    <div class="card" style="padding:var(--sp-12);text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--sp-4);">💬</div>
+        <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">No tienes conversaciones activas</div>
+        <div style="color:var(--color-text-muted);font-size:.875rem;">Inicia una sesión con un profesional para comenzar a chatear.</div>
+    </div>
+}
+else
+{
+    <div class="card" style="overflow:hidden;">
+        @foreach (var conv in Model)
+        {
+            var initials = conv.OtroNombre?.Length > 1
+                ? string.Concat(conv.OtroNombre.Split(' ').Take(2).Select(p => p[0].ToString()))
+                : "?";
+            <a asp-action="Conversacion" asp-route-conversacionId="@conv.ConversacionId"
+               style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4) var(--sp-5);border-bottom:1px solid var(--color-border-light);text-decoration:none;transition:background .12s;"
+               onmouseover="this.style.background='var(--color-surface-alt)'" onmouseout="this.style.background=''">
+                <div class="avatar" style="flex-shrink:0;">@initials</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-weight:600;color:var(--color-text-primary);">@conv.OtroNombre</span>
+                        <span style="font-size:.72rem;color:var(--color-text-muted);">@(conv.UltimaFecha?.ToString("dd/MM HH:mm") ?? "")</span>
+                    </div>
+                    <div style="font-size:.8125rem;color:var(--color-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@conv.UltimoMensaje</div>
+                </div>
+                @if (conv.MensajesNoLeidos > 0)
+                {
+                    <span class="badge badge-success" style="flex-shrink:0;">@conv.MensajesNoLeidos</span>
+                }
+            </a>
+        }
+    </div>
+}

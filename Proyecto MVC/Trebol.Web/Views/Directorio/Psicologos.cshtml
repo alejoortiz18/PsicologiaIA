@@ -1,0 +1,15 @@
+@model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
+@{
+    ViewData["Title"] = "Psicólogos";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+<h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:var(--sp-6);">🧠 Psicólogos</h1>
+
+<form method="get" asp-action="Psicologos" style="display:flex;gap:var(--sp-3);margin-bottom:var(--sp-6);flex-wrap:wrap;">
+    <input name="Especialidad" class="form-control" placeholder="Especialidad..." style="max-width:280px;" />
+    <input name="Ciudad" class="form-control" placeholder="Ciudad..." style="max-width:200px;" />
+    <button type="submit" class="btn btn-primary">Buscar</button>
+</form>
+
+@await Html.PartialAsync("_ListaProfesionales", Model)

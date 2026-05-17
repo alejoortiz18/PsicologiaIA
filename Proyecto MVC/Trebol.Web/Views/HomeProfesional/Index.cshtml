@@ -1,0 +1,416 @@
+@model Trebol.Model.DTOs.Dashboard.DashboardProfesionalDto
+@{
+    ViewData["Title"] = "Inicio";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+@section Styles {
+<style>
+  .home-pro-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-5);
+    margin-bottom: var(--sp-6);
+  }
+  @@media (max-width: 900px) {
+    .home-pro-two-col { grid-template-columns: 1fr; }
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--sp-3);
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+  }
+  .section-head h2 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+  .panel-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel-card__footer {
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--color-surface-alt);
+    border-top: 1px solid var(--color-border-light);
+    text-align: center;
+    font-size: .8rem;
+  }
+  .panel-card__footer a {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .citas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .855rem;
+  }
+  .citas-table th {
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .citas-table td {
+    padding: var(--sp-3);
+    border-bottom: 1px solid var(--color-border-light);
+    vertical-align: middle;
+  }
+  .citas-table tbody tr:last-child td { border-bottom: none; }
+  .citas-table tbody tr:hover { background: var(--color-surface-alt); }
+  .evento-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .evento-item:last-child { border-bottom: none; }
+  .evento-item__icon {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+  .evento-item__info { flex: 1; min-width: 0; }
+  .evento-item__title {
+    font-weight: 700; font-size: .9rem;
+    color: var(--color-text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .evento-item__meta { font-size: .77rem; color: var(--color-text-muted); margin-top: 2px; }
+  .event-list-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4) var(--sp-5);
+    border-bottom: 1px solid var(--color-border-light);
+    transition: background .12s;
+  }
+  .event-list-item:last-child { border-bottom: none; }
+  .event-list-item:hover { background: var(--color-surface-alt); }
+  .event-list-item__thumb {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+  }
+  .event-list-item__body { flex: 1; min-width: 0; }
+  .event-list-item__title {
+    font-weight: 700; font-size: .88rem;
+    color: var(--color-text-primary); line-height: 1.35;
+  }
+  .event-list-item__sub { font-size: .76rem; color: var(--color-text-muted); margin-top: 2px; }
+  .event-list-item__date {
+    text-align: center; flex-shrink: 0;
+    min-width: 36px;
+  }
+  .event-list-item__date-num {
+    font-size: 1.15rem; font-weight: 800;
+    color: var(--color-primary); line-height: 1;
+  }
+  .event-list-item__date-label {
+    font-size: .65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+    color: var(--color-text-muted);
+  }
+</style>
+}
+
+<!-- ── Stats row ─────────────────────────────────────────── -->
+<div class="stats-grid mb-6" role="region" aria-label="Resumen del día">
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">📅</div>
+        <div>
+            <div class="stat-card__label">Citas hoy</div>
+            <div class="stat-card__value">@(Model?.CitasHoy ?? 0)</div>
+            <div class="stat-card__sub">@(Model?.CitasHoy == 1 ? "1 pendiente de confirmar" : "Pendientes y confirmadas")</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">🎪</div>
+        <div>
+            <div class="stat-card__label">Mis eventos hoy</div>
+            <div class="stat-card__value">@(Model?.SalasActivas ?? 0)</div>
+            <div class="stat-card__sub">Salas activas hoy</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">👥</div>
+        <div>
+            <div class="stat-card__label">Citas próximas</div>
+            <div class="stat-card__value">@(Model?.TotalPacientes ?? 0)</div>
+            <div class="stat-card__sub">Esta semana</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">⭐</div>
+        <div>
+            <div class="stat-card__label">Ingresos del mes</div>
+            <div class="stat-card__value">@(Model?.IngresosMes.ToString("C0") ?? "$0")</div>
+            <div class="stat-card__sub">Este mes</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Fila: Citas hoy + Mis eventos hoy ────────────────── -->
+<div class="home-pro-two-col">
+
+    <!-- Mis citas de hoy -->
+    <section aria-labelledby="citas-hoy-heading">
+        <div class="section-head">
+            <h2 id="citas-hoy-heading" style="color:var(--color-primary);">
+                📅 Mis citas de hoy
+                <span style="font-size:.75rem;font-weight:600;background:var(--color-primary);color:#fff;padding:2px 10px;border-radius:99px;">@DateTime.Today.ToString("d MMM")</span>
+            </h2>
+            <a asp-controller="Citas" asp-action="ListaProfesional" class="btn btn-ghost btn-sm">Ver todas</a>
+        </div>
+        <div class="panel-card">
+            <table class="citas-table" role="table" aria-label="Citas de hoy">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Hora</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model?.ProximaCita != null)
+                    {
+                        <tr>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                                    <div class="avatar avatar-xs" style="background:var(--color-primary);flex-shrink:0;">
+                                        @(Model.ProximaCita.Nombre.Length >= 2 ? Model.ProximaCita.Nombre.Substring(0,2).ToUpper() : Model.ProximaCita.Nombre.ToUpper())
+                                    </div>
+                                    <span style="font-weight:600;color:var(--color-text-primary);">@Model.ProximaCita.Nombre</span>
+                                </div>
+                            </td>
+                            <td style="white-space:nowrap;color:var(--color-text-secondary);">@Model.ProximaCita.FechaHora.ToString("h:mm tt")</td>
+                            <td style="font-size:.78rem;color:var(--color-text-muted);">Consulta</td>
+                            <td><span class="badge badge-success">Confirmada</span></td>
+                            <td>
+                                <a asp-controller="Citas" asp-action="Detalle" asp-route-id="@Model.ProximaCita.CitaId"
+                                   class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;">Ver</a>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" style="text-align:center;padding:var(--sp-6);color:var(--color-text-muted);">
+                                <div style="font-size:1.6rem;margin-bottom:var(--sp-2);">📭</div>
+                                No hay citas programadas para hoy
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="panel-card__footer">
+                <a asp-controller="Calendario" asp-action="Index">Ver calendario completo →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mis eventos de hoy -->
+    <section aria-labelledby="eventos-hoy-heading">
+        <div class="section-head">
+            <h2 id="eventos-hoy-heading" style="color:var(--color-primary);">
+                🎪 Mis eventos hoy
+                @if ((Model?.SalasActivas ?? 0) > 0)
+                {
+                    <span style="font-size:.75rem;font-weight:600;background:var(--color-danger);color:#fff;padding:2px 10px;border-radius:99px;">En vivo</span>
+                }
+            </h2>
+            <a asp-controller="MisEventos" asp-action="Index" class="btn btn-ghost btn-sm">Ver todos</a>
+        </div>
+        <div class="panel-card">
+            @if (Model?.Salas != null && Model.Salas.Any())
+            {
+                foreach (var sala in Model.Salas.Take(2))
+                {
+                    <div class="evento-item">
+                        <div class="evento-item__icon" style="background:linear-gradient(135deg,var(--color-primary),#2D6A4F);">🎙️</div>
+                        <div class="evento-item__info">
+                            <div class="evento-item__title">@sala.Titulo</div>
+                            <div class="evento-item__meta">@sala.Asistentes asistentes · Sala activa</div>
+                        </div>
+                        <span class="badge badge-success"><span class="badge-dot"></span>Activa</span>
+                    </div>
+                }
+            }
+            else
+            {
+                <div style="padding:var(--sp-6);text-align:center;color:var(--color-text-muted);font-size:.855rem;">
+                    <div style="font-size:1.6rem;margin-bottom:var(--sp-2);">✅</div>
+                    No hay eventos activos hoy
+                </div>
+            }
+            <div style="padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:var(--sp-2);">Acciones rápidas</div>
+                <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;font-size:.82rem;">
+                        <span style="color:var(--color-text-secondary);">🎙️ Crear nueva sala</span>
+                        <a asp-controller="Salas" asp-action="Nueva" style="font-weight:600;color:var(--color-primary);text-decoration:none;font-size:.8rem;">Crear →</a>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;font-size:.82rem;">
+                        <span style="color:var(--color-text-secondary);">📅 Ver disponibilidad</span>
+                        <a asp-controller="Calendario" asp-action="Index" style="font-weight:600;color:var(--color-primary);text-decoration:none;font-size:.8rem;">Ver →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-card__footer">
+                <a asp-controller="MisEventos" asp-action="Index">Ver todos mis eventos →</a>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ── Eventos de colegas ────────────────────────────────── -->
+<section aria-labelledby="otros-eventos-heading">
+    <div class="section-head" style="margin-bottom:var(--sp-4);">
+        <h2 id="otros-eventos-heading" style="font-family:var(--font-display);font-size:1.15rem;color:var(--color-primary);">
+            🌐 Eventos de colegas
+        </h2>
+        <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Ver todos</a>
+    </div>
+
+    <div style="background:var(--color-surface);border:1px solid var(--color-border-light);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-sm);">
+
+        <!-- HOY -->
+        <div style="padding:var(--sp-2) var(--sp-5);background:rgba(229,57,53,.06);border-bottom:1px solid rgba(229,57,53,.15);display:flex;align-items:center;gap:var(--sp-2);">
+            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-danger);">🔴 Hoy — @DateTime.Today.ToString("d MMMM yyyy")</span>
+        </div>
+
+        <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#4A148C,#6A1B9A);">🧠</div>
+            <div class="event-list-item__body">
+                <div class="event-list-item__title">Regulación emocional en el trabajo</div>
+                <div class="event-list-item__sub">Psic. Andrés Vargas · Bienestar · 👥 115/200 inscritos</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+                <div class="event-list-item__date">
+                    <div class="event-list-item__date-num">10</div>
+                    <div class="event-list-item__date-label">AM</div>
+                </div>
+                <span class="badge badge-success" style="white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
+                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+        </div>
+
+        <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#1565C0,#1976D2);">🌊</div>
+            <div class="event-list-item__body">
+                <div class="event-list-item__title">Psicología positiva: construyendo resiliencia</div>
+                <div class="event-list-item__sub">Dra. Carolina López · Clínica · 👥 88/150 inscritos</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+                <div class="event-list-item__date">
+                    <div class="event-list-item__date-num">4</div>
+                    <div class="event-list-item__date-label">PM</div>
+                </div>
+                <span class="badge badge-success" style="white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
+                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+        </div>
+
+        <!-- ESTA SEMANA -->
+        <div style="padding:var(--sp-2) var(--sp-5);background:rgba(82,183,136,.06);border-top:1px solid var(--color-border-light);border-bottom:1px solid rgba(82,183,136,.2);display:flex;align-items:center;gap:var(--sp-2);">
+            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#2D6A4F;">📅 Esta semana</span>
+        </div>
+
+        <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#1565C0,#1976D2);">🧠</div>
+            <div class="event-list-item__body">
+                <div class="event-list-item__title">Manejo de la ansiedad en adultos</div>
+                <div class="event-list-item__sub">Dr. Jorge Morales · Ansiedad y Estrés · 👥 289/300 · $45.000 COP</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+                <div class="event-list-item__date">
+                    <div class="event-list-item__date-num">18</div>
+                    <div class="event-list-item__date-label">Mayo</div>
+                </div>
+                <span class="badge badge-warning" style="white-space:nowrap;">11 cupos</span>
+                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+        </div>
+
+        <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#E65100,#F57C00);">👶</div>
+            <div class="event-list-item__body">
+                <div class="event-list-item__title">Desarrollo infantil y apego seguro</div>
+                <div class="event-list-item__sub">Psic. María Fuentes · Infantil · 👥 42/80 · Entrada libre</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+                <div class="event-list-item__date">
+                    <div class="event-list-item__date-num">20</div>
+                    <div class="event-list-item__date-label">Mayo</div>
+                </div>
+                <span class="badge badge-success" style="white-space:nowrap;">Libre</span>
+                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+        </div>
+
+        <!-- PRÓXIMAMENTE -->
+        <div style="padding:var(--sp-2) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);border-bottom:1px solid var(--color-border-light);">
+            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-muted);">🗓 Próximamente</span>
+        </div>
+
+        <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#6A1B4D,#8B2252);">👨‍👩‍👧</div>
+            <div class="event-list-item__body">
+                <div class="event-list-item__title">Terapia familiar: comunicación efectiva</div>
+                <div class="event-list-item__sub">Dra. Carolina López · Familiar · 👥 201/250 · $35.000 COP</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+                <div class="event-list-item__date">
+                    <div class="event-list-item__date-num">22</div>
+                    <div class="event-list-item__date-label">Mayo</div>
+                </div>
+                <span class="badge badge-muted" style="white-space:nowrap;">Abierta</span>
+                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+        </div>
+
+        <div class="event-list-item">
+            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#4A148C,#6A1B9A);">💜</div>
+            <div class="event-list-item__body">
+                <div class="event-list-item__title">Duelo y pérdida: sanando el corazón</div>
+                <div class="event-list-item__sub">Psic. Andrés Vargas · Clínica · 👥 89/150 · Entrada libre</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+                <div class="event-list-item__date">
+                    <div class="event-list-item__date-num">25</div>
+                    <div class="event-list-item__date-label">Mayo</div>
+                </div>
+                <span class="badge badge-muted" style="white-space:nowrap;">Abierta</span>
+                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:var(--sp-4) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-3);">
+            <span style="font-size:.8rem;color:var(--color-text-muted);">Mostrando eventos de colegas</span>
+            <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Ver directorio →</a>
+        </div>
+    </div>
+</section>
+

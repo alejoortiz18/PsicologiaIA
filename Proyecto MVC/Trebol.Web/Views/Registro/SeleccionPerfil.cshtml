@@ -1,0 +1,121 @@
+@{
+    ViewData["Title"] = "Crear cuenta";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+}
+
+@section Styles {
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+</style>
+}
+
+<div class="auth-layout">
+
+    <!-- LEFT PANEL -->
+    <div class="auth-panel auth-panel--left" aria-hidden="true">
+        <div class="auth-illustration">
+            <div class="auth-illustration__tag">🍀 Únete a Trébol</div>
+            <h1 class="auth-illustration__title">
+                El apoyo que<br>necesitas, cuando<br>lo <em>necesitas</em>
+            </h1>
+            <p class="auth-illustration__text">
+                Elige el tipo de cuenta que deseas crear. Cada perfil tiene su propio flujo diseñado para tus necesidades específicas.
+            </p>
+            <div class="auth-stats">
+                <div><div class="auth-stat-val">248</div><div class="auth-stat-lbl">Profesionales</div></div>
+                <div><div class="auth-stat-val">Gratis</div><div class="auth-stat-lbl">Registro usuario</div></div>
+                <div><div class="auth-stat-val">100%</div><div class="auth-stat-lbl">Seguro</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="auth-panel auth-panel--right">
+        <div class="auth-form" style="max-width:500px;">
+
+            <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
+                <div class="auth-form__logo-icon">🍀</div>
+                <span class="auth-form__logo-name">Trébol</span>
+            </a>
+
+            <h2 class="auth-form__title">¿Cómo quieres unirte?</h2>
+            <p class="auth-form__subtitle">Selecciona el tipo de cuenta que deseas crear.</p>
+
+            <div class="profile-select-grid" id="profile-grid" role="radiogroup" aria-label="Tipo de cuenta">
+                <div class="profile-select-card" id="card-user" onclick="selectProfile('user')" role="radio" aria-checked="false" tabindex="0">
+                    <div class="profile-select-card__check" aria-hidden="true">✓</div>
+                    <div class="profile-select-card__icon">👤</div>
+                    <div class="profile-select-card__title">Soy usuario</div>
+                    <div class="profile-select-card__text">Busco apoyo psicológico, quiero asistir a conferencias o conectar con un especialista.</div>
+                </div>
+                <div class="profile-select-card" id="card-pro" onclick="selectProfile('professional')" role="radio" aria-checked="false" tabindex="0">
+                    <div class="profile-select-card__check" aria-hidden="true">✓</div>
+                    <div class="profile-select-card__icon">🎓</div>
+                    <div class="profile-select-card__title">Soy profesional</div>
+                    <div class="profile-select-card__text">Soy psicólogo o terapeuta certificado y quiero ofrecer mis servicios en la plataforma.</div>
+                </div>
+            </div>
+
+            <div id="terms-section" style="display:none;">
+                <div class="terms-box" role="region" tabindex="0">
+                    <p><strong>Términos y condiciones de Trébol</strong></p>
+                    <p>Al registrarte en Trébol, aceptas nuestros términos de uso y política de privacidad. Tu información personal será tratada con confidencialidad conforme a la Ley 1581 de 2012 de protección de datos personales de Colombia.</p>
+                    <p>Como usuario de la plataforma, te comprometes a usar los servicios de manera responsable, con respeto hacia los profesionales y otros usuarios.</p>
+                    <p id="terms-pro-extra" style="display:none;">Como profesional, confirmas que la información de tu tarjeta profesional y documentos adjuntos es verídica. El proceso de verificación es obligatorio y puede tomar entre 3 y 5 días hábiles.</p>
+                    <p>Trébol se reserva el derecho de suspender cuentas que violen estos términos.</p>
+                </div>
+                <div style="margin-bottom:var(--sp-5);">
+                    <label class="form-check">
+                        <input type="checkbox" id="terms-check" aria-required="true" />
+                        <span class="form-check-label">He leído y acepto los <a href="#" style="color:var(--color-primary-light);">términos y condiciones</a> y la <a href="#" style="color:var(--color-primary-light);">política de privacidad</a></span>
+                    </label>
+                </div>
+            </div>
+
+            <button id="continue-btn" class="btn btn-primary w-full" disabled onclick="goToRegistration()">
+                Continuar con el registro
+            </button>
+
+            <div class="auth-footer-link" style="margin-top:var(--sp-5);">
+                ¿Ya tienes cuenta? <a asp-controller="Login" asp-action="Index">Iniciar sesión</a>
+            </div>
+            <div class="auth-footer-link" style="margin-top:12px;">
+                <a asp-controller="Landing" asp-action="Index" style="color:var(--color-text-muted);font-size:.8125rem;">← Volver al inicio</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+    let selectedProfile = null;
+
+    function selectProfile(type) {
+        selectedProfile = type;
+        document.getElementById('card-user').classList.toggle('selected', type === 'user');
+        document.getElementById('card-user').setAttribute('aria-checked', type === 'user');
+        document.getElementById('card-pro').classList.toggle('selected', type === 'professional');
+        document.getElementById('card-pro').setAttribute('aria-checked', type === 'professional');
+        document.getElementById('terms-section').style.display = 'block';
+        document.getElementById('terms-pro-extra').style.display = type === 'professional' ? 'block' : 'none';
+        const check = document.getElementById('terms-check');
+        check.checked = false;
+        updateContinueBtn();
+        check.onchange = updateContinueBtn;
+    }
+    function updateContinueBtn() {
+        document.getElementById('continue-btn').disabled = !document.getElementById('terms-check').checked;
+    }
+    function goToRegistration() {
+        if (!selectedProfile) return;
+        window.location.href = selectedProfile === 'professional'
+            ? '@Url.Action("RegistroProfesional", "Registro")'
+            : '@Url.Action("RegistroUsuario", "Registro")';
+    }
+    document.querySelectorAll('.profile-select-card').forEach(card => {
+        card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); } });
+    });
+</script>
+}

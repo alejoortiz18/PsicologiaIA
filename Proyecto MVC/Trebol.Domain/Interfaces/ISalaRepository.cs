@@ -1,0 +1,15 @@
+using Trebol.Model.DTOs.Sala;
+using Trebol.Model.Models;
+
+namespace Trebol.Domain.Interfaces;
+
+public interface ISalaRepository
+{
+    Task<IReadOnlyList<SalaDto>> ObtenerPorProfesionalAsync(int profesionalId, CancellationToken ct = default);
+    Task<IReadOnlyList<SalaDto>> ObtenerPublicasAsync(int? categoriaId = null, int pagina = 1, CancellationToken ct = default);
+    Task<SalaDto?>               ObtenerDetalleAsync(int salaId, CancellationToken ct = default);
+    Task<ResultadoOperacion<int>> CrearAsync(CrearSalaDto dto, CancellationToken ct = default);
+    Task<ResultadoOperacion>     ActualizarAsync(SalaDto dto, CancellationToken ct = default);
+    Task<ResultadoOperacion>     EliminarAsync(int salaId, int profesionalId, CancellationToken ct = default);
+    Task<ResultadoOperacion>     CerrarAsync(int salaId, int profesionalId, CancellationToken ct = default);
+}

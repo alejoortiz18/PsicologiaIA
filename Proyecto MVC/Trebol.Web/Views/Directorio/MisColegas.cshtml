@@ -1,0 +1,8 @@
+@model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
+@{
+    ViewData["Title"] = "Mis Colegas";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+<h2 class="mb-4">Mis Colegas</h2>
+@await Html.PartialAsync("_ListaProfesionales", Model)

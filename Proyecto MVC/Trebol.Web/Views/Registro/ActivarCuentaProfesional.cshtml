@@ -1,0 +1,88 @@
+@model ActivarCuentaViewModel
+@{
+    ViewData["Title"] = "Activar cuenta profesional";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+}
+
+@section Styles {
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+</style>
+}
+
+<div class="auth-layout">
+
+    <div class="auth-panel auth-panel--left" aria-hidden="true">
+        <div class="auth-illustration">
+            <div class="auth-illustration__tag">✅ Activación de cuenta</div>
+            <h1 class="auth-illustration__title">
+                Un paso más<br>para empezar a<br><em>ayudar</em>
+            </h1>
+            <p class="auth-illustration__text">
+                Tu solicitud fue aprobada. Introduce el token que recibiste por correo para activar tu cuenta y comenzar a usar la plataforma.
+            </p>
+        </div>
+    </div>
+
+    <div class="auth-panel auth-panel--right">
+        <div class="auth-form">
+
+            <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
+                <div class="auth-form__logo-icon">🍀</div>
+                <span class="auth-form__logo-name">Trébol</span>
+            </a>
+
+            <h2 class="auth-form__title">Activar cuenta profesional</h2>
+            <p class="auth-form__subtitle">Ingresa el token de activación que recibiste por correo.</p>
+
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="form-success" style="margin-bottom:var(--sp-4);">@TempData["Mensaje"]</div>
+            }
+
+            <form asp-controller="Registro" asp-action="ActivarCuentaProfesional" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+                <input type="hidden" asp-for="UsuarioId" />
+
+                <div class="form-group">
+                    <label asp-for="Token" class="form-label">
+                        Token de activación <span class="required" aria-hidden="true">*</span>
+                    </label>
+                    <input asp-for="Token" class="form-control"
+                           placeholder="Pega aquí el token recibido por correo"
+                           autocomplete="off" aria-required="true" />
+                    <span asp-validation-for="Token" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">
+                        Contraseña <span class="required" aria-hidden="true">*</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <input asp-for="Password" class="form-control" type="password"
+                               placeholder="Crea tu contraseña"
+                               autocomplete="new-password" aria-required="true" />
+                        <button type="button" class="input-toggle" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'" aria-label="Mostrar">👁</button>
+                    </div>
+                    <span asp-validation-for="Password" class="form-error"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">
+                    <span class="btn-text">Activar cuenta</span>
+                </button>
+            </form>
+
+            <div class="auth-footer-link" style="margin-top:var(--sp-5);">
+                <a asp-controller="Login" asp-action="Index" style="color:var(--color-text-muted);font-size:.8125rem;">← Ir al login</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

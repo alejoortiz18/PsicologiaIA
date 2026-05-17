@@ -1,0 +1,68 @@
+@model Trebol.Model.DTOs.Dashboard.DashboardUsuarioDto
+@{
+    ViewData["Title"] = "Inicio";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+<div class="stats-grid mb-6" role="region" aria-label="Resumen de actividad">
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">🎪</div>
+        <div>
+            <div class="stat-card__label">Eventos inscritos</div>
+            <div class="stat-card__value">@(Model?.EventosInscritos ?? 0)</div>
+            <div class="stat-card__sub">Próximos</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">📅</div>
+        <div>
+            <div class="stat-card__label">Próximas citas</div>
+            <div class="stat-card__value">@(Model?.CitasProximas ?? 0)</div>
+            <div class="stat-card__sub">Esta semana</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">💬</div>
+        <div>
+            <div class="stat-card__label">Mensajes nuevos</div>
+            <div class="stat-card__value">@(Model?.MensajesNoLeidos ?? 0)</div>
+            <div class="stat-card__sub">Sin leer</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">❤️</div>
+        <div>
+            <div class="stat-card__label">Mis mentores</div>
+            <div class="stat-card__value">0</div>
+            <div class="stat-card__sub">Profesionales seguidos</div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:var(--sp-6);padding:var(--sp-6);background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-primary-light) 100%);border:none;">
+    <h2 style="font-family:var(--font-display);color:white;font-size:1.5rem;margin-bottom:var(--sp-2);">Bienvenido, @User.Identity?.Name 👋</h2>
+    <p style="color:rgba(255,255,255,.8);margin:0;">Explora tu panel, revisa tus citas y mantente al día con los eventos disponibles.</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--sp-4);">
+    <a asp-controller="Citas" asp-action="Index" class="card" style="padding:var(--sp-5);text-align:center;text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <div style="font-size:2rem;margin-bottom:var(--sp-2);">📅</div>
+        <div style="font-weight:600;color:var(--color-text-primary);">Mis citas</div>
+        <div style="font-size:.8rem;color:var(--color-text-muted);">Gestiona tus sesiones</div>
+    </a>
+    <a asp-controller="MisEventos" asp-action="Index" class="card" style="padding:var(--sp-5);text-align:center;text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <div style="font-size:2rem;margin-bottom:var(--sp-2);">🎪</div>
+        <div style="font-weight:600;color:var(--color-text-primary);">Mis eventos</div>
+        <div style="font-size:.8rem;color:var(--color-text-muted);">Conferencias inscritas</div>
+    </a>
+    <a asp-controller="Mensajeria" asp-action="Index" class="card" style="padding:var(--sp-5);text-align:center;text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <div style="font-size:2rem;margin-bottom:var(--sp-2);">💬</div>
+        <div style="font-weight:600;color:var(--color-text-primary);">Mensajes</div>
+        <div style="font-size:.8rem;color:var(--color-text-muted);">Chatea con profesionales</div>
+    </a>
+    <a asp-controller="Directorio" asp-action="Especialistas" class="card" style="padding:var(--sp-5);text-align:center;text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <div style="font-size:2rem;margin-bottom:var(--sp-2);">🔍</div>
+        <div style="font-weight:600;color:var(--color-text-primary);">Buscar profesional</div>
+        <div style="font-size:.8rem;color:var(--color-text-muted);">Encuentra especialistas</div>
+    </a>
+</div>

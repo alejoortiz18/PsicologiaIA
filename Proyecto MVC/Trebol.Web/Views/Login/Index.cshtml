@@ -1,0 +1,96 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+}
+
+@section Styles {
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+</style>
+}
+
+<div class="auth-layout">
+
+    <!-- LEFT PANEL -->
+    <div class="auth-panel auth-panel--left" aria-hidden="true">
+        <div class="auth-illustration">
+            <div class="auth-illustration__tag">🍀 Bienvenido de vuelta</div>
+            <h1 class="auth-illustration__title">
+                Tu espacio<br>de <em>bienestar</em><br>te espera
+            </h1>
+            <p class="auth-illustration__text">
+                Accede a tus sesiones, conferencias y al equipo de profesionales que acompaña tu crecimiento personal y emocional.
+            </p>
+            <div class="auth-stats">
+                <div><div class="auth-stat-val">248</div><div class="auth-stat-lbl">Profesionales</div></div>
+                <div><div class="auth-stat-val">12k</div><div class="auth-stat-lbl">Usuarios activos</div></div>
+                <div><div class="auth-stat-val">98%</div><div class="auth-stat-lbl">Satisfacción</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="auth-panel auth-panel--right">
+        <div class="auth-form">
+
+            <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
+                <div class="auth-form__logo-icon">🍀</div>
+                <span class="auth-form__logo-name">Trébol</span>
+            </a>
+
+            <h2 class="auth-form__title">Iniciar sesión</h2>
+            <p class="auth-form__subtitle">Ingresa tus credenciales para continuar.</p>
+
+            <form asp-controller="Login" asp-action="Index" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+                <div class="form-group">
+                    <label asp-for="Correo" class="form-label">
+                        Correo electrónico <span class="required" aria-hidden="true">*</span>
+                    </label>
+                    <input asp-for="Correo" class="form-control" placeholder="usuario@correo.com"
+                           autocomplete="email" aria-required="true" />
+                    <span asp-validation-for="Correo" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">
+                        Contraseña <span class="required" aria-hidden="true">*</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <input asp-for="Password" class="form-control" type="password"
+                               placeholder="••••••••" autocomplete="current-password" aria-required="true" />
+                        <button type="button" class="input-toggle" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'" aria-label="Mostrar/ocultar contraseña">👁</button>
+                    </div>
+                    <span asp-validation-for="Password" class="form-error"></span>
+                </div>
+
+                <div style="text-align:right;margin-top:-8px;margin-bottom:20px;">
+                    <a asp-controller="Recuperacion" asp-action="SolicitarRecuperacion" class="text-sm" style="color:var(--color-primary-light);">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">
+                    <span class="btn-text">Iniciar sesión</span>
+                </button>
+            </form>
+
+            <div class="auth-divider"><span>o</span></div>
+
+            <div class="auth-footer-link">
+                ¿No tienes cuenta? <a asp-controller="Registro" asp-action="SeleccionPerfil">Registrarse</a>
+            </div>
+            <div class="auth-footer-link" style="margin-top:12px;">
+                <a asp-controller="Landing" asp-action="Index" style="color:var(--color-text-muted);font-size:.8125rem;">← Volver al inicio</a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

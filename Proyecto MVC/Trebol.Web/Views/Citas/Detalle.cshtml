@@ -1,0 +1,36 @@
+@model Trebol.Model.DTOs.Cita.CitaListaDto
+@{
+    ViewData["Title"] = "Detalle de Cita";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var badgeClass = Model.Estado.ToString() == "Confirmada" ? "badge-success" : Model.Estado.ToString() == "Cancelada" ? "badge-danger" : Model.Estado.ToString() == "Pendiente" ? "badge-warning" : "badge-muted";
+}
+
+<h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:var(--sp-6);">📅 Detalle de cita #@Model.CitaId</h1>
+
+<div style="max-width:480px;">
+    <div class="card">
+        <div style="padding:var(--sp-5) var(--sp-6);background:var(--color-surface-alt);border-bottom:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-weight:700;">Cita #@Model.CitaId</span>
+            <span class="badge @badgeClass">@Model.Estado</span>
+        </div>
+        <div style="padding:var(--sp-6);">
+            <div style="display:grid;grid-template-columns:130px 1fr;gap:var(--sp-3) var(--sp-4);">
+                <div style="font-weight:600;font-size:.875rem;color:var(--color-text-muted);">Profesional</div>
+                <div>@Model.NombreProfesional</div>
+                <div style="font-weight:600;font-size:.875rem;color:var(--color-text-muted);">Paciente (Alias)</div>
+                <div>@Model.AliasUsuario</div>
+                <div style="font-weight:600;font-size:.875rem;color:var(--color-text-muted);">Fecha y hora</div>
+                <div>@Model.FechaHora.ToString("dd/MM/yyyy HH:mm")</div>
+                <div style="font-weight:600;font-size:.875rem;color:var(--color-text-muted);">Duración</div>
+                <div>@Model.DuracionMinutos minutos</div>
+                <div style="font-weight:600;font-size:.875rem;color:var(--color-text-muted);">Tipo</div>
+                <div>@Model.Tipo</div>
+                <div style="font-weight:600;font-size:.875rem;color:var(--color-text-muted);">Monto</div>
+                <div style="font-weight:700;color:var(--color-primary);">$@Model.Monto.ToString("N0")</div>
+            </div>
+        </div>
+        <div style="padding:var(--sp-4) var(--sp-6);border-top:1px solid var(--color-border-light);">
+            <a asp-action="Index" class="btn btn-ghost">← Volver</a>
+        </div>
+    </div>
+</div>

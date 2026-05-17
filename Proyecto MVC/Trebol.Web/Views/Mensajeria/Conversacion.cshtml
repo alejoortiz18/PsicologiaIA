@@ -1,0 +1,71 @@
+@using System.Security.Claims
+@model IEnumerable<Trebol.Model.DTOs.Mensajeria.MensajePrivadoDto>
+@{
+    ViewData["Title"] = "Conversación";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var conversacionId = ViewBag.ConversacionId ?? (Model.FirstOrDefault()?.ConversacionId ?? 0);
+    var miId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+}
+
+<div style="display:flex;flex-direction:column;height:calc(100vh - 180px);">
+    <!-- Cabecera -->
+    <div style="display:flex;align-items:center;gap:var(--sp-3);padding-bottom:var(--sp-3);border-bottom:1px solid var(--color-border-light);margin-bottom:var(--sp-4);">
+        <a asp-action="Index" class="btn btn-ghost btn-sm">←</a>
+        <span style="font-weight:700;color:var(--color-text-primary);">Conversación</span>
+    </div>
+
+    <!-- Mensajes -->
+    <div id="chatBox" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp-3);padding:0 var(--sp-2);margin-bottom:var(--sp-4);">
+        @foreach (var msg in Model)
+        {
+            var esMio = msg.EmisorId == miId;
+            <div style="display:flex;justify-content:@(esMio ? "flex-end" : "flex-start");">
+                <div style="max-width:70%;padding:var(--sp-2) var(--sp-4);border-radius:var(--radius-lg);background:@(esMio ? "var(--color-primary)" : "var(--color-surface-alt)");color:@(esMio ? "white" : "var(--color-text-primary)");">
+                    <div style="font-size:.875rem;">@msg.Contenido</div>
+                    <div style="font-size:.7rem;opacity:.7;text-align:right;margin-top:4px;">
+                        @msg.FechaEnvio.ToString("HH:mm")
+                        @if (esMio) { @(msg.Leido ? " ✓✓" : " ✓") }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Input de envío -->
+    <div style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-3);display:flex;gap:var(--sp-2);">
+        <input type="text" id="txtMensaje" class="form-control" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter') enviarMensaje()" style="flex:1;" />
+        <button class="btn btn-primary" onclick="enviarMensaje()">Enviar</button>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const conversacionId = @conversacionId;
+document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+
+function enviarMensaje() {
+    const txt = document.getElementById('txtMensaje');
+    const texto = txt.value.trim();
+    if (!texto) return;
+
+    fetch('/Mensajeria/Enviar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value ?? ''
+        },
+        body: `destinoId=0&tipoDestino=&texto=${encodeURIComponent(texto)}&conversacionId=${conversacionId}`
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.exito) {
+            txt.value = '';
+            location.reload();
+        } else {
+            alert(d.mensaje);
+        }
+    });
+}
+</script>
+@Html.AntiForgeryToken()
+}

@@ -1,0 +1,77 @@
+@model Trebol.Model.DTOs.Sala.SalaDto
+@{
+    ViewData["Title"] = Model.Titulo;
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+<div style="max-width:760px;">
+    <div class="card" style="overflow:hidden;margin-bottom:var(--sp-5);">
+        @if (!string.IsNullOrEmpty(Model.ImagenUrl))
+        {
+            <img src="@Model.ImagenUrl" style="width:100%;height:240px;object-fit:cover;" alt="sala" />
+        }
+        else
+        {
+            <div style="height:120px;background:linear-gradient(135deg,var(--color-primary),var(--color-primary-light));display:flex;align-items:center;justify-content:center;font-size:3rem;">🎬</div>
+        }
+        <div style="padding:var(--sp-6);">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--sp-3);">
+                <h2 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin:0;">@Model.Titulo</h2>
+                <span class="badge @(Model.Estado.ToString() == "Abierta" ? "badge-success" : "badge-muted")">@Model.Estado</span>
+            </div>
+            <p style="color:var(--color-text-muted);margin-bottom:var(--sp-5);">@Model.Descripcion</p>
+
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4);padding:var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-md);margin-bottom:var(--sp-5);text-align:center;">
+                <div>
+                    <div style="font-weight:700;font-size:1rem;color:var(--color-primary);">@Model.Tipo</div>
+                    <div style="font-size:.72rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;">Modalidad</div>
+                </div>
+                <div>
+                    <div style="font-weight:700;font-size:1rem;color:var(--color-primary);">@Model.TotalInscritos / @Model.Capacidad</div>
+                    <div style="font-size:.72rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;">Inscritos</div>
+                </div>
+                @if (Model.FechaInicio.HasValue)
+                {
+                    <div>
+                        <div style="font-weight:700;font-size:1rem;color:var(--color-primary);">@Model.FechaInicio.Value.ToString("dd/MM/yyyy")</div>
+                        <div style="font-size:.72rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;">Inicio</div>
+                    </div>
+                }
+            </div>
+
+            <div style="display:flex;gap:var(--sp-3);">
+                <a asp-action="Index" class="btn btn-ghost">← Volver</a>
+                @if (Model.Estado.ToString() == "Abierta")
+                {
+                    <button class="btn btn-accent" onclick="inscribirse(@Model.SalaId)">Inscribirse</button>
+                    <button class="btn btn-secondary" onclick="cerrarSala(@Model.SalaId)">Cerrar sala</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function inscribirse(salaId) {
+    fetch('/Inscripcion/Inscribir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value ?? '' },
+        body: `salaId=${salaId}`
+    })
+    .then(r => r.json())
+    .then(d => alert(d.mensaje));
+}
+function cerrarSala(salaId) {
+    if (!confirm('¿Cerrar esta sala?')) return;
+    fetch('/Salas/Cerrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value ?? '' },
+        body: `salaId=${salaId}`
+    })
+    .then(r => r.json())
+    .then(d => { alert(d.mensaje); if (d.exito) window.history.back(); });
+}
+</script>
+@Html.AntiForgeryToken()
+}

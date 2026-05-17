@@ -1,0 +1,57 @@
+@model Trebol.Model.DTOs.Sala.CrearSalaDto
+@{
+    ViewData["Title"] = "Nueva Sala";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+<h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:var(--sp-6);">➕ Crear nueva sala</h1>
+
+<div style="max-width:600px;">
+    <div class="card">
+        <div style="padding:var(--sp-6);">
+            <form asp-action="Nueva" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+                <div class="form-group">
+                    <label asp-for="Titulo" class="form-label">Título</label>
+                    <input asp-for="Titulo" class="form-control" placeholder="Nombre de la sala..." />
+                    <span asp-validation-for="Titulo" class="form-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Descripcion" class="form-label">Descripción</label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3" placeholder="Describe el contenido..."></textarea>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);">
+                    <div class="form-group">
+                        <label asp-for="Tipo" class="form-label">Tipo</label>
+                        <select asp-for="Tipo" class="form-control">
+                            <option value="0">Pública</option>
+                            <option value="1">Privada</option>
+                            <option value="2">Pago</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Capacidad" class="form-label">Capacidad</label>
+                        <input asp-for="Capacidad" type="number" min="1" max="500" class="form-control" />
+                        <span asp-validation-for="Capacidad" class="form-error"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="FechaInicio" class="form-label">Fecha de inicio (opcional)</label>
+                    <input asp-for="FechaInicio" type="datetime-local" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Precio" class="form-label">Precio (dejar vacío si es gratis)</label>
+                    <input asp-for="Precio" type="number" min="0" step="1000" class="form-control" placeholder="0" />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">Crear sala</button>
+            </form>
+        </div>
+    </div>
+</div>

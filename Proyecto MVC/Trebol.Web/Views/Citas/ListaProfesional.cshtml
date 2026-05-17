@@ -1,0 +1,66 @@
+@model IEnumerable<Trebol.Model.DTOs.Cita.CitaListaDto>
+@{
+    ViewData["Title"] = "Citas de Pacientes";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-5);">
+    <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin:0;">📅 Citas de pacientes</h1>
+    <form method="get" asp-action="ListaProfesional">
+        <select name="estado" class="form-control" style="min-width:160px;" onchange="this.form.submit()">
+            <option value="Todos">Todos los estados</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Confirmada">Confirmada</option>
+            <option value="Completada">Completada</option>
+            <option value="Cancelada">Cancelada</option>
+        </select>
+    </form>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card" style="padding:var(--sp-12);text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--sp-4);">📅</div>
+        <div style="font-weight:600;color:var(--color-text-primary);">No tienes citas registradas</div>
+    </div>
+}
+else
+{
+    <div class="card" style="overflow:hidden;">
+        @foreach (var cita in Model)
+        {
+            var badgeClass = cita.Estado.ToString() == "Confirmada" ? "badge-success" : cita.Estado.ToString() == "Cancelada" ? "badge-danger" : cita.Estado.ToString() == "Pendiente" ? "badge-warning" : "badge-muted";
+            <div style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4) var(--sp-5);border-bottom:1px solid var(--color-border-light);">
+                <div class="avatar" style="width:44px;height:44px;font-size:.875rem;flex-shrink:0;">@cita.AliasUsuario?.Substring(0, Math.Min(2, cita.AliasUsuario?.Length ?? 0))</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:600;color:var(--color-text-primary);">@cita.AliasUsuario</div>
+                    <div style="font-size:.8rem;color:var(--color-text-muted);">📅 @cita.FechaHora.ToString("dd/MM/yyyy HH:mm") &middot; @cita.DuracionMinutos min &middot; $@cita.Monto.ToString("N0") &middot; @cita.Tipo</div>
+                </div>
+                <span class="badge @badgeClass">@cita.Estado</span>
+                <div style="display:flex;gap:var(--sp-2);flex-shrink:0;">
+                    <a asp-action="Detalle" asp-route-id="@cita.CitaId" class="btn btn-ghost btn-sm">Ver</a>
+                    @if (cita.Estado.ToString() == "Pendiente" || cita.Estado.ToString() == "Confirmada")
+                    {
+                        <button class="btn btn-secondary btn-sm" onclick="cancelarCita(@cita.CitaId)">Cancelar</button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+<script>
+function cancelarCita(citaId) {
+    if (!confirm('¿Deseas cancelar esta cita?')) return;
+    fetch('/Citas/Cancelar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value ?? '' },
+        body: `citaId=${citaId}`
+    })
+    .then(r => r.json())
+    .then(d => { alert(d.mensaje); if (d.exito) location.reload(); });
+}
+</script>
+@Html.AntiForgeryToken()
+}
