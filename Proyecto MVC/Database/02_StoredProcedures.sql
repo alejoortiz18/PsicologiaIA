@@ -985,7 +985,8 @@ BEGIN
     INSERT INTO Especialidad (Nombre) VALUES
         ('Psicología Clínica'), ('Psicología Infantil'), ('Neuropsicología'),
         ('Psicología Organizacional'), ('Terapia Cognitivo-Conductual'),
-        ('Salud Mental'), ('Psicoanálisis'), ('Terapia de Pareja');
+        ('Salud Mental'), ('Psicoanálisis'), ('Terapia de Pareja'),
+        ('Médico'), ('Psicólogo');
 
     INSERT INTO Categoria (Nombre) VALUES
         ('Bienestar mental'), ('Ansiedad'), ('Depresión'), ('Familia'),

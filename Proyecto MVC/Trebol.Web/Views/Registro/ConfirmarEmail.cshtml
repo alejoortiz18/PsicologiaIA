@@ -31,7 +31,7 @@ body { background: var(--color-surface); }
     </div>
   </div>
 
-  <div class="auth-panel auth-panel--right">
+  <div class="auth-panel auth-panel--right" id="formPanel">
     <div class="auth-form">
       <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
         <div class="auth-form__logo-icon">🍀</div>
@@ -86,6 +86,145 @@ body { background: var(--color-surface); }
 
 </div>
 
+<!-- Modal de error genérico -->
+<div id="errorModal" class="modal modal--error" style="display:none;">
+  <div class="modal__overlay" onclick="closeErrorModal()"></div>
+  <div class="modal__content">
+    <div class="modal__header">
+      <h2 class="modal__title">⚠️ Error en la solicitud</h2>
+      <button type="button" class="modal__close" onclick="closeErrorModal()" aria-label="Cerrar modal">&times;</button>
+    </div>
+    <div class="modal__body">
+      <p class="modal__message">Ocurrió un error al procesar tu solicitud. Este enlace puede haber expirado o ya fue utilizado.</p>
+      <p class="modal__secondary-text">Por favor, intenta iniciar sesión con tu correo.</p>
+    </div>
+    <div class="modal__footer">
+      <a href="@Url.Action("Index", "Login")" class="btn btn-primary w-full">
+        <span class="btn-text">Iniciar sesión →</span>
+      </a>
+    </div>
+  </div>
+</div>
+
 @section Scripts {
   <partial name="_ValidationScriptsPartial" />
+  <script type="text/javascript">
+    function closeErrorModal() {
+      document.getElementById('errorModal').style.display = 'none';
+    }
+
+    function showErrorModal() {
+      document.getElementById('errorModal').style.display = 'flex';
+      // Ocultar el panel del formulario
+      document.getElementById('formPanel').style.display = 'none';
+    }
+
+    // Mostrar modal si hay error
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mostrar modal si el controlador indicó que el token es inválido/ya usado
+      @if (ViewData["ShowErrorModal"] != null && (bool)ViewData["ShowErrorModal"])
+      {
+          @:showErrorModal();
+      }
+
+      var validationSummary = document.querySelector('.form-error[data-valmsg-summary="true"]');
+      if (validationSummary && validationSummary.textContent.trim().length > 0) {
+        showErrorModal();
+      }
+    });
+  </script>
+  <style>
+    .modal {
+      display: flex;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .modal__overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+    }
+
+    .modal__content {
+      position: relative;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 480px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      z-index: 10000;
+    }
+
+    .modal__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--sp-6);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .modal__title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .modal__close {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: #666;
+      cursor: pointer;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal__close:hover {
+      color: #1a1a1a;
+    }
+
+    .modal__body {
+      padding: var(--sp-6);
+    }
+
+    .modal__message {
+      margin: 0 0 var(--sp-3) 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #374151;
+    }
+
+    .modal__secondary-text {
+      margin: 0;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .modal__footer {
+      padding: var(--sp-6);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .w-full {
+      width: 100%;
+    }
+  </style>
 }

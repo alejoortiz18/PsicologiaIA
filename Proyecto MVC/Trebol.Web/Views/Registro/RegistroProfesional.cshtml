@@ -131,10 +131,13 @@ body { background: var(--color-surface); }
                         </div>
                         <div class="form-group">
                             <label asp-for="EspecialidadId" class="form-label">
-                                ID especialidad <span class="required" aria-hidden="true">*</span>
+                                Tipo de profesional <span class="required" aria-hidden="true">*</span>
                             </label>
-                            <input asp-for="EspecialidadId" class="form-control" type="number"
-                                   placeholder="Ej: 1" aria-required="true" />
+                            <select asp-for="EspecialidadId" class="form-control" aria-required="true">
+                                <option value="">-- Seleccione --</option>
+                                <option value="9">Médico</option>
+                                <option value="10">Psicólogo</option>
+                            </select>
                             <span asp-validation-for="EspecialidadId" class="form-error"></span>
                         </div>
                     </div>
@@ -146,11 +149,10 @@ body { background: var(--color-surface); }
 
                     <div class="form-group">
                         <label asp-for="NumeroRegistro" class="form-label">
-                            N.° de tarjeta profesional (COLPSIC) <span class="required" aria-hidden="true">*</span>
+                            N.° de tarjeta profesional <span class="required" aria-hidden="true">*</span>
                         </label>
                         <input asp-for="NumeroRegistro" class="form-control"
                                placeholder="Ej: PSI-0001234" aria-required="true" />
-                        <div class="form-hint">Se verificará automáticamente ante el registro de COLPSIC.</div>
                         <span asp-validation-for="NumeroRegistro" class="form-error"></span>
                     </div>
                 </div>

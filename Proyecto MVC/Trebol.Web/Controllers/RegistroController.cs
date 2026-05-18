@@ -161,21 +161,23 @@ public class RegistroController(
             });
         }
 
-        // Correo de confirmación al profesional con enlace
+        // Correo de confirmación al profesional con enlace (OBLIGATORIO)
         var enlaceConfirmacion = $"{baseUrl}/Registro/ConfirmarEmail?token={Uri.EscapeDataString(token)}";
-        _ = Task.Run(async () =>
+        try
         {
-            try
-            {
-                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
-                await emailHelper.EnviarAsync(
-                    vm.Correo,
-                    "🍀 Confirma tu correo en Trébol",
-                    BuildEmailConfirmacionProfesional(vm.NombreCompleto, enlaceConfirmacion),
-                    cts.Token);
-            }
-            catch { }
-        });
+            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+            await emailHelper.EnviarAsync(
+                vm.Correo,
+                "🍀 Confirma tu correo en Trébol",
+                BuildEmailConfirmacionProfesional(vm.NombreCompleto, enlaceConfirmacion),
+                cts.Token);
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError(string.Empty, 
+                $"No pudimos enviar el correo de confirmación. Por favor, intenta más tarde. Error: {ex.Message}");
+            return View(vm);
+        }
 
         TempData["Mensaje"] = "Te enviamos un enlace a tu correo. Haz clic en él para confirmar tu cuenta.";
         return RedirectToAction("EsperaConfirmacion");
@@ -187,11 +189,23 @@ public class RegistroController(
 
     // GET /Registro/ConfirmarEmail?token=xxx
     [HttpGet]
-    public IActionResult ConfirmarEmail(string token)
+    public async Task<IActionResult> ConfirmarEmail(string token)
     {
         if (string.IsNullOrWhiteSpace(token))
             return RedirectToAction("Index", "Login");
-        return View(new ConfirmarEmailViewModel { Token = token });
+
+        // Validar el token INMEDIATAMENTE antes de mostrar el formulario
+        var esValido = await profesionalRepo.EsTokenValidoAsync(token);
+        var vm = new ConfirmarEmailViewModel { Token = token };
+
+        if (!esValido)
+        {
+            // Token inválido o ya usado - mostrar error modal directamente
+            ModelState.AddModelError(string.Empty, "Ocurrió un error al procesar tu solicitud. Por favor, intenta iniciar sesión.");
+            ViewData["ShowErrorModal"] = true;
+        }
+
+        return View(vm);
     }
 
     // POST /Registro/ConfirmarEmail
@@ -206,7 +220,9 @@ public class RegistroController(
 
         if (!resultado.Exito)
         {
-            ModelState.AddModelError(string.Empty, resultado.Mensaje);
+            // Mostrar error genérico sin revelar la causa específica
+            ModelState.AddModelError(string.Empty, "Ocurrió un error al procesar tu solicitud. Por favor, intenta iniciar sesión.");
+            ViewData["ShowErrorModal"] = true;
             return View(vm);
         }
 
@@ -318,7 +334,7 @@ public class RegistroController(
                 <tr>
                   <td style="padding:16px 40px 32px;text-align:center;">
                     <a href="{enlace}"
-                       style="display:inline-block;background:#2D6A4F;background:linear-gradient(135deg,#2D6A4F,#1B4332);color:#ffffff !important;font-size:1rem;font-weight:700;font-family:'Segoe UI',Arial,sans-serif;text-decoration:none;padding:16px 48px;border-radius:50px;letter-spacing:.3px;box-shadow:0 4px 16px rgba(27,67,50,.5);border:2px solid #1B4332;">✅ Confirmar correo y crear contraseña</a>
+                       style="display:inline-block;background:#000000;color:#FFFFFF !important;font-size:1.1rem;font-weight:700;font-family:'Segoe UI',Arial,sans-serif;text-decoration:none;padding:18px 56px;border-radius:50px;letter-spacing:.5px;box-shadow:0 6px 20px rgba(0,0,0,.8);border:2px solid #FFFFFF;-webkit-appearance:none;-moz-appearance:none;appearance:none;">✅ Confirmar correo y crear contraseña</a>
                     <p style="color:#9ca3af;font-size:.75rem;margin-top:12px;">O copia este enlace en tu navegador:<br><span style="color:#2D6A4F;word-break:break-all;">{enlace}</span></p>
                   </td>
                 </tr>

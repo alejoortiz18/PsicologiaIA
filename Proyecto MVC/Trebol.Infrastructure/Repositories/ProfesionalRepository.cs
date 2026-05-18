@@ -44,6 +44,18 @@ public class ProfesionalRepository(AppDbContext context, IConfiguration configur
             : ResultadoOperacion<int>.Fail(result?.Mensaje ?? "Error al registrar.");
     }
 
+    public async Task<bool> EsTokenValidoAsync(string token, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return false;
+        
+        using var conn = CrearConexion();
+        var count = await conn.QueryFirstOrDefaultAsync<int>(
+            "SELECT COUNT(*) FROM TokenActivacion WHERE Token = @Token AND Usado = 0 AND FechaExpiracion > GETDATE()",
+            new { Token = token });
+        
+        return count > 0;
+    }
+
     public async Task<ResultadoOperacion> ConfirmarEmailAsync(
         string token, string passwordHash, CancellationToken ct = default)
     {

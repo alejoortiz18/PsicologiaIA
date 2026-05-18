@@ -9,6 +9,7 @@ namespace Trebol.Domain.Interfaces;
 public interface IProfesionalRepository
 {
     Task<ResultadoOperacion<int>> RegistrarAsync(RegistroProfesionalDto dto, CancellationToken ct = default);
+    Task<bool>                    EsTokenValidoAsync(string token, CancellationToken ct = default);
     Task<ResultadoOperacion>      ConfirmarEmailAsync(string token, string passwordHash, CancellationToken ct = default);
     Task<Profesional?>            ObtenerPorCorreoAsync(string correo, CancellationToken ct = default);
     Task<Profesional?>            ObtenerPorIdAsync(int profesionalId, CancellationToken ct = default);
