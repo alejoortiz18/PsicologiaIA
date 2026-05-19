@@ -8,6 +8,7 @@ using Trebol.Helpers.Token;
 using Trebol.Model.DTOs.Profesional;
 using Trebol.Model.DTOs.Usuario;
 using Trebol.Web.ViewModels.Auth;
+using Trebol.Web.Helpers;
 
 namespace Trebol.Web.Controllers;
 
@@ -333,8 +334,7 @@ public class RegistroController(
                 </tr>
                 <tr>
                   <td style="padding:16px 40px 32px;text-align:center;">
-                    <a href="{enlace}"
-                       style="display:inline-block;background:#000000;color:#FFFFFF !important;font-size:1.1rem;font-weight:700;font-family:'Segoe UI',Arial,sans-serif;text-decoration:none;padding:18px 56px;border-radius:50px;letter-spacing:.5px;box-shadow:0 6px 20px rgba(0,0,0,.8);border:2px solid #FFFFFF;-webkit-appearance:none;-moz-appearance:none;appearance:none;">✅ Confirmar correo y crear contraseña</a>
+                    {EmailCta.Build(enlace, "✅ Confirmar correo y crear contraseña")}
                     <p style="color:#9ca3af;font-size:.75rem;margin-top:12px;">O copia este enlace en tu navegador:<br><span style="color:#2D6A4F;word-break:break-all;">{enlace}</span></p>
                   </td>
                 </tr>

@@ -5,6 +5,7 @@ using Trebol.Constants.Messages;
 using Trebol.Domain.Interfaces;
 using Trebol.Helpers.Email;
 using Microsoft.Extensions.Configuration;
+using Trebol.Web.Helpers;
 
 namespace Trebol.Web.Controllers;
 
@@ -130,7 +131,7 @@ public class AdminController(
                 </tr>
                 <tr>
                   <td style="padding:8px 40px 32px;text-align:center;">
-                    <a href="{baseUrl}/Login" style="display:inline-block;background:#2D6A4F;background:linear-gradient(135deg,#2D6A4F,#1B4332);color:#ffffff !important;font-size:1rem;font-weight:700;text-decoration:none;padding:16px 48px;border-radius:50px;box-shadow:0 4px 16px rgba(27,67,50,.5);border:2px solid #1B4332;mso-padding-alt:0;">Ir al inicio de sesión →</a>
+                      {EmailCta.Build($"{baseUrl}/Login", "Ir al inicio de sesión →")}
                   </td>
                 </tr>
                 <tr><td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">
@@ -170,7 +171,7 @@ public class AdminController(
                 </tr>
                 <tr>
                   <td style="padding:8px 40px 32px;text-align:center;">
-                    <a href="{enlaceReenvio}" style="display:inline-block;background:#2D6A4F;color:#fff;font-size:.95rem;font-weight:700;text-decoration:none;padding:14px 40px;border-radius:50px;">Reenviar documentos corregidos →</a>
+                      {EmailCta.Build(enlaceReenvio, "Reenviar documentos corregidos →")}
                   </td>
                 </tr>
                 <tr><td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">

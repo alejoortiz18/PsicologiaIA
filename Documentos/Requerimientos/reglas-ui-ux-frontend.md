@@ -749,3 +749,32 @@ Antes de entregar, preguntar:
 ---
 
 *Documento creado bajo metodología [Shape Up — Basecamp](https://basecamp.com/shapeup) | Versión 1.0 | Mayo 2026*
+
+---
+
+## Email Templates — CTA Button Style (Norma)
+
+Todas las plantillas de correo del sistema que incluyen un botón de llamada a la acción deben seguir un patrón único y comprobable para garantizar contraste, legibilidad y consistencia en clientes de correo.
+
+Reglas obligatorias:
+
+- Color de fondo del botón: `#000000` (negro)
+- Color de texto: `#FFFFFF` (blanco) con `!important` para evitar overrides por clientes de correo
+- Tipografía: `font-family: 'Segoe UI', Arial, sans-serif; font-size: 1.1rem; font-weight: 700`
+- Padding: `18px 56px`, `border-radius: 50px`
+- Border: `2px solid #FFFFFF`
+- Box-shadow: `0 6px 20px rgba(0,0,0,.8)` (opcional, mejora legibilidad en algunos clientes)
+- Usar `display:inline-block` y `text-decoration:none`
+
+Ejemplo de inline style que se debe usar en plantillas HTML de correo:
+
+```
+style="display:inline-block;background:#000000;color:#FFFFFF !important;font-size:1.1rem;font-weight:700;font-family:'Segoe UI',Arial,sans-serif;text-decoration:none;padding:18px 56px;border-radius:50px;letter-spacing:.5px;box-shadow:0 6px 20px rgba(0,0,0,.8);border:2px solid #FFFFFF;-webkit-appearance:none;-moz-appearance:none;appearance:none;"
+```
+
+Implementación recomendada:
+
+- Centralizar estilo en un helper o plantilla base para correos y aplicar en todas las funciones que generan HTML de correo.
+- Añadir pruebas visuales (Playwright) para cada plantilla principal que incluya CTA.
+- Documentar nuevas plantillas de correo en el repositorio y referenciar esta norma.
+

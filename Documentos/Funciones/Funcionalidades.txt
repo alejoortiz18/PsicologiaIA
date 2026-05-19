@@ -64,6 +64,13 @@ REGISTRO PROFESIONAL
 -	El sistema habilita la cuenta del profesional
 -	En caso de no ser validado el sistema manda un correo al administrador del sistema información del usuario  para ser revisado manualmente por uno de nuestros personal interno de la app, y adjuntara los datos del usuario
 
+---
+
+NOTA (Email CTA Button Style):
+
+Todos los correos automáticos del sistema que incluyen botones de llamada a la acción deben usar el estilo de alto contraste estandarizado (fondo `#000000`, texto `#FFFFFF`, padding `18px 56px`, font-size `1.1rem`, borde `2px solid #FFFFFF`) para asegurar legibilidad en clientes de correo y coherencia con las plantillas existentes (ver `reglas-ui-ux-frontend.md`).
+
+
 Menú lateral
 -	Home
 -	Ver mis salas 
