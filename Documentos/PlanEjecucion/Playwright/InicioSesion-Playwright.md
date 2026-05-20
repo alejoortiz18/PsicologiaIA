@@ -14,7 +14,7 @@
 
 | Rol          | Correo                          | Contraseña            |
 |--------------|---------------------------------|-----------------------|
-| Admin        | psicologiatrevol@gmail.com      | Gm41l.C0m             |
+| Admin        | reisavertv@gmail.com            | Gm41l.C0m1.             |
 | Usuario      | trebol.usuario.test@yopmail.com | (la usada en registro)|
 | Profesional  | trebol.pro.test@yopmail.com     | (la usada en registro)|
 
@@ -32,10 +32,10 @@ playwright-cli open --browser=chrome https://localhost:7072/Login
 playwright-cli snapshot
 
 # Completar campo Correo (usar el ref del snapshot)
-playwright-cli fill [ref-correo] "psicologiatrevol@gmail.com"
+playwright-cli fill [ref-correo] "reisavertv@gmail.com"
 
 # Completar campo Contraseña
-playwright-cli fill [ref-password] "Gm41l.C0m"
+playwright-cli fill [ref-password] "Gm41l.C0m1."
 
 # Hacer clic en el botón Ingresar
 playwright-cli click [ref-btn-ingresar]

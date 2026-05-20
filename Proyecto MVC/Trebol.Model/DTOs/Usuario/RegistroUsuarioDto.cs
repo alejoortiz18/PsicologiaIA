@@ -8,5 +8,7 @@ public class RegistroUsuarioDto
     public string Alias            { get; set; } = string.Empty;
     public string? Celular         { get; set; }
     public DateOnly? FechaNacimiento { get; set; }
-    public int?   CiudadId         { get; set; }
+    public int?      CiudadId    { get; set; }
+    public string?   Token       { get; set; }
+    public DateTime? Expiracion  { get; set; }
 }

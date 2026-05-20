@@ -24,13 +24,39 @@ const path = require('path');
 const fs   = require('fs');
 
 // ─── Configuracion ────────────────────────────────────────────────────────────
-const BASE_URL        = 'https://localhost:7072';
-const ADMIN_CORREO    = 'psicologiatrevol@gmail.com';
-const ADMIN_PASSWORD  = 'Gm41l.C0m';          // Contrasena Gmail (web)
-const PASSWORD_PRO    = 'Password123!';
-const MOTIVO_RECHAZO  = 'El documento presentado esta vencido. Por favor renueva tu tarjeta profesional.';
-const CEDULA_PDF      = path.resolve(__dirname, '../Documentos/ArchivosPrueba/CedulaPrueba.pdf');
-const TARJETA_PDF     = path.resolve(__dirname, '../Documentos/ArchivosPrueba/TarjetaProfesionalPrueba.pdf');
+const BASE_URL             = 'https://localhost:7072';
+/** Cuenta temporal (SMTP + admin pruebas) hasta reparar psicologiatrevol@gmail.com */
+const ADMIN_CORREO         = 'reisavertv@gmail.com';
+const ADMIN_PASSWORD       = 'Gm41l.C0m1.';        // Login admin Trebol en BD (misma contraseña si recreaste con crear-admin.js)
+const PASSWORD_PRO         = 'Password123!';
+const MOTIVO_RECHAZO       = 'El documento presentado esta vencido. Por favor renueva tu tarjeta profesional.';
+/** Máximo de espera por correo en la bandeja Yopmail del profesional que se registra */
+const ESPERA_CORREO_MS     = 10_000;
+const YOPMAIL_POLL_MS      = 2_000;
+const YOPMAIL_IFRAME_MS    = 3_000;
+const INBOX_SEL            = '.lm, .m, .mail, div[onclick*="lire"], .msg, [id^="msg"], .inbox-item, div.mail-item';
+/** PDFs fijos de prueba: Documentos/ArchivosPrueba/ (desde la raíz del repo) */
+const ARCHIVOS_PRUEBA_DIR = path.resolve(__dirname, '../Documentos/ArchivosPrueba');
+const CEDULA_PDF          = path.join(ARCHIVOS_PRUEBA_DIR, 'CedulaPrueba.pdf');
+const TARJETA_PDF         = path.join(ARCHIVOS_PRUEBA_DIR, 'TarjetaProfesionalPrueba.pdf');
+
+function assertArchivosPrueba() {
+  const archivos = [
+    ['Cédula', CEDULA_PDF],
+    ['Tarjeta profesional', TARJETA_PDF],
+  ];
+  for (const [nombre, ruta] of archivos) {
+    if (!fs.existsSync(ruta)) {
+      throw new Error(
+        `No se encontró ${nombre}.\n` +
+        `Ruta esperada: ${ruta}\n` +
+        `Carpeta de prueba: ${ARCHIVOS_PRUEBA_DIR}`
+      );
+    }
+  }
+  ok(`Cédula: ${CEDULA_PDF}`);
+  ok(`Tarjeta: ${TARJETA_PDF}`);
+}
 
 const timestamp    = Date.now();
 const YOPMAIL_USER = `trebol.pro.test${timestamp}`;
@@ -42,98 +68,158 @@ if (!fs.existsSync(SS)) fs.mkdirSync(SS);
 function log(msg)  { console.log(`\n[PASO] ${msg}`); }
 function ok(msg)   { console.log(`       OK   ${msg}`); }
 function warn(msg) { console.log(`       WARN ${msg}`); }
-function fail(msg) { console.error(`\n[FALLO] ${msg}`); }
+function fail(msg) {
+  console.error(`\n[FALLO] ${msg}`);
+  throw new Error(msg);
+}
+
+function msRestantes(inicio) {
+  return Math.max(0, ESPERA_CORREO_MS - (Date.now() - inicio));
+}
+
+/** Token de activación en BD (6 caracteres en Trebol). */
+function obtenerTokenDesdeBd(correo) {
+  const cmd = `sqlcmd -S "DESKALEJO\\SQLEXPRESS" -d TrebolDB -E -Q "SET NOCOUNT ON; SELECT TOP 1 Token FROM TokenActivacion WHERE Correo = '${correo}' ORDER BY FechaExpiracion DESC" -h -1 -W`;
+  const result = execSync(cmd, { encoding: 'utf8', timeout: 10000 });
+  return result.split('\n').map((l) => l.trim()).find(
+    (l) => l.length >= 4 && l.length <= 64 && l !== 'Token' && !l.startsWith('Changed') && !l.startsWith('--')
+  ) || null;
+}
+
+/** Adjunta los dos PDF obligatorios y verifica que el UI los muestra seleccionados. */
+async function adjuntarPdfsObligatorios(page) {
+  log('Adjuntando PDFs obligatorios (cédula + tarjeta profesional)');
+  const inputCedula  = page.locator('input[name="FotocopiaCedula"], #file-cedula-r').first();
+  const inputTarjeta = page.locator('input[name="FotocopiaTarjeta"], #file-tarjeta-r').first();
+  await inputCedula.waitFor({ state: 'attached', timeout: 10000 });
+  await inputTarjeta.waitFor({ state: 'attached', timeout: 10000 });
+  await inputCedula.setInputFiles(CEDULA_PDF);
+  await inputTarjeta.setInputFiles(TARJETA_PDF);
+  await page.waitForTimeout(800);
+
+  const cedulaOk  = (await inputCedula.evaluate((el) => el.files?.length)) > 0;
+  const tarjetaOk = (await inputTarjeta.evaluate((el) => el.files?.length)) > 0;
+
+  if (!cedulaOk)  fail(`No se adjuntó CedulaPrueba.pdf. Ruta: ${CEDULA_PDF}`);
+  if (!tarjetaOk) fail(`No se adjuntó TarjetaProfesionalPrueba.pdf. Ruta: ${TARJETA_PDF}`);
+
+  ok(`Cédula adjunta: CedulaPrueba.pdf`);
+  ok(`Tarjeta adjunta: TarjetaProfesionalPrueba.pdf`);
+  await page.screenshot({ path: `${SS}/01b-pdfs-adjuntos.png`, fullPage: true });
+}
 
 // ─── Helpers Yopmail ──────────────────────────────────────────────────────────
 
 async function abrirYopmail(context) {
   const yp = await context.newPage();
   await yp.goto('https://yopmail.com/es/', { waitUntil: 'domcontentloaded' });
-  await yp.waitForTimeout(2000);
   await yp.fill('input#login', YOPMAIL_USER);
   await yp.press('input#login', 'Enter');
-  await yp.waitForTimeout(5000);
+  await yp.waitForTimeout(2000);
   return yp;
 }
 
 async function refrescarYopmail(yp) {
   const sels = [
-    'button#refresh', '.refreshb', '[title*="Refres"]', '[title*="Actual"]', '#refreshb',
-    'button[onclick*="refresh"]', 'a[onclick*="refresh"]', '.btn-refresh',
-    'button:has-text("Actualizar")', 'button:has-text("Refresh")',
+    'button#refresh', '.refreshb', '[title*="Refres"]', '#refreshb',
+    'button:has-text("Actualizar")',
   ];
   for (const sel of sels) {
     try {
       const btn = yp.locator(sel);
-      if (await btn.count() > 0) { await btn.first().click(); await yp.waitForTimeout(2500); return; }
-    } catch { }
+      if (await btn.count() > 0) {
+        await btn.first().click({ timeout: 1500 });
+        await yp.waitForTimeout(800);
+        return;
+      }
+    } catch { /* siguiente selector */ }
   }
   await yp.reload({ waitUntil: 'domcontentloaded' });
-  await yp.waitForTimeout(3000);
+  await yp.waitForTimeout(800);
 }
 
-/** Busca un patron href en el correo mas reciente de Yopmail. Reintenta hasta maxTries. */
-async function buscarEnlaceEnYopmail(yp, pattern, ssPrefix, maxTries) {
-  maxTries = maxTries || 10;
-  // Selectores de bandeja Yopmail (varian segun version)
-  const INBOX_SEL = '.lm, .m, .mail, div[onclick*="lire"], .msg, [id^="msg"], .inbox-item, div.mail-item';
-  for (let i = 1; i <= maxTries; i++) {
-    log(`Yopmail buscando enlace (intento ${i}/${maxTries})...`);
-    try {
-      if (i > 1) await refrescarYopmail(yp);
-      await yp.screenshot({ path: `${SS}/${ssPrefix}-bandeja-${i}.png` });
-      // intentar iframe primero, luego pagina directa
-      let clicked = false;
-      try {
-        const inboxFrame = yp.frameLocator('#ifinbox');
-        const el = inboxFrame.locator(INBOX_SEL).first();
-        await el.waitFor({ timeout: 8000 });
-        await el.click();
-        clicked = true;
-      } catch {
-        // fallback: buscar en la pagina completa
-        const el = yp.locator(INBOX_SEL).first();
-        if (await el.count() > 0) { await el.click(); clicked = true; }
-      }
-      if (!clicked) { warn(`Intento ${i}: bandeja vacia o sin selector`); await yp.waitForTimeout(10000); continue; }
-      await yp.waitForTimeout(3000);
-      // leer HTML del correo
-      let html = '';
-      try {
-        const mailFrame = yp.frameLocator('#ifmail');
-        html = await mailFrame.locator('html').innerHTML({ timeout: 8000 })
-          .catch(async () => await mailFrame.locator('body').innerHTML({ timeout: 5000 }).catch(() => ''));
-      } catch {
-        html = await yp.content().catch(() => '');
-      }
-      await yp.screenshot({ path: `${SS}/${ssPrefix}-correo-${i}.png` });
-      const m = html.match(pattern);
-      if (m) { ok(`Enlace encontrado: ${m[1]}`); return m[1]; }
-      warn('Enlace no encontrado aun. Siguiente intento en 10s...');
-    } catch (e) { warn(`Intento ${i} fallo: ${e.message.split('\n')[0]}`); }
-    await yp.waitForTimeout(10000);
+async function abrirPrimerCorreoYopmail(yp) {
+  try {
+    const inboxFrame = yp.frameLocator('#ifinbox');
+    const el = inboxFrame.locator(INBOX_SEL).first();
+    await el.waitFor({ state: 'visible', timeout: YOPMAIL_IFRAME_MS });
+    await el.click({ timeout: YOPMAIL_IFRAME_MS });
+    return true;
+  } catch {
+    const el = yp.locator(INBOX_SEL).first();
+    if (await el.count() > 0) {
+      await el.click({ timeout: YOPMAIL_IFRAME_MS });
+      return true;
+    }
   }
+  return false;
+}
+
+async function leerHtmlCorreoYopmail(yp) {
+  try {
+    const mailFrame = yp.frameLocator('#ifmail');
+    return await mailFrame.locator('html').innerHTML({ timeout: YOPMAIL_IFRAME_MS })
+      .catch(async () => await mailFrame.locator('body').innerHTML({ timeout: YOPMAIL_IFRAME_MS }).catch(() => ''));
+  } catch {
+    return await yp.content().catch(() => '');
+  }
+}
+
+/** Busca enlace en Yopmail del correo registrado (máx. ESPERA_CORREO_MS). */
+async function buscarEnlaceEnYopmail(yp, pattern, ssPrefix) {
+  const inicio = Date.now();
+  let intento = 0;
+  while (msRestantes(inicio) > 0) {
+    intento++;
+    log(`Yopmail: buscando enlace (intento ${intento}, restan ${msRestantes(inicio)}ms)...`);
+    try {
+      if (intento > 1) await refrescarYopmail(yp);
+      await yp.screenshot({ path: `${SS}/${ssPrefix}-bandeja-${intento}.png` });
+
+      if (!(await abrirPrimerCorreoYopmail(yp))) {
+        warn('Bandeja vacía o sin mensajes aún');
+      } else {
+        await yp.waitForTimeout(500);
+        const html = await leerHtmlCorreoYopmail(yp);
+        await yp.screenshot({ path: `${SS}/${ssPrefix}-correo-${intento}.png` });
+        const m = html.match(pattern);
+        if (m) {
+          ok(`Enlace encontrado en ${Date.now() - inicio}ms`);
+          return m[1];
+        }
+      }
+    } catch (e) {
+      warn(`Yopmail intento ${intento}: ${e.message.split('\n')[0]}`);
+    }
+    const espera = Math.min(YOPMAIL_POLL_MS, msRestantes(inicio));
+    if (espera > 0) await yp.waitForTimeout(espera);
+  }
+  warn(`Sin enlace en Yopmail tras ${ESPERA_CORREO_MS}ms`);
   return null;
 }
 
-/** Lee el texto del correo mas reciente en Yopmail */
-async function leerTextoCorreo(yp, ssPrefix) {
-  const INBOX_SEL = '.lm, .m, .mail, div[onclick*="lire"], .msg, [id^="msg"], .inbox-item, div.mail-item';
-  try {
-    await refrescarYopmail(yp);
+/** Espera texto en el último correo Yopmail (máx. ESPERA_CORREO_MS). */
+async function esperarTextoEnYopmail(yp, predicado, ssPrefix) {
+  const inicio = Date.now();
+  let intento = 0;
+  while (msRestantes(inicio) > 0) {
+    intento++;
     try {
-      const inboxFrame = yp.frameLocator('#ifinbox');
-      await inboxFrame.locator(INBOX_SEL).first().click();
-    } catch {
-      const el = yp.locator(INBOX_SEL).first();
-      if (await el.count() > 0) await el.click();
+      if (intento > 1) await refrescarYopmail(yp);
+      if (await abrirPrimerCorreoYopmail(yp)) {
+        await yp.waitForTimeout(400);
+        const html = await leerHtmlCorreoYopmail(yp);
+        const texto = html.replace(/<[^>]+>/g, ' ');
+        await yp.screenshot({ path: `${SS}/${ssPrefix}-${intento}.png` });
+        if (predicado(texto)) return { texto, html };
+      }
+    } catch (e) {
+      warn(`Yopmail texto intento ${intento}: ${e.message.split('\n')[0]}`);
     }
-    await yp.waitForTimeout(3000);
-    const mailFrame = yp.frameLocator('#ifmail');
-    const text = await mailFrame.locator('body').textContent({ timeout: 8000 }).catch(() => '');
-    await yp.screenshot({ path: `${SS}/${ssPrefix}.png` });
-    return text;
-  } catch { return ''; }
+    const espera = Math.min(YOPMAIL_POLL_MS, msRestantes(inicio));
+    if (espera > 0) await yp.waitForTimeout(espera);
+  }
+  return null;
 }
 
 // ─── Helper Gmail ─────────────────────────────────────────────────────────────
@@ -314,6 +400,7 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
   const page    = await context.newPage();
 
   try {
+    assertArchivosPrueba();
 
     // ─── PASO 1: Registrar profesional (sin contrasena) ───────────────────────
     log(`PASO 1 - Registrando profesional: ${CORREO_PRO}`);
@@ -327,45 +414,65 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
     await page.fill('input[name="NombreCompleto"]',  'Dra. Ana Test Profesional');
     await page.fill('input[name="Correo"]',           CORREO_PRO);
     await page.fill('input[name="NumeroDocumento"]', String(timestamp).slice(-9));
-    await page.fill('input[name="EspecialidadId"]', '1');
+    await page.selectOption('select[name="EspecialidadId"]', '10');
     await page.fill('input[name="NumeroRegistro"]',  `PSI-${timestamp}`);
-    await page.locator('input[name="FotocopiaCedula"]').setInputFiles(CEDULA_PDF);
-    await page.locator('input[name="FotocopiaTarjeta"]').setInputFiles(TARJETA_PDF);
-    await page.screenshot({ path: `${SS}/01-formulario-lleno.png` });
+    await adjuntarPdfsObligatorios(page);
+    await page.screenshot({ path: `${SS}/01-formulario-lleno.png`, fullPage: true });
     await page.click('button[type="submit"]');
-    await page.waitForTimeout(5000);
+    try {
+      await page.waitForURL('**/EsperaConfirmacion', { timeout: ESPERA_CORREO_MS });
+    } catch {
+      await page.waitForTimeout(2000);
+    }
 
     // ─── PASO 2: Verificar EsperaConfirmacion ─────────────────────────────────
     log('PASO 2 - Verificar EsperaConfirmacion');
     const urlReg = page.url();
-    await page.screenshot({ path: `${SS}/02-espera-confirmacion.png` });
+    await page.screenshot({ path: `${SS}/02-post-envio.png` });
     if (urlReg.includes('EsperaConfirmacion')) {
       ok('Redirigido a EsperaConfirmacion');
-    } else {
+    } else if (urlReg.includes('RegistroProfesional')) {
       const errores = await page.locator('.text-danger, .form-error').allTextContents();
-      fail(`No redirigio. URL: ${urlReg} | Errores: ${JSON.stringify(errores)}`);
+      const smtpFallo = errores.some((e) => /SMTP|correo de confirmación|Authentication/i.test(e));
+      if (smtpFallo) {
+        warn('SMTP falló al enviar correo; verificando registro en BD (PDFs ya fueron enviados al admin si SMTP parcial).');
+        try {
+          const dbToken = obtenerTokenDesdeBd(CORREO_PRO);
+          if (dbToken) ok(`Registro en BD OK. Token: ${dbToken}`);
+          else fail('SMTP falló y no hay token en BD — el registro no se completó.');
+        } catch (e) {
+          warn(`No se pudo consultar BD: ${e.message.split('\n')[0]}`);
+        }
+      } else {
+        fail(`No redirigio. URL: ${urlReg} | Errores: ${JSON.stringify(errores)}`);
+        await browser.close(); return;
+      }
+    } else {
+      fail(`URL inesperada: ${urlReg}`);
       await browser.close(); return;
     }
 
     // ─── PASO 3: Gmail admin — correo con PDF adjunto (registro) ──────────────
-    log('PASO 3 - Gmail admin: verificar correo con PDF adjunto (registro)');
-    // Dar margen de 15s para que el correo llegue al servidor Gmail
-    log('  Esperando 15s para que llegue el correo al servidor Gmail...');
-    await page.waitForTimeout(15000);
-
-    const searchQueryRegistro = `[Trebol] Nueva solicitud`;
-    const gmailResultRegistro = await verificarGmailAdjunto(
-      context, ADMIN_CORREO, ADMIN_PASSWORD,
-      searchQueryRegistro, '03-gmail-registro', 8
-    );
-    if (gmailResultRegistro.error === 'login_failed') {
-      warn('Gmail login fallo — continuando sin verificacion de adjunto');
-    } else if (gmailResultRegistro.encontrado && gmailResultRegistro.tieneAdjunto) {
-      ok('CORREO CON ADJUNTO CONFIRMADO en Gmail admin (registro)');
-    } else if (gmailResultRegistro.encontrado && !gmailResultRegistro.tieneAdjunto) {
-      warn('Correo encontrado en Gmail pero adjunto NO detectado');
+    log('PASO 3 - Gmail admin: verificar correo con PDF adjunto (registro) [opcional si SMTP OK]');
+    if (!urlReg.includes('EsperaConfirmacion')) {
+      warn('Omitiendo verificación Gmail (correo de confirmación no se envió por SMTP).');
     } else {
-      warn('Correo de registro NO encontrado en Gmail (puede ser retraso SMTP)');
+      log('  Esperando 10s máx. para correo admin en Gmail...');
+      await page.waitForTimeout(ESPERA_CORREO_MS);
+      const searchQueryRegistro = `[Trebol] Nueva solicitud`;
+      const gmailResultRegistro = await verificarGmailAdjunto(
+        context, ADMIN_CORREO, ADMIN_PASSWORD,
+        searchQueryRegistro, '03-gmail-registro', 8
+      );
+      if (gmailResultRegistro.error === 'login_failed') {
+        warn('Gmail login fallo — continuando sin verificacion de adjunto');
+      } else if (gmailResultRegistro.encontrado && gmailResultRegistro.tieneAdjunto) {
+        ok('CORREO CON ADJUNTO CONFIRMADO en Gmail admin (registro)');
+      } else if (gmailResultRegistro.encontrado && !gmailResultRegistro.tieneAdjunto) {
+        warn('Correo encontrado en Gmail pero adjunto NO detectado');
+      } else {
+        warn('Correo de registro NO encontrado en Gmail (puede ser retraso SMTP)');
+      }
     }
 
     // ─── PASO 4: Admin — bandeja con badge "Sin validar" ──────────────────────
@@ -391,24 +498,29 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
       warn('Boton no deshabilitado — verificar badge en pantalla');
     }
 
-    // ─── PASO 5: Yopmail — enlace de confirmacion ─────────────────────────────
-    log('PASO 5 - Yopmail: buscar enlace de confirmacion');
-    const ypPage = await abrirYopmail(context);
-    const patternConf = /href=["'](https?:\/\/[^"']+\/Registro\/ConfirmarEmail\?token=[^"']+)["']/;
-    const enlaceConf  = await buscarEnlaceEnYopmail(ypPage, patternConf, '05-yopmail-confirmacion', 10);
-
-    let urlConf = enlaceConf;
-    if (!urlConf) {
-      warn('Enlace no encontrado en email. Intentando BD...');
-      try {
-        const cmd = `sqlcmd -S "DESKALEJO\\SQLEXPRESS" -d TrebolDB -E -Q "SET NOCOUNT ON; SELECT TOP 1 Token FROM TokenActivacion WHERE Correo = '${CORREO_PRO}' ORDER BY FechaExpiracion DESC" -h -1 -W`;
-        const result = execSync(cmd, { encoding: 'utf8', timeout: 10000 });
-        const dbToken = result.split('\n').map(l => l.trim()).find(l => l.length >= 4 && l.length < 500 && !l.startsWith('Changed') && !l.startsWith('--'));
+    // ─── PASO 5: Confirmación — Yopmail o token desde BD si SMTP falló ─────────
+    let urlConf = null;
+    let ypPage = null;
+    if (!urlReg.includes('EsperaConfirmacion')) {
+      log('PASO 5 - SMTP sin correo: usar token desde BD');
+      const dbToken = obtenerTokenDesdeBd(CORREO_PRO);
+      if (dbToken) {
+        urlConf = `${BASE_URL}/Registro/ConfirmarEmail?token=${encodeURIComponent(dbToken)}`;
+        ok(`Enlace ConfirmarEmail armado con token BD: ${dbToken}`);
+      }
+    } else {
+      log('PASO 5 - Yopmail: buscar enlace de confirmacion');
+      ypPage = await abrirYopmail(context);
+      const patternConf = /href=["'](https?:\/\/[^"']+\/Registro\/ConfirmarEmail\?token=[^"']+)["']/;
+      urlConf = await buscarEnlaceEnYopmail(ypPage, patternConf, '05-yopmail-confirmacion');
+      if (!urlConf) {
+        warn('Enlace no encontrado en Yopmail. Intentando BD...');
+        const dbToken = obtenerTokenDesdeBd(CORREO_PRO);
         if (dbToken) {
-          urlConf = `${BASE_URL}/Registro/ConfirmarEmail?token=${encodeURIComponent(dbToken.trim())}`;
-          ok(`Token obtenido de BD`);
+          urlConf = `${BASE_URL}/Registro/ConfirmarEmail?token=${encodeURIComponent(dbToken)}`;
+          ok(`Token obtenido de BD: ${dbToken}`);
         }
-      } catch (e) { warn(`BD fallback fallo: ${e.message.split('\n')[0]}`); }
+      }
     }
     if (!urlConf) { fail('Sin enlace ni token. Abortando.'); await browser.close(); return; }
 
@@ -463,21 +575,21 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
     await adminPage.screenshot({ path: `${SS}/08-rechazado.png` });
     ok('Rechazo enviado');
 
-    // ─── PASO 9: Yopmail — correo de rechazo ──────────────────────────────────
-    log('PASO 9 - Yopmail: verificar correo de rechazo');
+    // ─── PASO 9: Yopmail — correo de rechazo (máx. 10s) ───────────────────────
+    if (!ypPage) ypPage = await abrirYopmail(context);
+    log('PASO 9 - Yopmail: verificar correo de rechazo (máx. 10s)');
     let enlaceReenvio = null;
-    for (let i = 1; i <= 8; i++) {
-      const texto = await leerTextoCorreo(ypPage, `09-yopmail-rechazo-${i}`);
-      if (texto.includes('vencido') || texto.toLowerCase().includes('rechaz')) {
-        ok('Correo de rechazo recibido con motivo');
-        const mailFrame = ypPage.frameLocator('#ifmail');
-        const html = await mailFrame.locator('html').innerHTML({ timeout: 5000 }).catch(() => '');
-        const m = html.match(/href=["'](https?:\/\/[^"']*\/Registro\/ReenviarDocumentos[^"']*)["']/);
-        if (m) { enlaceReenvio = m[1]; ok(`Enlace reenvio: ${enlaceReenvio}`); }
-        break;
-      }
-      warn(`Correo rechazo no llego (${i}/8). Esperando 10s...`);
-      await ypPage.waitForTimeout(10000);
+    const rechazo = await esperarTextoEnYopmail(
+      ypPage,
+      (t) => t.includes('vencido') || t.toLowerCase().includes('rechaz'),
+      '09-yopmail-rechazo'
+    );
+    if (rechazo) {
+      ok('Correo de rechazo recibido con motivo');
+      const m = rechazo.html.match(/href=["'](https?:\/\/[^"']*\/Registro\/ReenviarDocumentos[^"']*)["']/);
+      if (m) { enlaceReenvio = m[1]; ok(`Enlace reenvio: ${enlaceReenvio}`); }
+    } else {
+      warn('Correo de rechazo no llegó en 10s; se usará URL directa de reenvío');
     }
 
     // ─── PASO 10: Reenviar documentos corregidos ──────────────────────────────
@@ -489,9 +601,8 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
     await page.waitForTimeout(1000);
     await page.screenshot({ path: `${SS}/10-reenviar-docs.png` });
     await page.fill('input[name="Correo"]', CORREO_PRO);
-    await page.locator('input[name="FotocopiaCedula"]').setInputFiles(CEDULA_PDF);
-    await page.locator('input[name="FotocopiaTarjeta"]').setInputFiles(TARJETA_PDF);
-    await page.screenshot({ path: `${SS}/10b-docs-listos.png` });
+    await adjuntarPdfsObligatorios(page);
+    await page.screenshot({ path: `${SS}/10b-docs-listos.png`, fullPage: true });
     await page.click('button[type="submit"]');
     await page.waitForTimeout(5000);
 
@@ -506,8 +617,8 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
 
     // ─── PASO 11: Gmail admin — correo con PDF adjunto (reenvio) ──────────────
     log('PASO 11 - Gmail admin: verificar correo con PDF adjunto (reenvio documentos)');
-    log('  Esperando 15s para que llegue el correo al servidor Gmail...');
-    await page.waitForTimeout(15000);
+    log('  Esperando 10s para correo admin (reenvío)...');
+    await page.waitForTimeout(10000);
 
     const searchQueryReenvio = `Re-envio de documentos`;
     const gmailResultReenvio = await verificarGmailAdjunto(
@@ -541,18 +652,15 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
     await adminPage.screenshot({ path: `${SS}/12b-aprobado.png` });
     ok('Aprobacion enviada');
 
-    // ─── PASO 13: Yopmail — correo de bienvenida ──────────────────────────────
-    log('PASO 13 - Yopmail: verificar correo de bienvenida');
-    let bienvenidaOk = false;
-    for (let i = 1; i <= 8; i++) {
-      const texto = await leerTextoCorreo(ypPage, `13-yopmail-bienvenida-${i}`);
-      if (texto.toLowerCase().includes('bienvenido') || texto.toLowerCase().includes('aprobad')) {
-        ok('Correo de bienvenida recibido'); bienvenidaOk = true; break;
-      }
-      warn(`Correo bienvenida no llego (${i}/8)...`);
-      await ypPage.waitForTimeout(10000);
-    }
-    if (!bienvenidaOk) warn('Correo bienvenida no detectado, continuando con login...');
+    // ─── PASO 13: Yopmail — correo de bienvenida (máx. 10s) ───────────────────
+    log('PASO 13 - Yopmail: verificar correo de bienvenida (máx. 10s)');
+    const bienvenida = await esperarTextoEnYopmail(
+      ypPage,
+      (t) => t.toLowerCase().includes('bienvenido') || t.toLowerCase().includes('aprobad'),
+      '13-yopmail-bienvenida'
+    );
+    if (bienvenida) ok('Correo de bienvenida recibido');
+    else warn('Correo bienvenida no detectado en 10s; continuando con login...');
 
     // ─── PASO 14: Login profesional → HomeProfesional ─────────────────────────
     log('PASO 14 - Login del profesional');
@@ -581,11 +689,15 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
 
     log('\n==== PRUEBA COMPLETADA ====');
     log(`Screenshots en: ${SS}`);
-    log('Navegador abierto para inspeccion. Cierralo cuando termines.');
+    log(`Correo de prueba: ${CORREO_PRO}`);
 
   } catch (err) {
     fail(`Error inesperado: ${err.message}`);
     console.error(err.stack);
     await page.screenshot({ path: `${SS}/error-inesperado.png` }).catch(() => {});
+  } finally {
+    // Mantener navegador 5s para inspección visual y cerrar
+    await page.waitForTimeout(5000).catch(() => {});
+    await browser.close().catch(() => {});
   }
 })();

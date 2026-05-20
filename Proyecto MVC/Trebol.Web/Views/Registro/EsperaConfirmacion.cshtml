@@ -22,7 +22,11 @@ body { background: var(--color-surface); }
     </p>
 
     <div style="background:rgba(82,183,136,.08);border:1px solid rgba(82,183,136,.3);border-radius:var(--radius-lg);padding:var(--sp-5);margin-bottom:var(--sp-6);">
-      <div style="font-size:.85rem;color:var(--color-text-muted);">⏱ El enlace es válido por <strong>72 horas</strong></div>
+      @{
+          var horas = ViewData["HorasEnlace"]?.ToString() ?? "72";
+          var horasLabel = horas == "1" ? "1 hora" : $"{horas} horas";
+      }
+      <div style="font-size:.85rem;color:var(--color-text-muted);">⏱ El enlace es válido por <strong>@horasLabel</strong></div>
     </div>
 
     <p style="color:var(--color-text-muted);font-size:.85rem;margin-bottom:var(--sp-4);">

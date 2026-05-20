@@ -9,7 +9,7 @@ Todas las pruebas usan **Chromium visible** (`--browser=chrome`) y la app corrie
 - Los refs `[ref-xxx]` se reemplazan con los IDs reales obtenidos de `playwright-cli snapshot` en cada ejecución.
 - Documentar evidencia con `playwright-cli screenshot --filename=nombre.png` en cada paso clave.
 - **Cuentas de prueba:** generar correos temporales en https://yopmail.com/es/
-- **Admin:** `psicologiatrevol@gmail.com` / contraseña app SMTP: `equz uibq uefq kdin`
+- **Admin / SMTP (temporal):** `reisavertv@gmail.com` — credenciales en `appsettings.Development.json`
 - **Archivos para inscripción profesional:** siempre usar los de `Documentos/ArchivosPrueba/`
 
 ---

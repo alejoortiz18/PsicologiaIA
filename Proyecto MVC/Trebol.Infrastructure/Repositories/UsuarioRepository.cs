@@ -31,14 +31,26 @@ public class UsuarioRepository(AppDbContext context, IConfiguration configuratio
                 dto.Alias,
                 dto.Celular,
                 dto.CiudadId,
-                Token      = Guid.NewGuid().ToString("N"),
-                Expiracion = DateTime.Now.AddHours(1)
+                Token      = dto.Token ?? Guid.NewGuid().ToString("N"),
+                Expiracion = dto.Expiracion ?? DateTime.Now.AddHours(1)
             },
             commandType: CommandType.StoredProcedure);
 
         return result?.Exito == true
             ? ResultadoOperacion<int>.Ok(result.Id)
             : ResultadoOperacion<int>.Fail(result?.Mensaje ?? "Error al registrar.");
+    }
+
+    public async Task<bool> EsTokenValidoAsync(string token, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return false;
+
+        using var conn = CrearConexion();
+        var count = await conn.QueryFirstOrDefaultAsync<int>(
+            "SELECT COUNT(*) FROM TokenValidacion WHERE Token = @Token AND Usado = 0 AND FechaExpiracion > GETDATE()",
+            new { Token = token });
+
+        return count > 0;
     }
 
     public async Task<ResultadoOperacion> ActivarAsync(

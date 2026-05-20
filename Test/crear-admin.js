@@ -7,8 +7,8 @@ const crypto  = require('crypto');
 const { execSync } = require('child_process');
 
 async function main() {
-  const password = 'Gm41l.C0m';
-  const correo   = 'psicologiatrevol@gmail.com';
+  const password = 'Gm41l.C0m1.';
+  const correo   = 'reisavertv@gmail.com';
   const nombre   = 'Administrador Trebol';
   const connStr  = 'Server=DESKALEJO\\SQLEXPRESS;Database=TrebolDB;Trusted_Connection=True;TrustServerCertificate=True;';
 

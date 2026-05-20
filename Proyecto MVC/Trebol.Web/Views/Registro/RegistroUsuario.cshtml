@@ -13,7 +13,6 @@ body { background: var(--color-surface); }
 
 <div class="auth-layout">
 
-    <!-- LEFT PANEL -->
     <div class="auth-panel auth-panel--left" aria-hidden="true">
         <div class="auth-illustration">
             <div class="auth-illustration__tag">👤 Registro de usuario</div>
@@ -35,7 +34,6 @@ body { background: var(--color-surface); }
         </div>
     </div>
 
-    <!-- RIGHT PANEL -->
     <div class="auth-panel auth-panel--right" style="align-items:flex-start;padding-top:var(--sp-10);">
         <div class="auth-form" style="max-width:480px;width:100%;">
 
@@ -45,7 +43,7 @@ body { background: var(--color-surface); }
             </a>
 
             <h2 class="auth-form__title">Crear cuenta</h2>
-            <p class="auth-form__subtitle">Completa el formulario para crear tu cuenta de usuario.</p>
+            <p class="auth-form__subtitle">Completa el formulario. Te enviaremos un enlace por correo para confirmar tu cuenta y crear tu contraseña.</p>
 
             <form asp-controller="Registro" asp-action="RegistroUsuario" method="post">
                 @Html.AntiForgeryToken()
@@ -71,7 +69,7 @@ body { background: var(--color-surface); }
                         <input asp-for="Correo" class="form-control" type="email"
                                placeholder="usuario@correo.com"
                                autocomplete="email" aria-required="true" />
-                        <div class="form-hint">Úsalo para activar tu cuenta y acceder.</div>
+                        <div class="form-hint">Te enviaremos un enlace de confirmación a este correo.</div>
                         <span asp-validation-for="Correo" class="form-error"></span>
                     </div>
 
@@ -83,36 +81,6 @@ body { background: var(--color-surface); }
                                placeholder="Ej: 1234567890"
                                autocomplete="off" aria-required="true" />
                         <span asp-validation-for="NumeroDocumento" class="form-error"></span>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <div class="form-section__title">Contraseña</div>
-
-                    <div class="form-group">
-                        <label asp-for="Password" class="form-label">
-                            Contraseña <span class="required" aria-hidden="true">*</span>
-                        </label>
-                        <div class="input-wrapper">
-                            <input asp-for="Password" class="form-control" type="password"
-                                   placeholder="Mínimo 8 caracteres"
-                                   autocomplete="new-password" aria-required="true" />
-                            <button type="button" class="input-toggle" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'" aria-label="Mostrar contraseña">👁</button>
-                        </div>
-                        <span asp-validation-for="Password" class="form-error"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label asp-for="ConfirmarPassword" class="form-label">
-                            Confirmar contraseña <span class="required" aria-hidden="true">*</span>
-                        </label>
-                        <div class="input-wrapper">
-                            <input asp-for="ConfirmarPassword" class="form-control" type="password"
-                                   placeholder="Repite tu contraseña"
-                                   autocomplete="new-password" aria-required="true" />
-                            <button type="button" class="input-toggle" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password'" aria-label="Mostrar contraseña">👁</button>
-                        </div>
-                        <span asp-validation-for="ConfirmarPassword" class="form-error"></span>
                     </div>
                 </div>
 

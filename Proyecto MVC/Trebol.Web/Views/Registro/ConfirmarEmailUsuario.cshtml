@@ -1,0 +1,230 @@
+@model ConfirmarEmailViewModel
+@{
+    ViewData["Title"] = "Confirmar correo y crear contraseña";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+}
+
+@section Styles {
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+</style>
+}
+
+<div class="auth-layout">
+
+  <div class="auth-panel auth-panel--left" aria-hidden="true">
+    <div class="auth-illustration">
+      <div class="auth-illustration__tag">✅ Confirmar correo</div>
+      <h1 class="auth-illustration__title">
+        Casi estás<br>listo para el<br><em>bienestar</em>
+      </h1>
+      <p class="auth-illustration__text">
+        Tu correo ha sido verificado. Crea una contraseña segura para tu cuenta de usuario en Trébol.
+      </p>
+      <div style="background:rgba(82,183,136,.15);border:1px solid rgba(82,183,136,.3);border-radius:var(--radius-lg);padding:var(--sp-5);margin-top:var(--sp-6);">
+        <div style="font-weight:600;color:white;margin-bottom:var(--sp-2);">🔒 Contraseña segura</div>
+        <p style="color:rgba(255,255,255,.7);font-size:.875rem;line-height:1.65;margin:0;">
+          Usa al menos 8 caracteres, combinando letras, números y símbolos.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-panel auth-panel--right" id="formPanel">
+    <div class="auth-form">
+      <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
+        <div class="auth-form__logo-icon">🍀</div>
+        <span class="auth-form__logo-name">Trébol</span>
+      </a>
+
+      <h2 class="auth-form__title">Crea tu contraseña</h2>
+      <p class="auth-form__subtitle">Tu correo fue confirmado. Elige una contraseña para ingresar a la plataforma.</p>
+
+      <form asp-controller="Registro" asp-action="ConfirmarEmailUsuario" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+        <input type="hidden" asp-for="Token" />
+
+        <div class="form-group">
+          <label asp-for="Password" class="form-label">
+            Nueva contraseña <span class="required" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input asp-for="Password" class="form-control" type="password"
+                   placeholder="Mínimo 8 caracteres"
+                   autocomplete="new-password" aria-required="true" id="pw1" />
+            <button type="button" class="input-toggle"
+                    onclick="var i=document.getElementById('pw1');i.type=i.type==='password'?'text':'password';"
+                    aria-label="Mostrar contraseña">👁</button>
+          </div>
+          <span asp-validation-for="Password" class="form-error"></span>
+        </div>
+
+        <div class="form-group">
+          <label asp-for="ConfirmarPassword" class="form-label">
+            Confirmar contraseña <span class="required" aria-hidden="true">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input asp-for="ConfirmarPassword" class="form-control" type="password"
+                   placeholder="Repite tu contraseña"
+                   autocomplete="new-password" aria-required="true" id="pw2" />
+            <button type="button" class="input-toggle"
+                    onclick="var i=document.getElementById('pw2');i.type=i.type==='password'?'text':'password';"
+                    aria-label="Mostrar contraseña">👁</button>
+          </div>
+          <span asp-validation-for="ConfirmarPassword" class="form-error"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full">
+          <span class="btn-text">Guardar contraseña e ingresar →</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal de error genérico -->
+<div id="errorModal" class="modal modal--error" style="display:none;">
+  <div class="modal__overlay" onclick="closeErrorModal()"></div>
+  <div class="modal__content">
+    <div class="modal__header">
+      <h2 class="modal__title">⚠️ Error en la solicitud</h2>
+      <button type="button" class="modal__close" onclick="closeErrorModal()" aria-label="Cerrar modal">&times;</button>
+    </div>
+    <div class="modal__body">
+      <p class="modal__message">Ocurrió un error al procesar tu solicitud. Este enlace puede haber expirado o ya fue utilizado.</p>
+      <p class="modal__secondary-text">Por favor, intenta iniciar sesión con tu correo.</p>
+    </div>
+    <div class="modal__footer">
+      <a href="@Url.Action("Index", "Login")" class="btn btn-primary w-full">
+        <span class="btn-text">Iniciar sesión →</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+  <partial name="_ValidationScriptsPartial" />
+  <script type="text/javascript">
+    function closeErrorModal() {
+      document.getElementById('errorModal').style.display = 'none';
+    }
+
+    function showErrorModal() {
+      document.getElementById('errorModal').style.display = 'flex';
+      // Ocultar el panel del formulario
+      document.getElementById('formPanel').style.display = 'none';
+    }
+
+    // Mostrar modal si hay error
+    document.addEventListener('DOMContentLoaded', function() {
+      // Mostrar modal si el controlador indicó que el token es inválido/ya usado
+      @if (ViewData["ShowErrorModal"] != null && (bool)ViewData["ShowErrorModal"])
+      {
+          @:showErrorModal();
+      }
+
+      var validationSummary = document.querySelector('.form-error[data-valmsg-summary="true"]');
+      if (validationSummary && validationSummary.textContent.trim().length > 0) {
+        showErrorModal();
+      }
+    });
+  </script>
+  <style>
+    .modal {
+      display: flex;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .modal__overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+    }
+
+    .modal__content {
+      position: relative;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 480px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      z-index: 10000;
+    }
+
+    .modal__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--sp-6);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .modal__title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .modal__close {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: #666;
+      cursor: pointer;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal__close:hover {
+      color: #1a1a1a;
+    }
+
+    .modal__body {
+      padding: var(--sp-6);
+    }
+
+    .modal__message {
+      margin: 0 0 var(--sp-3) 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #374151;
+    }
+
+    .modal__secondary-text {
+      margin: 0;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .modal__footer {
+      padding: var(--sp-6);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .w-full {
+      width: 100%;
+    }
+  </style>
+}

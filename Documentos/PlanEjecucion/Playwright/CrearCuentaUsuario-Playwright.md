@@ -84,7 +84,7 @@ playwright-cli press Enter
 playwright-cli snapshot
 ```
 
-**Resultado esperado:** Se muestra la bandeja de entrada con un correo de "Trebol" o "psicologiatrevol".
+**Resultado esperado:** Se muestra la bandeja de entrada con un correo de "Trebol" o "reisavertv".
 
 ---
 

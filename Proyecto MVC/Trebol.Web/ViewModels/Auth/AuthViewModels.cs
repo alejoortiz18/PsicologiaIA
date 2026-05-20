@@ -17,9 +17,6 @@ public class RegistroUsuarioViewModel
 {
     [Required] public string NombreCompleto  { get; set; } = string.Empty;
     [Required][EmailAddress] public string Correo { get; set; } = string.Empty;
-    [Required][DataType(DataType.Password)][MinLength(8)] public string Password { get; set; } = string.Empty;
-    [Required][Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
-    [DataType(DataType.Password)] public string ConfirmarPassword { get; set; } = string.Empty;
     [Required] public string NumeroDocumento { get; set; } = string.Empty;
 }
 

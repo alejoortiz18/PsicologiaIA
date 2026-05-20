@@ -4,11 +4,11 @@
 
 | Campo | Valor |
 |---|---|
-| Email | psicologiatrevol@gmail.com |
-| Contraseña de aplicación (SMTP) | equz uibq uefq kdin |
-| Contraseña del correo | Gm41l.C0m |
+| Email | reisavertv@gmail.com |
+| Contraseña de aplicación (SMTP) | Ver `Proyecto MVC/Trebol.Web/appsettings.Development.json` → `Email:Contrasena` |
+| Contraseña login app (admin Trebol) | Gm41l.C0m1. *(si el usuario admin en BD usa este correo)* |
 
-> La contraseña de aplicación es la que se configura en `appsettings.json` para el envío de correos vía SMTP con Gmail.
+> Cuenta temporal mientras se repara `psicologiatrevol@gmail.com`. SMTP y `CorreoAdmin` usan `reisavertv@gmail.com`.
 
 ---
 

@@ -15,7 +15,7 @@
 
 | Rol   | Correo                       | Contraseña |
 |-------|------------------------------|------------|
-| Admin | psicologiatrevol@gmail.com   | Gm41l.C0m  |
+| Admin | reisavertv@gmail.com         | Gm41l.C0m1.  |
 
 ---
 
@@ -27,8 +27,8 @@
 playwright-cli open --browser=chrome https://localhost:7072/Login
 playwright-cli snapshot
 
-playwright-cli fill [ref-correo] "psicologiatrevol@gmail.com"
-playwright-cli fill [ref-password] "Gm41l.C0m"
+playwright-cli fill [ref-correo] "reisavertv@gmail.com"
+playwright-cli fill [ref-password] "Gm41l.C0m1."
 playwright-cli click [ref-btn-ingresar]
 playwright-cli snapshot
 ```
@@ -107,8 +107,8 @@ playwright-cli screenshot --filename=profesional-aprobado-login.png
 playwright-cli open --browser=chrome https://localhost:7072/Login
 playwright-cli snapshot
 
-playwright-cli fill [ref-correo] "psicologiatrevol@gmail.com"
-playwright-cli fill [ref-password] "Gm41l.C0m"
+playwright-cli fill [ref-correo] "reisavertv@gmail.com"
+playwright-cli fill [ref-password] "Gm41l.C0m1."
 playwright-cli click [ref-btn-ingresar]
 playwright-cli snapshot
 ```
@@ -181,4 +181,4 @@ playwright-cli screenshot --filename=admin-notificaciones-leidas.png
 ## Notas
 - Los `[ref-xxx]` deben reemplazarse con refs reales del snapshot.
 - Para probar rechazo, registrar un segundo profesional con `trebol.pro.rechazado@yopmail.com` usando **CrearCuentaProfesional-Playwright.md**.
-- El admin debe revisar el correo en psicologiatrevol@gmail.com solo si se necesita verificar que el correo de aprobación/rechazo llegó.
+- El admin debe revisar el correo en reisavertv@gmail.com solo si se necesita verificar que el correo de aprobación/rechazo llegó.

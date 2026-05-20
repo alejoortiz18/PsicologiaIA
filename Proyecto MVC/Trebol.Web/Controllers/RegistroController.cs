@@ -35,12 +35,18 @@ public class RegistroController(
     {
         if (!ModelState.IsValid) return View(vm);
 
+        var token      = tokenHelper.GenerarToken();
+        var expiracion = DateTime.UtcNow.AddHours(1);
+        var baseUrl    = config["App:BaseUrl"] ?? "https://localhost:7072";
+
         var dto = new RegistroUsuarioDto
         {
             NombreCompleto  = vm.NombreCompleto,
             Correo          = vm.Correo,
             NumeroDocumento = vm.NumeroDocumento,
-            Alias           = vm.NombreCompleto.Split(' ')[0].ToLower() + new Random().Next(100, 999)
+            Alias           = vm.NombreCompleto.Split(' ')[0].ToLower() + new Random().Next(100, 999),
+            Token           = token,
+            Expiracion      = expiracion
         };
 
         var resultado = await usuarioRepo.RegistrarAsync(dto);
@@ -50,33 +56,72 @@ public class RegistroController(
             return View(vm);
         }
 
-        HttpContext.Session.SetString($"pending_hash_{resultado.Datos}",
-            passwordHelper.HashPassword(vm.Password));
+        var enlaceConfirmacion = $"{baseUrl}/Registro/ConfirmarEmailUsuario?token={Uri.EscapeDataString(token)}";
+        var mensajeUsuario = $"Recibimos tu solicitud de registro como usuario en <strong style=\"color:#1A3C34;\">Trébol</strong>. " +
+                             "Para continuar, haz clic en el botón y crea tu contraseña.";
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            await emailHelper.EnviarAsync(
+                vm.Correo,
+                RegistroEmailTemplates.AsuntoConfirmacionCorreo,
+                RegistroEmailTemplates.BuildConfirmacionCorreo(vm.NombreCompleto, enlaceConfirmacion, mensajeUsuario, horasValidez: 1),
+                cts.Token);
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError(string.Empty,
+                $"No pudimos enviar el correo de confirmación. Por favor, intenta más tarde. Error: {ex.Message}");
+            return View(vm);
+        }
 
         TempData["Mensaje"] = RegistroConstant.RegistroExitoso;
-        TempData["PendingUserId"] = resultado.Datos.ToString();
-        return RedirectToAction("ActivarCuenta");
+        TempData["HorasEnlace"] = "1";
+        return RedirectToAction("EsperaConfirmacion");
     }
 
-    // GET /Registro/ActivarCuenta
+    // GET /Registro/ActivarCuenta — redirige al flujo estándar por enlace de correo
     [HttpGet]
-    public IActionResult ActivarCuenta() => View(new ActivarCuentaViewModel());
+    public IActionResult ActivarCuenta(string? token, int? usuarioId)
+    {
+        if (!string.IsNullOrWhiteSpace(token))
+            return RedirectToAction(nameof(ConfirmarEmailUsuario), new { token });
+        return RedirectToAction("Index", "Login");
+    }
 
-    // POST /Registro/ActivarCuenta
+    // GET /Registro/ConfirmarEmailUsuario?token=xxx
+    [HttpGet]
+    public async Task<IActionResult> ConfirmarEmailUsuario(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return RedirectToAction("Index", "Login");
+
+        var esValido = await usuarioRepo.EsTokenValidoAsync(token);
+        var vm = new ConfirmarEmailViewModel { Token = token };
+
+        if (!esValido)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error al procesar tu solicitud. Por favor, intenta iniciar sesión.");
+            ViewData["ShowErrorModal"] = true;
+        }
+
+        return View(vm);
+    }
+
+    // POST /Registro/ConfirmarEmailUsuario
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ActivarCuenta(ActivarCuentaViewModel vm)
+    public async Task<IActionResult> ConfirmarEmailUsuario(ConfirmarEmailViewModel vm)
     {
         if (!ModelState.IsValid) return View(vm);
 
-        var pendingHash = HttpContext.Session.GetString($"pending_hash_{vm.UsuarioId}") ?? string.Empty;
-        if (string.IsNullOrEmpty(pendingHash))
-            pendingHash = passwordHelper.HashPassword(vm.Password ?? string.Empty);
+        var passwordHash = passwordHelper.HashPassword(vm.Password);
+        var resultado = await usuarioRepo.ActivarAsync(vm.Token, passwordHash);
 
-        var resultado = await usuarioRepo.ActivarAsync(vm.Token, pendingHash);
         if (!resultado.Exito)
         {
-            ModelState.AddModelError(string.Empty, resultado.Mensaje);
+            ModelState.AddModelError(string.Empty, "Ocurrió un error al procesar tu solicitud. Por favor, intenta iniciar sesión.");
+            ViewData["ShowErrorModal"] = true;
             return View(vm);
         }
 
@@ -167,10 +212,12 @@ public class RegistroController(
         try
         {
             using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var mensajeProfesional = $"Recibimos tu solicitud de registro como profesional en <strong style=\"color:#1A3C34;\">Trébol</strong>. " +
+                                     "Para continuar, haz clic en el botón y crea tu contraseña.";
             await emailHelper.EnviarAsync(
                 vm.Correo,
-                "🍀 Confirma tu correo en Trébol",
-                BuildEmailConfirmacionProfesional(vm.NombreCompleto, enlaceConfirmacion),
+                RegistroEmailTemplates.AsuntoConfirmacionCorreo,
+                RegistroEmailTemplates.BuildConfirmacionCorreo(vm.NombreCompleto, enlaceConfirmacion, mensajeProfesional, horasValidez: 72),
                 cts.Token);
         }
         catch (Exception ex)
@@ -181,12 +228,17 @@ public class RegistroController(
         }
 
         TempData["Mensaje"] = "Te enviamos un enlace a tu correo. Haz clic en él para confirmar tu cuenta.";
+        TempData["HorasEnlace"] = "72";
         return RedirectToAction("EsperaConfirmacion");
     }
 
     // GET /Registro/EsperaConfirmacion
     [HttpGet]
-    public IActionResult EsperaConfirmacion() => View();
+    public IActionResult EsperaConfirmacion()
+    {
+        ViewData["HorasEnlace"] = TempData["HorasEnlace"] ?? "72";
+        return View();
+    }
 
     // GET /Registro/ConfirmarEmail?token=xxx
     [HttpGet]
@@ -305,48 +357,6 @@ public class RegistroController(
     }
 
     // ═ Email helpers ═
-
-    private static string BuildEmailConfirmacionProfesional(string nombre, string enlace) => $"""
-        <!DOCTYPE html>
-        <html lang="es">
-        <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-        <body style="margin:0;padding:0;background:#f0f4f3;font-family:'Segoe UI',Arial,sans-serif;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f3;padding:32px 16px;">
-            <tr><td align="center">
-              <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(26,60,52,.12);">
-                <tr>
-                  <td style="background:linear-gradient(135deg,#1A3C34 0%,#2D6A4F 100%);padding:40px;text-align:center;">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">🍀</div>
-                    <h1 style="color:#fff;font-size:1.6rem;font-weight:800;margin:0 0 8px;">Confirma tu correo</h1>
-                    <p style="color:rgba(255,255,255,.8);font-size:.95rem;margin:0;">Hola {nombre}, un paso más para unirte a Trébol</p>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:32px 40px 8px;">
-                    <p style="color:#374151;font-size:.95rem;line-height:1.7;">
-                      Recibimos tu solicitud de registro como profesional en <strong style="color:#1A3C34;">Trébol</strong>.
-                      Para continuar, haz clic en el botón y crea tu contraseña.
-                    </p>
-                    <div style="background:#E8F5E9;border-radius:10px;padding:14px 18px;margin:16px 0;">
-                      <span style="color:#2D6A4F;font-size:.85rem;">⏱ Este enlace es válido por <strong>72 horas</strong>.</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:16px 40px 32px;text-align:center;">
-                    {EmailCta.Build(enlace, "✅ Confirmar correo y crear contraseña")}
-                    <p style="color:#9ca3af;font-size:.75rem;margin-top:12px;">O copia este enlace en tu navegador:<br><span style="color:#2D6A4F;word-break:break-all;">{enlace}</span></p>
-                  </td>
-                </tr>
-                <tr><td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">
-                  <p style="color:#9ca3af;font-size:.75rem;margin:0;">© 2026 Trébol · Plataforma de Psicología · Correo automático, no respondas.</p>
-                </td></tr>
-              </table>
-            </td></tr>
-          </table>
-        </body>
-        </html>
-        """;
 
     private static string BuildEmailAdminNuevoProfesional(string nombre, string correo, string documento, string tarjeta) => $"""
         <!DOCTYPE html>

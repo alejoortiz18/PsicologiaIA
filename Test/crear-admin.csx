@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using Konscious.Security.Cryptography;
 using Microsoft.Data.SqlClient;
 
-const string password    = "Gm41l.C0m";
+const string password    = "Gm41l.C0m1.";
 const string correo      = "psicologiatrevol@gmail.com";
 const string nombre      = "Administrador Trebol";
 const string connStr     = @"Server=DESKALEJO\SQLEXPRESS;Database=TrebolDB;Trusted_Connection=True;TrustServerCertificate=True;";

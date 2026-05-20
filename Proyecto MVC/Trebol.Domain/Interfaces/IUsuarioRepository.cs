@@ -9,6 +9,7 @@ namespace Trebol.Domain.Interfaces;
 public interface IUsuarioRepository
 {
     Task<ResultadoOperacion<int>> RegistrarAsync(RegistroUsuarioDto dto, CancellationToken ct = default);
+    Task<bool>                    EsTokenValidoAsync(string token, CancellationToken ct = default);
     Task<ResultadoOperacion>      ActivarAsync(string token, string passwordHash, CancellationToken ct = default);
     Task<Usuario?>                ObtenerPorCorreoAsync(string correo, CancellationToken ct = default);
     Task<Usuario?>                ObtenerPorIdAsync(int usuarioId, CancellationToken ct = default);
