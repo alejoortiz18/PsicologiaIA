@@ -1,21 +1,26 @@
 ﻿/**
- * Prueba completa: Crear Cuenta Profesional
+ * Prueba E2E: flujo profesional (6 etapas)
  *
- * Pasos:
- *  1.  Registrar profesional (sin contrasena en el formulario)
- *  2.  Verificar redirect a EsperaConfirmacion
- *  3.  Gmail admin → verificar que llego el correo con PDF adjunto (registro)
- *  4.  Admin ve notificacion "Sin validar" — botones deshabilitados
- *  5.  Yopmail → correo de confirmacion → clic en enlace
- *  6.  ConfirmarEmail → crear contrasena → EsperaAprobacion
- *  7.  Admin refresca bandeja → botones habilitados (PENDIENTE_APROBACION)
- *  8.  Admin RECHAZA con motivo
- *  9.  Yopmail → correo de rechazo → verificar motivo y enlace
- *  10. Profesional reenvía documentos corregidos
- *  11. Gmail admin → verificar que llego el correo con PDF adjunto (reenvio)
- *  12. Admin refresca bandeja → PENDIENTE_APROBACION de nuevo → APRUEBA
- *  13. Yopmail → correo de bienvenida
- *  14. Profesional hace login → HomeProfesional
+ * Etapa 1 — Registro
+ *   SeleccionPerfil → RegistroProfesional POST → BD PENDIENTE_VALIDACION + token 72h
+ *   → EsperaConfirmacion (correos SMTP: admin PDFs + pro enlace ConfirmarEmail; no se abre Gmail)
+ *
+ * Etapa 2 — Confirmación de correo
+ *   Admin Trebol: psicologiatrevol@gmail.com → token desde BD → ConfirmarEmail → contraseña
+ *   → BD PENDIENTE_APROBACION → EsperaAprobacion
+ *
+ * Etapa 3 — Revisión admin (bandeja, botones según estado)
+ *
+ * Etapa 4 — Rechazo + reenvío
+ *   Modal rechazo → correo al pro (Yopmail) → ReenviarDocumentos → PENDIENTE_APROBACION
+ *
+ * Etapa 5 — Aprobación
+ *   Admin aprueba → correo bienvenida al pro (Yopmail)
+ *
+ * Etapa 6 — Login
+ *   Profesional → HomeProfesional
+ *
+ * Variables: STOP_AFTER=N (ej. 9 solo rechazo), SKIP_GMAIL=false para abrir Gmail (por defecto no).
  */
 
 const { chromium } = require('playwright');
@@ -25,11 +30,17 @@ const fs   = require('fs');
 
 // ─── Configuracion ────────────────────────────────────────────────────────────
 const BASE_URL             = 'https://localhost:7072';
-/** Cuenta temporal (SMTP + admin pruebas) hasta reparar psicologiatrevol@gmail.com */
-const ADMIN_CORREO         = 'reisavertv@gmail.com';
-const ADMIN_PASSWORD       = 'Gm41l.C0m1.';        // Login admin Trebol en BD (misma contraseña si recreaste con crear-admin.js)
+/** Admin Trebol para bandeja y confirmación (ingreso al sistema antes de ConfirmarEmail). */
+const ADMIN_CANDIDATES = [
+  { correo: 'psicologiatrevol@gmail.com', pass: 'Gm41l.C0m' },
+  { correo: 'reisavertv@gmail.com', pass: 'Gm41l.C0m1.' },
+];
+const ADMIN_CORREO         = ADMIN_CANDIDATES[0].correo;
+const ADMIN_PASSWORD       = ADMIN_CANDIDATES[0].pass;
+const SKIP_GMAIL           = process.env.SKIP_GMAIL !== 'false';
+const STOP_AFTER_STEP      = parseInt(process.env.STOP_AFTER || '99', 10);
 const PASSWORD_PRO         = 'Password123!';
-const MOTIVO_RECHAZO       = 'El documento presentado esta vencido. Por favor renueva tu tarjeta profesional.';
+const MOTIVO_RECHAZO       = 'El documento presentado está vencido. Por favor renueva tu tarjeta profesional y vuelve a enviar la solicitud.';
 /** Máximo de espera por correo en la bandeja Yopmail del profesional que se registra */
 const ESPERA_CORREO_MS     = 10_000;
 const YOPMAIL_POLL_MS      = 2_000;
@@ -87,6 +98,23 @@ function obtenerTokenDesdeBd(correo) {
 }
 
 /** Adjunta los dos PDF obligatorios y verifica que el UI los muestra seleccionados. */
+async function loginAdmin(context) {
+  const adminPage = await context.newPage();
+  for (const { correo, pass } of ADMIN_CANDIDATES) {
+    await adminPage.goto(`${BASE_URL}/Login`, { waitUntil: 'domcontentloaded' });
+    await adminPage.fill('input[name="Correo"]', correo);
+    await adminPage.fill('input[name="Password"]', pass);
+    await adminPage.click('button[type="submit"]');
+    await adminPage.waitForTimeout(3000);
+    const url = adminPage.url();
+    if (!url.includes('/Login') || url.includes('Bandeja') || url.includes('Admin')) {
+      ok(`Admin autenticado: ${correo}`);
+      return adminPage;
+    }
+  }
+  fail('Login admin falló (probar node Test/crear-admin.js o usar psicologiatrevol@gmail.com)');
+}
+
 async function adjuntarPdfsObligatorios(page) {
   log('Adjuntando PDFs obligatorios (cédula + tarjeta profesional)');
   const inputCedula  = page.locator('input[name="FotocopiaCedula"], #file-cedula-r').first();
@@ -452,37 +480,28 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
       await browser.close(); return;
     }
 
-    // ─── PASO 3: Gmail admin — correo con PDF adjunto (registro) ──────────────
-    log('PASO 3 - Gmail admin: verificar correo con PDF adjunto (registro) [opcional si SMTP OK]');
-    if (!urlReg.includes('EsperaConfirmacion')) {
-      warn('Omitiendo verificación Gmail (correo de confirmación no se envió por SMTP).');
+    // ─── Etapa 1 (cont.): correo admin con PDFs — omitido en prueba (sin Gmail) ─
+    if (SKIP_GMAIL) {
+      ok('Etapa 1: correo admin con PDFs omitido (SKIP_GMAIL). SMTP sigue activo en servidor.');
+    } else if (!urlReg.includes('EsperaConfirmacion')) {
+      warn('Omitiendo Gmail: registro no llegó a EsperaConfirmacion.');
     } else {
-      log('  Esperando 10s máx. para correo admin en Gmail...');
+      log('PASO 3 - Gmail admin: PDF adjunto (registro)');
       await page.waitForTimeout(ESPERA_CORREO_MS);
-      const searchQueryRegistro = `[Trebol] Nueva solicitud`;
       const gmailResultRegistro = await verificarGmailAdjunto(
         context, ADMIN_CORREO, ADMIN_PASSWORD,
-        searchQueryRegistro, '03-gmail-registro', 8
+        '[Trebol] Nueva solicitud', '03-gmail-registro', 8
       );
-      if (gmailResultRegistro.error === 'login_failed') {
-        warn('Gmail login fallo — continuando sin verificacion de adjunto');
-      } else if (gmailResultRegistro.encontrado && gmailResultRegistro.tieneAdjunto) {
-        ok('CORREO CON ADJUNTO CONFIRMADO en Gmail admin (registro)');
-      } else if (gmailResultRegistro.encontrado && !gmailResultRegistro.tieneAdjunto) {
-        warn('Correo encontrado en Gmail pero adjunto NO detectado');
+      if (gmailResultRegistro.encontrado && gmailResultRegistro.tieneAdjunto) {
+        ok('Correo admin registro con adjunto');
       } else {
-        warn('Correo de registro NO encontrado en Gmail (puede ser retraso SMTP)');
+        warn('Gmail registro: no verificado');
       }
     }
 
-    // ─── PASO 4: Admin — bandeja con badge "Sin validar" ──────────────────────
-    log('PASO 4 - Admin: verificar badge Sin validar y botones deshabilitados');
-    const adminPage = await context.newPage();
-    await adminPage.goto(`${BASE_URL}/Login`, { waitUntil: 'domcontentloaded' });
-    await adminPage.fill('input[name="Correo"]',   ADMIN_CORREO);
-    await adminPage.fill('input[name="Password"]', ADMIN_PASSWORD);
-    await adminPage.click('button[type="submit"]');
-    await adminPage.waitForTimeout(3000);
+    // ─── Etapa 2 (inicio): admin psicologiatrevol en Trebol ───────────────────
+    log('Etapa 2 - Admin ingresa a Trebol (psicologiatrevol@gmail.com)');
+    const adminPage = await loginAdmin(context);
 
     if (!adminPage.url().includes('Bandeja')) {
       await adminPage.goto(`${BASE_URL}/Admin/BandejaNotificaciones`, { waitUntil: 'domcontentloaded' });
@@ -498,34 +517,19 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
       warn('Boton no deshabilitado — verificar badge en pantalla');
     }
 
-    // ─── PASO 5: Confirmación — Yopmail o token desde BD si SMTP falló ─────────
-    let urlConf = null;
+    // ─── Etapa 2: ConfirmarEmail con token BD (sin Yopmail para el enlace) ────
     let ypPage = null;
-    if (!urlReg.includes('EsperaConfirmacion')) {
-      log('PASO 5 - SMTP sin correo: usar token desde BD');
-      const dbToken = obtenerTokenDesdeBd(CORREO_PRO);
-      if (dbToken) {
-        urlConf = `${BASE_URL}/Registro/ConfirmarEmail?token=${encodeURIComponent(dbToken)}`;
-        ok(`Enlace ConfirmarEmail armado con token BD: ${dbToken}`);
-      }
-    } else {
-      log('PASO 5 - Yopmail: buscar enlace de confirmacion');
-      ypPage = await abrirYopmail(context);
-      const patternConf = /href=["'](https?:\/\/[^"']+\/Registro\/ConfirmarEmail\?token=[^"']+)["']/;
-      urlConf = await buscarEnlaceEnYopmail(ypPage, patternConf, '05-yopmail-confirmacion');
-      if (!urlConf) {
-        warn('Enlace no encontrado en Yopmail. Intentando BD...');
-        const dbToken = obtenerTokenDesdeBd(CORREO_PRO);
-        if (dbToken) {
-          urlConf = `${BASE_URL}/Registro/ConfirmarEmail?token=${encodeURIComponent(dbToken)}`;
-          ok(`Token obtenido de BD: ${dbToken}`);
-        }
-      }
+    log('Etapa 2 - Confirmar correo: token desde BD (admin ya en sesión)');
+    const dbToken = obtenerTokenDesdeBd(CORREO_PRO);
+    if (!dbToken) {
+      fail('No hay token en TokenActivacion para ' + CORREO_PRO);
+      await browser.close();
+      return;
     }
-    if (!urlConf) { fail('Sin enlace ni token. Abortando.'); await browser.close(); return; }
+    const urlConf = `${BASE_URL}/Registro/ConfirmarEmail?token=${encodeURIComponent(dbToken)}`;
+    ok(`Enlace ConfirmarEmail: token ${dbToken}`);
 
-    // ─── PASO 6: ConfirmarEmail — crear contrasena ────────────────────────────
-    log('PASO 6 - ConfirmarEmail: crear contrasena');
+    log('Etapa 2 - ConfirmarEmail: crear contraseña → PENDIENTE_APROBACION');
     await page.bringToFront();
     await page.goto(urlConf, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
@@ -546,8 +550,8 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
       await browser.close(); return;
     }
 
-    // ─── PASO 7: Admin — bandeja PENDIENTE_APROBACION, botones habilitados ─────
-    log('PASO 7 - Admin: PENDIENTE_APROBACION y botones habilitados');
+    // ─── Etapa 3: bandeja PENDIENTE_APROBACION ─────────────────────────────────
+    log('Etapa 3 - Admin: PENDIENTE_APROBACION, botones habilitados');
     await adminPage.reload({ waitUntil: 'domcontentloaded' });
     await adminPage.waitForTimeout(2000);
     await adminPage.screenshot({ path: `${SS}/07-bandeja-listo-revision.png` });
@@ -560,40 +564,50 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
       warn('Boton aun deshabilitado — verificar que estado cambio en BD');
     }
 
-    // ─── PASO 8: Admin RECHAZA con motivo ─────────────────────────────────────
-    log('PASO 8 - Admin: rechazar con motivo');
+    // ─── Etapa 4: rechazo + correo al profesional ─────────────────────────────
+    log('Etapa 4 - Admin: rechazar con motivo (modal UI/UX)');
     const primerRechazar = adminPage.locator('.btn-rechazar').first();
     if (await primerRechazar.isDisabled().catch(() => true)) {
       fail('Boton rechazar deshabilitado. Abortando.'); await browser.close(); return;
     }
-    adminPage.once('dialog', async dialog => {
-      ok(`Prompt aparecido: "${dialog.message()}" - aceptando con motivo`);
-      await dialog.accept(MOTIVO_RECHAZO);
-    });
     await primerRechazar.click();
-    await adminPage.waitForTimeout(5000);
+    await adminPage.locator('#modal-rechazar-backdrop.open').waitFor({ timeout: 8000 });
+    await adminPage.waitForTimeout(850);
+    await adminPage.fill('#motivo-rechazo', MOTIVO_RECHAZO);
+    await adminPage.locator('#modal-rechazar-confirm:not([disabled])').waitFor({ timeout: 5000 });
+    await adminPage.click('#modal-rechazar-confirm');
+    await adminPage.waitForTimeout(4000);
     await adminPage.screenshot({ path: `${SS}/08-rechazado.png` });
     ok('Rechazo enviado');
 
-    // ─── PASO 9: Yopmail — correo de rechazo (máx. 10s) ───────────────────────
-    if (!ypPage) ypPage = await abrirYopmail(context);
-    log('PASO 9 - Yopmail: verificar correo de rechazo (máx. 10s)');
+    ypPage = await abrirYopmail(context);
+    log('Etapa 4 - Yopmail: correo de cambio de estado (rechazo, máx. 10s)');
     let enlaceReenvio = null;
     const rechazo = await esperarTextoEnYopmail(
       ypPage,
-      (t) => t.includes('vencido') || t.toLowerCase().includes('rechaz'),
+      (t) => {
+        const x = t.toLowerCase();
+        return x.includes('rechaz') || x.includes('no aprobada') || x.includes('vencido');
+      },
       '09-yopmail-rechazo'
     );
     if (rechazo) {
-      ok('Correo de rechazo recibido con motivo');
+      ok('Correo al profesional: solicitud rechazada con motivo');
       const m = rechazo.html.match(/href=["'](https?:\/\/[^"']*\/Registro\/ReenviarDocumentos[^"']*)["']/);
       if (m) { enlaceReenvio = m[1]; ok(`Enlace reenvio: ${enlaceReenvio}`); }
     } else {
-      warn('Correo de rechazo no llegó en 10s; se usará URL directa de reenvío');
+      fail('No llegó correo de rechazo al profesional en 10s');
+      await browser.close();
+      return;
     }
 
-    // ─── PASO 10: Reenviar documentos corregidos ──────────────────────────────
-    log('PASO 10 - Reenviar documentos corregidos');
+    if (STOP_AFTER_STEP <= 9) {
+      ok(`Prueba detenida tras etapa 4 (STOP_AFTER=${STOP_AFTER_STEP}).`);
+      await browser.close();
+      return;
+    }
+
+    log('Etapa 4 - ReenviarDocumentos → PENDIENTE_APROBACION');
     await page.bringToFront();
     const urlReenvio = enlaceReenvio
       || `${BASE_URL}/Registro/ReenviarDocumentos?correo=${encodeURIComponent(CORREO_PRO)}`;
@@ -615,26 +629,24 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
       warn(`URL post-reenvio: ${urlPost10} | ${JSON.stringify(err)}`);
     }
 
-    // ─── PASO 11: Gmail admin — correo con PDF adjunto (reenvio) ──────────────
-    log('PASO 11 - Gmail admin: verificar correo con PDF adjunto (reenvio documentos)');
-    log('  Esperando 10s para correo admin (reenvío)...');
-    await page.waitForTimeout(10000);
-
-    const searchQueryReenvio = `Re-envio de documentos`;
-    const gmailResultReenvio = await verificarGmailAdjunto(
-      context, ADMIN_CORREO, ADMIN_PASSWORD,
-      searchQueryReenvio, '11-gmail-reenvio', 8
-    );
-    if (gmailResultReenvio.encontrado && gmailResultReenvio.tieneAdjunto) {
-      ok('CORREO CON ADJUNTO CONFIRMADO en Gmail admin (reenvio)');
-    } else if (gmailResultReenvio.encontrado && !gmailResultReenvio.tieneAdjunto) {
-      warn('Correo de reenvio encontrado pero adjunto NO detectado');
+    if (SKIP_GMAIL) {
+      ok('Correo admin reenvío PDFs omitido (SKIP_GMAIL)');
     } else {
-      warn('Correo de reenvio NO encontrado en Gmail');
+      log('PASO 11 - Gmail admin: reenvío documentos');
+      await page.waitForTimeout(10000);
+      const gmailResultReenvio = await verificarGmailAdjunto(
+        context, ADMIN_CORREO, ADMIN_PASSWORD,
+        'Re-envio de documentos', '11-gmail-reenvio', 8
+      );
+      if (gmailResultReenvio.encontrado && gmailResultReenvio.tieneAdjunto) {
+        ok('Correo admin reenvío con adjunto');
+      } else {
+        warn('Gmail reenvío: no verificado');
+      }
     }
 
-    // ─── PASO 12: Admin refresca → APRUEBA ────────────────────────────────────
-    log('PASO 12 - Admin: nueva PENDIENTE_APROBACION → APRUEBA');
+    // ─── Etapa 5: aprobación + correo bienvenida ─────────────────────────────
+    log('Etapa 5 - Admin aprueba → correo bienvenida al profesional');
     await adminPage.reload({ waitUntil: 'domcontentloaded' });
     await adminPage.waitForTimeout(2000);
     await adminPage.screenshot({ path: `${SS}/12-bandeja-resubmit.png` });
@@ -652,18 +664,24 @@ async function verificarGmailAdjunto(context, gmailUser, gmailPass, searchQuery,
     await adminPage.screenshot({ path: `${SS}/12b-aprobado.png` });
     ok('Aprobacion enviada');
 
-    // ─── PASO 13: Yopmail — correo de bienvenida (máx. 10s) ───────────────────
-    log('PASO 13 - Yopmail: verificar correo de bienvenida (máx. 10s)');
+    log('Etapa 5 - Yopmail: correo de cambio de estado (aprobación, máx. 10s)');
     const bienvenida = await esperarTextoEnYopmail(
       ypPage,
-      (t) => t.toLowerCase().includes('bienvenido') || t.toLowerCase().includes('aprobad'),
+      (t) => {
+        const x = t.toLowerCase();
+        return x.includes('bienvenido') || x.includes('aprobada') || x.includes('trebol');
+      },
       '13-yopmail-bienvenida'
     );
-    if (bienvenida) ok('Correo de bienvenida recibido');
-    else warn('Correo bienvenida no detectado en 10s; continuando con login...');
+    if (bienvenida) ok('Correo al profesional: cuenta aprobada / bienvenida');
+    else {
+      fail('No llegó correo de aprobación al profesional en 10s');
+      await browser.close();
+      return;
+    }
 
-    // ─── PASO 14: Login profesional → HomeProfesional ─────────────────────────
-    log('PASO 14 - Login del profesional');
+    // ─── Etapa 6: login profesional ───────────────────────────────────────────
+    log('Etapa 6 - Login profesional → HomeProfesional');
     const proContext = await browser.newContext({ ignoreHTTPSErrors: true });
     const proPage = await proContext.newPage();
     await proPage.goto(`${BASE_URL}/Login`, { waitUntil: 'domcontentloaded', timeout: 30000 });

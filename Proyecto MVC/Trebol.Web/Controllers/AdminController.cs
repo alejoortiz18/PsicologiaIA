@@ -93,7 +93,7 @@ public class AdminController(
                 await emailHelper.EnviarAsync(
                     profesional.Correo,
                     "❌ Tu solicitud en Trébol fue rechazada",
-                    BuildEmailRechazo(profesional.NombreCompleto, motivo,
+                    BuildEmailRechazo(profesional.NombreCompleto, System.Net.WebUtility.HtmlEncode(motivo ?? string.Empty),
                         $"{baseUrl}/Registro/ReenviarDocumentos?correo={Uri.EscapeDataString(profesional.Correo)}"),
                     cts.Token);
             }

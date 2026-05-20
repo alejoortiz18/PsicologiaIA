@@ -4,11 +4,11 @@
 
 | Campo | Valor |
 |---|---|
-| Email | reisavertv@gmail.com |
-| Contraseña de aplicación (SMTP) | Ver `Proyecto MVC/Trebol.Web/appsettings.Development.json` → `Email:Contrasena` |
-| Contraseña login app (admin Trebol) | Gm41l.C0m1. *(si el usuario admin en BD usa este correo)* |
+| Email login admin Trebol | **psicologiatrevol@gmail.com** |
+| Contraseña login app | **Gm41l.C0m** |
+| SMTP (envío correos) | Ver `appsettings.Development.json` → suele ser `reisavertv@gmail.com` |
 
-> Cuenta temporal mientras se repara `psicologiatrevol@gmail.com`. SMTP y `CorreoAdmin` usan `reisavertv@gmail.com`.
+> Pruebas Playwright (`Test/CrearCuentaProfesional.js`): admin **psicologiatrevol@gmail.com**, sin abrir Gmail; confirmación de correo del pro con token desde BD; Yopmail solo para correos de rechazo/aprobación al profesional.
 
 ---
 

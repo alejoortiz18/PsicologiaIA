@@ -1,12 +1,23 @@
 # Prueba: Crear Cuenta de Profesional
-**Funcionalidad cubierta:** Registro completo de profesional — selección de perfil → formulario + archivos PDF → correo de activación en Yopmail → activar cuenta (estado Pendiente) → el admin aprueba → primer login.
+**Funcionalidad cubierta:** Flujo profesional en 6 etapas (registro → confirmación correo → revisión admin → rechazo/reenvío → aprobación → login).
+
+**Automatización:** `node Test/CrearCuentaProfesional.js` (sin Gmail; admin `psicologiatrevol@gmail.com`; confirmación con token BD; Yopmail solo para correos de rechazo/aprobación al profesional).
+
+### Etapas (diagrama)
+1. **Registro** — `SeleccionPerfil` → `RegistroProfesional` → `PENDIENTE_VALIDACION` + token 72h → `EsperaConfirmacion`
+2. **Confirmación** — Admin Trebol → `ConfirmarEmail` + contraseña → `PENDIENTE_APROBACION` → `EsperaAprobacion`
+3. **Revisión** — Bandeja admin (botones según estado)
+4. **Rechazo** — Modal motivo → correo al pro → `ReenviarDocumentos` → vuelve a etapa 2/3
+5. **Aprobación** — Admin aprueba → correo bienvenida al pro
+6. **Login** — Profesional → `HomeProfesional`
 
 ---
 
 ## Prerrequisitos
 - La aplicación debe estar corriendo en `https://localhost:7072`
 - `playwright-cli` instalado y disponible en el PATH
-- Acceso a https://yopmail.com/es/ para recibir el correo de activación
+- Acceso a https://yopmail.com/es/ para correos al **profesional** (rechazo/aprobación; no para el enlace de confirmación en la prueba automatizada)
+- Admin Trebol: `psicologiatrevol@gmail.com` / `Gm41l.C0m`
 - Archivos de prueba disponibles en `Documentos/ArchivosPrueba/`:
   - `CedulaPrueba.pdf`
   - `TarjetaProfesionalPrueba.pdf`

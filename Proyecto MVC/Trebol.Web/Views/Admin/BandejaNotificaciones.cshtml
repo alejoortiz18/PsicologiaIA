@@ -120,9 +120,157 @@ else
     }
 }
 
+<!-- Modal: rechazar profesional (reglas UI/UX §4 — sin prompt nativo) -->
+<div id="modal-rechazar-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-rechazar-title">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon warning" aria-hidden="true">⚠️</div>
+            <div>
+                <div class="modal-title" id="modal-rechazar-title">Rechazar solicitud de profesional</div>
+                <div class="modal-subtitle">El profesional recibirá un correo con el motivo indicado.</div>
+            </div>
+            <button type="button" class="modal-close" id="modal-rechazar-close" aria-label="Cerrar modal">✕</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0 0 var(--sp-4);">
+                Esta acción notificará al solicitante por correo. El mensaje debe ser claro y en español de Colombia.
+            </p>
+            <div class="form-group" style="margin:0;">
+                <label for="motivo-rechazo" class="form-label">
+                    Motivo del rechazo <span class="required" aria-hidden="true">*</span>
+                </label>
+                <textarea id="motivo-rechazo" class="form-control" rows="4" maxlength="500"
+                          placeholder="Ej: La tarjeta profesional está vencida. Sube un PDF vigente y legible."
+                          aria-required="true"></textarea>
+                <div class="form-hint">Mínimo 10 caracteres. Máximo 500.</div>
+                <div id="motivo-rechazo-error" class="form-error" style="display:none;" role="alert"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="modal-rechazar-cancel">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="modal-rechazar-confirm" disabled>Enviar rechazo</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
 <script>
-const antiforgery = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+let rechazoProfesionalId = null;
+let rechazoNotifId = null;
+let rechazoBtnRef = null;
+let rechazoDelayListo = false;
+
+const modalRechazoBackdrop = document.getElementById('modal-rechazar-backdrop');
+const motivoInput = document.getElementById('motivo-rechazo');
+const motivoError = document.getElementById('motivo-rechazo-error');
+const btnRechazoConfirm = document.getElementById('modal-rechazar-confirm');
+
+function validarMotivoRechazo() {
+    const texto = (motivoInput?.value || '').trim();
+    const ok = texto.length >= 10;
+    if (motivoError) {
+        motivoError.style.display = ok ? 'none' : 'block';
+        motivoError.textContent = ok ? '' : 'Escribe al menos 10 caracteres explicando el motivo.';
+    }
+    if (btnRechazoConfirm) btnRechazoConfirm.disabled = !ok || !rechazoDelayListo;
+    return ok && rechazoDelayListo;
+}
+
+function abrirModalRechazo(profesionalId, notifId, btn) {
+    rechazoProfesionalId = profesionalId;
+    rechazoNotifId = notifId;
+    rechazoBtnRef = btn;
+    rechazoDelayListo = false;
+    motivoInput.value = '';
+    if (btnRechazoConfirm) {
+        btnRechazoConfirm.disabled = true;
+        btnRechazoConfirm.textContent = 'Enviar rechazo';
+    }
+    validarMotivoRechazo();
+    if (typeof openModal === 'function') {
+        openModal('modal-rechazar');
+    }
+    if (modalRechazoBackdrop && !modalRechazoBackdrop.classList.contains('open')) {
+        modalRechazoBackdrop.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    setTimeout(() => {
+        rechazoDelayListo = true;
+        motivoInput?.focus();
+        validarMotivoRechazo();
+    }, 800);
+}
+
+function cerrarModalRechazo() {
+    if (typeof closeModal === 'function') closeModal('modal-rechazar');
+    else modalRechazoBackdrop?.classList.remove('open');
+    rechazoProfesionalId = null;
+    rechazoNotifId = null;
+    rechazoBtnRef = null;
+}
+
+motivoInput?.addEventListener('input', validarMotivoRechazo);
+
+document.getElementById('modal-rechazar-close')?.addEventListener('click', cerrarModalRechazo);
+document.getElementById('modal-rechazar-cancel')?.addEventListener('click', cerrarModalRechazo);
+
+modalRechazoBackdrop?.addEventListener('click', (e) => {
+    if (e.target === modalRechazoBackdrop) { /* formulario con datos: no cerrar por backdrop */ }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalRechazoBackdrop?.classList.contains('open') && !btnRechazoConfirm?.disabled) {
+        cerrarModalRechazo();
+    }
+});
+
+btnRechazoConfirm?.addEventListener('click', async function enviarRechazo() {
+    if (!validarMotivoRechazo() || !rechazoProfesionalId) return;
+
+    const motivo = motivoInput.value.trim();
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    const btn = rechazoBtnRef;
+
+    btnRechazoConfirm.disabled = true;
+    btnRechazoConfirm.textContent = 'Enviando…';
+    if (btn) { btn.disabled = true; }
+
+    try {
+        const res = await fetch('/Admin/RechazarProfesional', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `profesionalId=${rechazoProfesionalId}&motivo=${encodeURIComponent(motivo)}&__RequestVerificationToken=${encodeURIComponent(token)}`
+        });
+        const data = await res.json();
+        if (data.exito) {
+            cerrarModalRechazo();
+            const row = document.getElementById('notif-' + rechazoNotifId);
+            if (row) row.style.opacity = '.5';
+            if (btn) btn.textContent = '❌ Rechazado';
+            if (typeof showToast === 'function') {
+                showToast({
+                    title: 'Solicitud rechazada',
+                    message: 'Se envió el correo al profesional con el motivo indicado.',
+                    type: 'success'
+                });
+            }
+        } else {
+            if (typeof showToast === 'function') {
+                showToast({ title: 'No se pudo rechazar', message: data.mensaje || 'Error desconocido', type: 'error' });
+            }
+            btnRechazoConfirm.disabled = false;
+            btnRechazoConfirm.textContent = 'Enviar rechazo';
+            if (btn) { btn.disabled = false; }
+        }
+    } catch (err) {
+        if (typeof showToast === 'function') {
+            showToast({ title: 'Error de conexión', message: 'Intenta de nuevo en unos segundos.', type: 'error' });
+        }
+        btnRechazoConfirm.disabled = false;
+        btnRechazoConfirm.textContent = 'Enviar rechazo';
+        if (btn) btn.disabled = false;
+    }
+});
 
 document.querySelectorAll('.btn-aprobar').forEach(btn => {
     btn.addEventListener('click', async function() {
@@ -140,8 +288,13 @@ document.querySelectorAll('.btn-aprobar').forEach(btn => {
             const row = document.getElementById('notif-' + this.dataset.notif);
             if (row) { row.style.opacity = '.5'; }
             this.textContent = '✅ Aprobado';
+            if (typeof showToast === 'function') {
+                showToast({ title: 'Profesional aprobado', message: data.mensaje || '', type: 'success' });
+            }
         } else {
-            alert('Error: ' + data.mensaje);
+            if (typeof showToast === 'function') {
+                showToast({ title: 'Error', message: data.mensaje || '', type: 'error' });
+            }
             this.disabled = false;
             this.textContent = '✅ Aprobar';
         }
@@ -149,27 +302,9 @@ document.querySelectorAll('.btn-aprobar').forEach(btn => {
 });
 
 document.querySelectorAll('.btn-rechazar').forEach(btn => {
-    btn.addEventListener('click', async function() {
-        const id = this.dataset.id;
-        const motivo = prompt('Motivo del rechazo:');
-        if (!motivo) return;
-        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-        this.disabled = true;
-        const res = await fetch('/Admin/RechazarProfesional', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `profesionalId=${id}&motivo=${encodeURIComponent(motivo)}&__RequestVerificationToken=${encodeURIComponent(token)}`
-        });
-        const data = await res.json();
-        if (data.exito) {
-            const row = document.getElementById('notif-' + this.dataset.notif);
-            if (row) { row.style.opacity = '.5'; }
-            this.textContent = '❌ Rechazado';
-        } else {
-            alert('Error: ' + data.mensaje);
-            this.disabled = false;
-            this.textContent = '❌ Rechazar';
-        }
+    btn.addEventListener('click', function() {
+        if (this.disabled) return;
+        abrirModalRechazo(this.dataset.id, this.dataset.notif, this);
     });
 });
 </script>

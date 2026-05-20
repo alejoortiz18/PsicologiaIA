@@ -9,6 +9,7 @@
 ## Índice
 
 1. [Filosofía de Diseño](#1-filosofía-de-diseño)
+   - 1.1 [Texto, idioma y codificación (es-CO)](#11-texto-idioma-y-codificación-es-co)
 2. [Ciclos y Apetito (Shape Up)](#2-ciclos-y-apetito-shape-up)
 3. [Componentes — Tablas](#3-componentes--tablas)
 4. [Componentes — Modales y Mensajes](#4-componentes--modales-y-mensajes)
@@ -47,6 +48,51 @@ El frontend no comienza con wireframes de alta fidelidad ni con listas infinitas
 | **Resuelto** | No se entrega trabajo sin que las decisiones de UX críticas estén tomadas |
 | **Consistencia primero** | La interfaz se ve y se siente igual en toda la aplicación |
 | **El usuario nunca se queda sin respuesta** | Toda acción produce feedback visible |
+| **Texto correcto en español (Colombia)** | Sin caracteres corruptos; tildes y ñ bien codificadas en todo el ciclo de desarrollo |
+
+### 1.1 Texto, idioma y codificación (es-CO)
+
+Regla transversal para **todo el ciclo de desarrollo** (vistas, constantes, correos, mensajes de API, documentación de UI, pruebas E2E y commits): el texto visible para el usuario debe estar en **español de Colombia (`es-CO`)** y guardarse siempre en **UTF-8**.
+
+#### Idioma y ortografía
+
+- Usar vocabulario y convenciones de **español de Colombia** (no mezclar con otro español salvo acuerdo explícito del producto).
+- Escribir tildes y caracteres propios del español de forma correcta: **á, é, í, ó, ú, ñ, ü**, signos **¿** y **¡** cuando correspondan.
+- Ejemplos correctos: *configuración*, *contraseña*, *identificación*, *¿Olvidaste tu contraseña?*, *¡Registro exitoso!*
+- Evitar anglicismos innecesarios en la UI cuando exista un término claro en español (salvo nombres de producto acordados, p. ej. *Trébol*).
+
+#### Prohibido: caracteres corruptos (mojibake)
+
+No debe aparecer en la aplicación, correos, BD ni documentación copiada al repo texto con secuencias típicas de **codificación incorrecta**, por ejemplo:
+
+| ❌ Incorrecto (corrupto) | ✅ Debe decirse |
+|--------------------------|-----------------|
+| `configuraciÃ³n` | configuración |
+| `contraseÃ±a` | contraseña |
+| `Ã©xito` | éxito |
+| `Â¿` / `Â¡` | ¿ / ¡ |
+| `â€™` / `â€œ` | comillas tipográficas o ASCII `'` `"` según contexto |
+
+Estos errores suelen originarse por: archivo guardado en ANSI/Windows-1252, copiar desde Word/PDF sin UTF-8, o mezclar bytes UTF-8 leídos como Latin-1. **No se aceptan en revisión ni en producción.**
+
+#### Reglas técnicas en el repositorio
+
+| Ámbito | Regla |
+|--------|--------|
+| **Archivos fuente** | `.cshtml`, `.cs`, `.js`, `.css`, `.json`, `.md`, `.sql` con texto en español: **UTF-8** (configurar el editor/IDE en UTF-8). |
+| **Razor / HTML** | Preferir el carácter Unicode en el fuente (`ó`, `ñ`) en lugar de entidades HTML (`&oacute;`) salvo en plantillas de correo donde el cliente lo exija. |
+| **API y constantes** | Mensajes de `RegistroConstant`, validaciones, toasts y modales: revisar que no lleguen cadenas ya corruptas desde BD o seeds. |
+| **Correos** | Mismo estándar de tildes; plantilla en UTF-8 y `charset=UTF-8` en el HTML del correo. |
+| **Pruebas y capturas** | Playwright y revisiones manuales deben comprobar que labels y mensajes no muestran `Ã` ni secuencias similares. |
+| **Commits y PR** | Si un diff introduce mojibake, se corrige antes de merge. |
+
+#### Verificación rápida antes de entregar
+
+1. Buscar en los archivos tocados patrones sospechosos: `Ã`, `Â`, `â€`, `ï¿½`.
+2. Abrir la pantalla en el navegador y leer títulos, errores y botones (no solo el código).
+3. Si el texto se pegó desde otro documento, reescribirlo en el IDE o validar codificación del archivo.
+
+> **Responsabilidad:** Aplica a desarrolladores, revisores de código, IA/asistentes y quien redacte copy. Es parte de la calidad de la UI, no un detalle opcional.
 
 ### Jerarquía de prioridades de diseño
 
@@ -466,6 +512,7 @@ En toda la aplicación se usa el componente `prof-tabs-bar` como estándar para 
 - **Tamaño mínimo de texto** en la aplicación: **12px**
 - Nunca usar menos de 12px para texto legible
 - Fuente principal: definida en el sistema de diseño del proyecto
+- **Idioma del copy:** español Colombia (`es-CO`); ver [§ 1.1 Texto, idioma y codificación](#11-texto-idioma-y-codificación-es-co)
 
 ### 9.2 Sistema de colores semánticos
 
@@ -679,6 +726,8 @@ Los siguientes patrones están **explícitamente prohibidos** por ser rabbit hol
 | Hardcodear colores hexadecimales | Usar tokens semánticos |
 | Lógica de negocio en componentes UI | Separar en servicios/hooks |
 | Copiar componentes en lugar de reutilizarlos | Crear componente compartido |
+| Texto con mojibake (`Ã³`, `Ã±`, `Â¿`, etc.) | Corregir codificación UTF-8 y tildes en español Colombia |
+| Copiar strings desde Word/PDF sin revisar encoding | Escribir o pegar en IDE UTF-8 y validar en navegador |
 
 ---
 
@@ -706,6 +755,8 @@ Antes de considerar una pantalla o feature frontend como **terminada**, debe pas
 - [ ] Sin scroll horizontal en ningún breakpoint
 - [ ] Espaciado consistente (múltiplos de 4px)
 - [ ] Jerarquía tipográfica correcta
+- [ ] Texto en **español Colombia** con tildes y ñ correctas (sin `Ã`, `Â`, `â€` ni secuencias corruptas)
+- [ ] Archivos con copy en español guardados en **UTF-8**
 
 ### 15.3 Accesibilidad
 
@@ -748,7 +799,7 @@ Antes de entregar, preguntar:
 
 ---
 
-*Documento creado bajo metodología [Shape Up — Basecamp](https://basecamp.com/shapeup) | Versión 1.0 | Mayo 2026*
+*Documento creado bajo metodología [Shape Up — Basecamp](https://basecamp.com/shapeup) | Versión 1.1 | Mayo 2026*
 
 ---
 
