@@ -193,25 +193,37 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model?.ProximaCita != null)
+                    @if (Model?.CitasHoyLista != null && Model.CitasHoyLista.Any())
                     {
-                        <tr>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:var(--sp-2);">
-                                    <div class="avatar avatar-xs" style="background:var(--color-primary);flex-shrink:0;">
-                                        @(Model.ProximaCita.Nombre.Length >= 2 ? Model.ProximaCita.Nombre.Substring(0,2).ToUpper() : Model.ProximaCita.Nombre.ToUpper())
+                        foreach (var cita in Model.CitasHoyLista)
+                        {
+                            var iniciales = cita.AliasUsuario.Length >= 2
+                                ? cita.AliasUsuario[..2].ToUpper()
+                                : cita.AliasUsuario.ToUpper();
+                            var badgeClass = cita.Estado switch
+                            {
+                                "Programada" => "badge-success",
+                                "Movida" => "badge-warning",
+                                _ => "badge-muted"
+                            };
+                            <tr>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                                        <div class="avatar avatar-xs" style="background:var(--color-primary);flex-shrink:0;">@iniciales</div>
+                                        <span style="font-weight:600;color:var(--color-text-primary);">@cita.AliasUsuario</span>
                                     </div>
-                                    <span style="font-weight:600;color:var(--color-text-primary);">@Model.ProximaCita.Nombre</span>
-                                </div>
-                            </td>
-                            <td style="white-space:nowrap;color:var(--color-text-secondary);">@Model.ProximaCita.FechaHora.ToString("h:mm tt")</td>
-                            <td style="font-size:.78rem;color:var(--color-text-muted);">Consulta</td>
-                            <td><span class="badge badge-success">Confirmada</span></td>
-                            <td>
-                                <a asp-controller="Citas" asp-action="Detalle" asp-route-id="@Model.ProximaCita.CitaId"
-                                   class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;">Ver</a>
-                            </td>
-                        </tr>
+                                </td>
+                                <td style="white-space:nowrap;color:var(--color-text-secondary);">@cita.FechaHora.ToString("h:mm tt")</td>
+                                <td style="font-size:.78rem;color:var(--color-text-muted);">@cita.Tipo</td>
+                                <td><span class="badge @badgeClass">@cita.Estado</span></td>
+                                <td>
+                                    <a asp-controller="Salas" asp-action="SalaPrivadaProfesional" asp-route-citaId="@cita.CitaId"
+                                       class="btn btn-primary btn-sm" style="padding:2px 10px;font-size:.75rem;">▶ Ingresar</a>
+                                    <a asp-controller="Citas" asp-action="Detalle" asp-route-id="@cita.CitaId"
+                                       class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;">Ver</a>
+                                </td>
+                            </tr>
+                        }
                     }
                     else
                     {
@@ -293,122 +305,59 @@
         <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Ver todos</a>
     </div>
 
+    @{
+        var colegas = Model?.EventosColegas ?? [];
+        var hoyColegas = colegas.Where(e => e.FechaInicio?.Date == DateTime.Today).ToList();
+        var semanaColegas = colegas.Where(e =>
+            e.FechaInicio.HasValue
+            && e.FechaInicio.Value.Date > DateTime.Today
+            && e.FechaInicio.Value.Date <= DateTime.Today.AddDays(7)).ToList();
+        var proximosColegas = colegas
+            .Where(e => !hoyColegas.Contains(e) && !semanaColegas.Contains(e))
+            .ToList();
+    }
     <div style="background:var(--color-surface);border:1px solid var(--color-border-light);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-sm);">
-
-        <!-- HOY -->
-        <div style="padding:var(--sp-2) var(--sp-5);background:rgba(229,57,53,.06);border-bottom:1px solid rgba(229,57,53,.15);display:flex;align-items:center;gap:var(--sp-2);">
-            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-danger);">🔴 Hoy — @DateTime.Today.ToString("d MMMM yyyy")</span>
-        </div>
-
-        <div class="event-list-item">
-            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#4A148C,#6A1B9A);">🧠</div>
-            <div class="event-list-item__body">
-                <div class="event-list-item__title">Regulación emocional en el trabajo</div>
-                <div class="event-list-item__sub">Psic. Andrés Vargas · Bienestar · 👥 115/200 inscritos</div>
+        @if (!colegas.Any())
+        {
+            <div style="padding:var(--sp-8);text-align:center;color:var(--color-text-muted);">
+                No hay eventos públicos de otros profesionales en este momento.
             </div>
-            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
-                <div class="event-list-item__date">
-                    <div class="event-list-item__date-num">10</div>
-                    <div class="event-list-item__date-label">AM</div>
+        }
+        else
+        {
+            @if (hoyColegas.Any())
+            {
+                <div style="padding:var(--sp-2) var(--sp-5);background:rgba(229,57,53,.06);border-bottom:1px solid rgba(229,57,53,.15);">
+                    <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-danger);">🔴 Hoy — @DateTime.Today.ToString("d MMMM yyyy")</span>
                 </div>
-                <span class="badge badge-success" style="white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
-                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
-            </div>
-        </div>
-
-        <div class="event-list-item">
-            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#1565C0,#1976D2);">🌊</div>
-            <div class="event-list-item__body">
-                <div class="event-list-item__title">Psicología positiva: construyendo resiliencia</div>
-                <div class="event-list-item__sub">Dra. Carolina López · Clínica · 👥 88/150 inscritos</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
-                <div class="event-list-item__date">
-                    <div class="event-list-item__date-num">4</div>
-                    <div class="event-list-item__date-label">PM</div>
+                foreach (var ev in hoyColegas)
+                {
+                    @await Html.PartialAsync("_EventoPublicoItem", ev)
+                }
+            }
+            @if (semanaColegas.Any())
+            {
+                <div style="padding:var(--sp-2) var(--sp-5);background:rgba(82,183,136,.06);border-top:1px solid var(--color-border-light);border-bottom:1px solid rgba(82,183,136,.2);">
+                    <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#2D6A4F;">📅 Esta semana</span>
                 </div>
-                <span class="badge badge-success" style="white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
-                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
-            </div>
-        </div>
-
-        <!-- ESTA SEMANA -->
-        <div style="padding:var(--sp-2) var(--sp-5);background:rgba(82,183,136,.06);border-top:1px solid var(--color-border-light);border-bottom:1px solid rgba(82,183,136,.2);display:flex;align-items:center;gap:var(--sp-2);">
-            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#2D6A4F;">📅 Esta semana</span>
-        </div>
-
-        <div class="event-list-item">
-            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#1565C0,#1976D2);">🧠</div>
-            <div class="event-list-item__body">
-                <div class="event-list-item__title">Manejo de la ansiedad en adultos</div>
-                <div class="event-list-item__sub">Dr. Jorge Morales · Ansiedad y Estrés · 👥 289/300 · $45.000 COP</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
-                <div class="event-list-item__date">
-                    <div class="event-list-item__date-num">18</div>
-                    <div class="event-list-item__date-label">Mayo</div>
+                foreach (var ev in semanaColegas)
+                {
+                    @await Html.PartialAsync("_EventoPublicoItem", ev)
+                }
+            }
+            @if (proximosColegas.Any())
+            {
+                <div style="padding:var(--sp-2) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);border-bottom:1px solid var(--color-border-light);">
+                    <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-muted);">🗓 Próximamente</span>
                 </div>
-                <span class="badge badge-warning" style="white-space:nowrap;">11 cupos</span>
-                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
-            </div>
-        </div>
-
-        <div class="event-list-item">
-            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#E65100,#F57C00);">👶</div>
-            <div class="event-list-item__body">
-                <div class="event-list-item__title">Desarrollo infantil y apego seguro</div>
-                <div class="event-list-item__sub">Psic. María Fuentes · Infantil · 👥 42/80 · Entrada libre</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
-                <div class="event-list-item__date">
-                    <div class="event-list-item__date-num">20</div>
-                    <div class="event-list-item__date-label">Mayo</div>
-                </div>
-                <span class="badge badge-success" style="white-space:nowrap;">Libre</span>
-                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
-            </div>
-        </div>
-
-        <!-- PRÓXIMAMENTE -->
-        <div style="padding:var(--sp-2) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);border-bottom:1px solid var(--color-border-light);">
-            <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-muted);">🗓 Próximamente</span>
-        </div>
-
-        <div class="event-list-item">
-            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#6A1B4D,#8B2252);">👨‍👩‍👧</div>
-            <div class="event-list-item__body">
-                <div class="event-list-item__title">Terapia familiar: comunicación efectiva</div>
-                <div class="event-list-item__sub">Dra. Carolina López · Familiar · 👥 201/250 · $35.000 COP</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
-                <div class="event-list-item__date">
-                    <div class="event-list-item__date-num">22</div>
-                    <div class="event-list-item__date-label">Mayo</div>
-                </div>
-                <span class="badge badge-muted" style="white-space:nowrap;">Abierta</span>
-                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
-            </div>
-        </div>
-
-        <div class="event-list-item">
-            <div class="event-list-item__thumb" style="background:linear-gradient(135deg,#4A148C,#6A1B9A);">💜</div>
-            <div class="event-list-item__body">
-                <div class="event-list-item__title">Duelo y pérdida: sanando el corazón</div>
-                <div class="event-list-item__sub">Psic. Andrés Vargas · Clínica · 👥 89/150 · Entrada libre</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
-                <div class="event-list-item__date">
-                    <div class="event-list-item__date-num">25</div>
-                    <div class="event-list-item__date-label">Mayo</div>
-                </div>
-                <span class="badge badge-muted" style="white-space:nowrap;">Abierta</span>
-                <a asp-controller="PerfilOrador" asp-action="Index" class="btn btn-secondary btn-sm">Ver perfil</a>
-            </div>
-        </div>
-
-        <!-- Footer -->
+                foreach (var ev in proximosColegas)
+                {
+                    @await Html.PartialAsync("_EventoPublicoItem", ev)
+                }
+            }
+        }
         <div style="padding:var(--sp-4) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-3);">
-            <span style="font-size:.8rem;color:var(--color-text-muted);">Mostrando eventos de colegas</span>
+            <span style="font-size:.8rem;color:var(--color-text-muted);">@(colegas.Count) evento(s) de colegas</span>
             <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Ver directorio →</a>
         </div>
     </div>

@@ -23,10 +23,13 @@ body { background: var(--color-surface); }
             <p class="auth-illustration__text">
                 Accede a tus sesiones, conferencias y al equipo de profesionales que acompaña tu crecimiento personal y emocional.
             </p>
+            @{
+                var stats = ViewBag.Estadisticas as Trebol.Model.DTOs.Publico.EstadisticasLandingDto;
+            }
             <div class="auth-stats">
-                <div><div class="auth-stat-val">248</div><div class="auth-stat-lbl">Profesionales</div></div>
-                <div><div class="auth-stat-val">12k</div><div class="auth-stat-lbl">Usuarios activos</div></div>
-                <div><div class="auth-stat-val">98%</div><div class="auth-stat-lbl">Satisfacción</div></div>
+                <div><div class="auth-stat-val">@(stats?.ProfesionalesActivos ?? 0)</div><div class="auth-stat-lbl">Profesionales</div></div>
+                <div><div class="auth-stat-val">@(stats?.UsuariosRegistrados ?? 0)</div><div class="auth-stat-lbl">Usuarios activos</div></div>
+                <div><div class="auth-stat-val">@(stats?.EventosRealizados ?? 0)</div><div class="auth-stat-lbl">Eventos realizados</div></div>
             </div>
         </div>
     </div>

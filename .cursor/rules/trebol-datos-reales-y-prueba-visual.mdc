@@ -1,0 +1,109 @@
+---
+description: Política global Trébol — datos reales, prueba visual, UI/UX prototipo y estándares de la app
+alwaysApply: true
+---
+
+# Trébol — Política global de implementación
+
+## Directriz global (prioridad máxima)
+
+Toda **nueva funcionalidad** y todo cambio (creación, mejora, actualización, corrección) MUST cumplir **sin excepción**:
+
+1. **Alineación UI/UX** con `Prototipo/` y `Documentos/Requerimientos/reglas-ui-ux-frontend.md`.
+2. **Estándares del entorno** ya usados en la app (mismos componentes, layout, patrones).
+3. **Datos reales** desde `TrebolDB` — cero mocks ni datos quemados.
+4. **Prueba visual** del funcionamiento antes de dar por cerrado.
+
+Reglas complementarias: `.cursor/rules/trebol-prototipo-alineacion.mdc` · `.agents/skills/dotnet-layered-architecture/SKILL.md`
+
+---
+
+## 1. UI/UX y prototipo (obligatorio en features nuevas)
+
+Antes de implementar, identificar el HTML de referencia en `Prototipo/` (mapa: `specs/001-profesional-vistas-prototipo/prototipo-mapa.md`).
+
+| Elemento | Estándar obligatorio |
+|----------|----------------------|
+| **Layout** | `_LayoutInterno.cshtml` + `_MenuLateral.cshtml` según rol |
+| **Estilos** | `wwwroot/css/trebol.css` — tokens `--color-*`, `--sp-*`, clases `.card`, `.btn`, `.badge` |
+| **Scripts** | `wwwroot/js/trebol.js` — `showToast`, `openModal`/`closeModal`; no Bootstrap suelto ni CSS ad hoc |
+| **Copy** | Español Colombia (es-CO), UTF-8, tildes correctas |
+| **Formularios** | `.form-group`, `.form-label`, `.form-control`; validación visible |
+| **Estados vacíos** | Card centrada con ícono + mensaje (como vistas existentes) |
+| **Acciones destructivas** | Modal de confirmación con retardo en botón confirmar (§4.4 reglas UI) |
+
+**Prohibido:** `alert()`, `confirm()`, `prompt()` nativos; frameworks CSS paralelos; inventar un patrón visual distinto al resto de la app.
+
+**Cuando exista duda:** copiar estructura de la vista MVC más parecida ya implementada, no diseñar desde cero.
+
+---
+
+## 2. Componentes estándar (consistencia total)
+
+### Modales y mensajes
+
+- **Confirmaciones, errores críticos, advertencias con acción** → **modal** con estructura estándar:
+  - `.modal-backdrop` → `.modal` → `.modal-header` (`.modal-icon`, `.modal-title`, `.modal-subtitle`, `.modal-close`) → `.modal-body` → `.modal-footer`
+  - Referencia: `Views/Admin/BandejaNotificaciones.cshtml`
+- **Éxito en background / feedback no bloqueante** → `showToast({ title, message, type })` de `trebol.js`
+- Un solo modal activo; foco atrapado; `Esc` coherente; formularios con datos no cierran por backdrop
+
+### Tablas y listados
+
+- **Toda tabla de datos** → paginación **10 registros/página**, siempre visible
+- Texto: *"Mostrando X–Y de Z registros"*
+- Paginación server-side vía repositorio/SP (`@Pagina`, `@TamanoPagina`); default **12** solo donde ya esté definido en DTO existente — nuevas tablas: **10** según reglas UI §3
+- Header con fondo `--color-surface-alt`; filas con borde `--color-border-light`; estado vacío dentro de la tabla/card
+- Acciones por fila: botones `.btn-ghost` / `.btn-sm`; eliminar siempre con modal
+
+### Botones, badges, cards
+
+- Un solo `.btn` primario por vista/modal
+- Badges: `.badge-success`, `.badge-warning`, `.badge-danger`, `.badge-muted`
+- Cards: clase `.card`; secciones con header en `--color-surface-alt`
+
+---
+
+## 3. Backend y arquitectura
+
+- Controller → repositorio → SP/EF; sin lógica de negocio en la vista
+- Mensajes al usuario desde `Trebol.Constants` (no strings sueltos repetidos)
+- Autorización por rol; anti-forgery en POST
+- DTOs en `Trebol.Model`; no exponer entidades EF crudas si el patrón del módulo usa DTO
+
+---
+
+## 4. Datos reales (prohibido mock)
+
+- Toda entidad de negocio viene de `TrebolDB` vía repositorios/SPs
+- Prohibido: arrays hardcodeados, `ViewBag` con registros inventados, repos con datos estáticos
+- Estados vacíos reales con UI acorde — no rellenar con datos ficticios
+- Cuentas de prueba: `Documentos/CuentasPrueba.md`; semillas solo en SQL
+
+---
+
+## 5. Prueba visual obligatoria
+
+1. App en `https://localhost:7072` (perfil `https`)
+2. Ejecutar Playwright en `Test/` (crear script si no existe)
+3. Capturas en `Test/screenshots/`
+4. Verificar: HTTP 200, modales/toasts correctos, paridad con prototipo, paginación en tablas
+
+| Área | Script |
+|------|--------|
+| Vistas Profesional | `Test/VistasProfesional.js` |
+| Registro profesional | `Test/CrearCuentaProfesional.js` |
+| Nueva feature | `Test/<feature>.js` |
+
+Si falla → corregir y repetir. **No cerrar la tarea sin evidencia visual.**
+
+---
+
+## Checklist de cierre (obligatorio)
+
+- [ ] Prototipo HTML revisado (si aplica)
+- [ ] Mismos patrones que vistas existentes (modal, tabla, form, card, toast)
+- [ ] Cumple `reglas-ui-ux-frontend.md` (paginación, modales, es-CO)
+- [ ] Datos desde BD; sin mock/hardcode
+- [ ] Prueba visual Playwright + captura
+- [ ] Script E2E actualizado si cambió ruta o flujo crítico

@@ -8,4 +8,7 @@ public static class CitaConstant
     public const string CitaCancelada       = "La cita fue cancelada.";
     public const string CitaNoEncontrada    = "La cita no fue encontrada.";
     public const string SinPermiso          = "No tienes permiso para modificar esta cita.";
+    public const string SalaNoDisponible    = "La sala de cita solo está disponible el día programado.";
+    public const string EstadoInvalidoSala  = "La cita no está en un estado válido para ingresar.";
+    public const string SesionFinalizada    = "La sesión fue finalizada correctamente.";
 }

@@ -1,0 +1,107 @@
+@model Trebol.Model.Entities.TrebolEntities.Profesional
+@using Trebol.Model.DTOs.Dashboard
+@using Trebol.Model.DTOs.Profesional
+@{
+    ViewData["Title"] = "Mi perfil · Indicadores";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var resumen = ViewBag.Resumen as PerfilProfesionalResumenDto ?? new PerfilProfesionalResumenDto();
+    var dash = ViewBag.Dashboard as DashboardProfesionalDto ?? new DashboardProfesionalDto();
+}
+
+@await Html.PartialAsync("_PerfilShell", Model)
+
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-4);margin-bottom:var(--sp-6);">
+    <div>
+        <h2 style="font-size:1.125rem;font-weight:700;color:var(--color-primary);margin:0;">Resumen de actividad</h2>
+        <span class="text-meta">Datos acumulados en la plataforma Trébol</span>
+    </div>
+</div>
+
+<div class="kpi-grid">
+    <article class="kpi-card">
+        <div class="kpi-card__icon" style="background:#EBF5FB;">💬</div>
+        <div>
+            <div class="kpi-card__label">Citas totales</div>
+            <div class="kpi-card__value">@resumen.CitasTotal</div>
+            <div class="text-meta" style="font-size:.8rem;">@resumen.CitasCompletadas completadas · @resumen.CitasProximas próximas</div>
+        </div>
+    </article>
+    <article class="kpi-card">
+        <div class="kpi-card__icon" style="background:#E9F7EF;">👥</div>
+        <div>
+            <div class="kpi-card__label">Pacientes atendidos</div>
+            <div class="kpi-card__value" style="color:#1E8449;">@resumen.TotalPacientes</div>
+            <div class="text-meta" style="font-size:.8rem;">Usuarios únicos con cita registrada</div>
+        </div>
+    </article>
+    <article class="kpi-card">
+        <div class="kpi-card__icon" style="background:#E8F8F5;">💰</div>
+        <div>
+            <div class="kpi-card__label">Ingresos generados</div>
+            <div class="kpi-card__value" style="font-size:1.6rem;">$@resumen.IngresosTotal.ToString("N0")</div>
+            <div class="text-meta" style="font-size:.8rem;">Mes actual: $@resumen.IngresosMes.ToString("N0") COP</div>
+        </div>
+    </article>
+    <article class="kpi-card">
+        <div class="kpi-card__icon" style="background:#F5EEF8;">🎪</div>
+        <div>
+            <div class="kpi-card__label">Salas creadas</div>
+            <div class="kpi-card__value">@resumen.TotalSalas</div>
+            <div class="text-meta" style="font-size:.8rem;">@resumen.SalasAbiertas abiertas · @resumen.SalasCerradas cerradas</div>
+        </div>
+    </article>
+    <article class="kpi-card">
+        <div class="kpi-card__icon" style="background:#FEF9E7;">📅</div>
+        <div>
+            <div class="kpi-card__label">Citas hoy</div>
+            <div class="kpi-card__value">@dash.CitasHoy</div>
+            <div class="text-meta" style="font-size:.8rem;">Programadas o reprogramadas para hoy</div>
+        </div>
+    </article>
+    <article class="kpi-card">
+        <div class="kpi-card__icon" style="background:#EBF5FB;">⏱</div>
+        <div>
+            <div class="kpi-card__label">Tarifa por cita</div>
+            <div class="kpi-card__value">$@((Model?.ValorPorHora ?? 0).ToString("N0"))</div>
+            <div class="text-meta" style="font-size:.8rem;">Valor configurado en tu perfil</div>
+        </div>
+    </article>
+</div>
+
+<div class="kpi-summary-card">
+    <div style="padding:var(--sp-5) var(--sp-6);border-bottom:1px solid var(--color-border-light);">
+        <span style="font-size:1rem;font-weight:700;color:var(--color-primary);">🗂 Detalle por indicador</span>
+    </div>
+    <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:.855rem;">
+            <thead style="background:var(--color-surface-alt);">
+                <tr>
+                    <th style="padding:var(--sp-3) var(--sp-4);text-align:left;">Indicador</th>
+                    <th style="padding:var(--sp-3) var(--sp-4);text-align:right;">Acumulado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="padding:var(--sp-4);">💬 Citas totales</td>
+                    <td style="padding:var(--sp-4);text-align:right;font-weight:600;">@resumen.CitasTotal</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="padding:var(--sp-4);">👥 Pacientes atendidos</td>
+                    <td style="padding:var(--sp-4);text-align:right;font-weight:600;">@resumen.TotalPacientes</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="padding:var(--sp-4);">💰 Ingresos (pagos aprobados)</td>
+                    <td style="padding:var(--sp-4);text-align:right;font-weight:600;">$@resumen.IngresosTotal.ToString("N0")</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="padding:var(--sp-4);">🎪 Salas</td>
+                    <td style="padding:var(--sp-4);text-align:right;font-weight:600;">@resumen.TotalSalas</td>
+                </tr>
+                <tr>
+                    <td style="padding:var(--sp-4);">👁 Seguidores</td>
+                    <td style="padding:var(--sp-4);text-align:right;font-weight:600;">@resumen.TotalSeguidores</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

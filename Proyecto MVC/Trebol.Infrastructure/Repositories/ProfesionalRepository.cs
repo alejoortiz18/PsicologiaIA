@@ -112,7 +112,9 @@ public class ProfesionalRepository(AppDbContext context, IConfiguration configur
         profesional.Ocupacion      = dto.Titulo;
         profesional.SobreMi        = dto.Descripcion;
         profesional.Celular        = dto.Celular;
+        profesional.PaisId         = dto.PaisId;
         profesional.CiudadId       = dto.CiudadId;
+        if (dto.AnosExperiencia.HasValue) profesional.AnosExperiencia = dto.AnosExperiencia;
         profesional.ValorPorHora   = dto.TarifaCita;
         if (dto.FotoUrl is not null) profesional.FotoPerfil = dto.FotoUrl;
 
@@ -130,6 +132,75 @@ public class ProfesionalRepository(AppDbContext context, IConfiguration configur
             commandType: CommandType.StoredProcedure);
 
         return result ?? new DashboardProfesionalDto();
+    }
+
+    public async Task<int> ContarSeguidoresAsync(int profesionalId, CancellationToken ct = default)
+        => await context.Seguidores.AsNoTracking().CountAsync(s => s.ProfesionalId == profesionalId, ct);
+
+    public async Task<IReadOnlyList<ProfesionalEstudioDto>> ObtenerEstudiosAsync(
+        int profesionalId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<ProfesionalEstudioDto>(
+            @"SELECT EstudioId, Titulo, Universidad, AnoEgreso, Nivel
+              FROM ProfesionalEstudio WHERE ProfesionalId = @ProfesionalId
+              ORDER BY AnoEgreso DESC",
+            new { ProfesionalId = profesionalId });
+        return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<string>> ObtenerEspecialidadesAsync(
+        int profesionalId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<string>(
+            @"SELECT e.Nombre FROM ProfesionalEspecialidad pe
+              JOIN Especialidad e ON e.EspecialidadId = pe.EspecialidadId
+              WHERE pe.ProfesionalId = @ProfesionalId ORDER BY e.Nombre",
+            new { ProfesionalId = profesionalId });
+        return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<string>> ObtenerIdiomasAsync(
+        int profesionalId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<string>(
+            @"SELECT i.Nombre FROM ProfesionalIdioma pi
+              JOIN Idioma i ON i.IdiomaId = pi.IdiomaId
+              WHERE pi.ProfesionalId = @ProfesionalId ORDER BY i.Nombre",
+            new { ProfesionalId = profesionalId });
+        return result.AsList();
+    }
+
+    public async Task<PerfilProfesionalResumenDto> ObtenerResumenPerfilAsync(
+        int profesionalId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var resumen = await conn.QueryFirstOrDefaultAsync<PerfilProfesionalResumenDto>(
+            @"SELECT
+                (SELECT COUNT(*) FROM Seguidor WHERE ProfesionalId = @ProfesionalId) AS TotalSeguidores,
+                (SELECT COUNT(*) FROM Sala WHERE ProfesionalId = @ProfesionalId) AS TotalSalas,
+                (SELECT COUNT(*) FROM Sala WHERE ProfesionalId = @ProfesionalId AND Estado = 'Abierta') AS SalasAbiertas,
+                (SELECT COUNT(*) FROM Sala WHERE ProfesionalId = @ProfesionalId AND Estado = 'Cerrada') AS SalasCerradas,
+                (SELECT COUNT(*) FROM Sala s JOIN Evento e ON e.SalaId = s.SalaId
+                 WHERE s.ProfesionalId = @ProfesionalId AND e.FechaInicio > GETDATE()) AS SalasProximas,
+                (SELECT COUNT(*) FROM Cita WHERE ProfesionalId = @ProfesionalId
+                 AND FechaHora >= GETDATE() AND Estado IN ('Programada','Movida')) AS CitasProximas,
+                (SELECT COUNT(*) FROM Cita WHERE ProfesionalId = @ProfesionalId AND Estado = 'Programada') AS CitasPendientes,
+                (SELECT COUNT(*) FROM Cita WHERE ProfesionalId = @ProfesionalId AND Estado = 'Finalizada') AS CitasCompletadas,
+                (SELECT COUNT(*) FROM Cita WHERE ProfesionalId = @ProfesionalId AND Estado = 'Cancelada') AS CitasCanceladas,
+                (SELECT COUNT(*) FROM Cita WHERE ProfesionalId = @ProfesionalId) AS CitasTotal,
+                (SELECT ISNULL(SUM(pc.Monto),0) FROM PagoCita pc
+                 JOIN Cita c ON c.CitaId = pc.CitaId
+                 WHERE c.ProfesionalId = @ProfesionalId AND pc.Estado = 'Aprobado') AS IngresosTotal,
+                (SELECT ISNULL(SUM(pc.Monto),0) FROM PagoCita pc
+                 JOIN Cita c ON c.CitaId = pc.CitaId
+                 WHERE c.ProfesionalId = @ProfesionalId AND pc.Estado = 'Aprobado'
+                   AND YEAR(pc.FechaPago) = YEAR(GETDATE()) AND MONTH(pc.FechaPago) = MONTH(GETDATE())) AS IngresosMes,
+                (SELECT COUNT(DISTINCT UsuarioId) FROM Cita WHERE ProfesionalId = @ProfesionalId) AS TotalPacientes",
+            new { ProfesionalId = profesionalId });
+        return resumen ?? new PerfilProfesionalResumenDto();
     }
 
     public async Task<ResultadoOperacion> AprobarAsync(

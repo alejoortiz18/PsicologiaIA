@@ -20,11 +20,11 @@
            aria-current="@(Is("HomeUsuario") ? "page" : null)">
             <span class="nav-item__icon">🏠</span> Inicio
         </a>
-        <div class="nav-item @(ctrl is "Directorio" ? "open" : "")" data-submenu="submenu-pros" tabindex="0" role="button">
+        <div class="nav-item @(ctrl is "Directorio" ? "open" : "")" data-submenu="submenu-pros" tabindex="0" role="button" aria-expanded="@(ctrl is "Directorio" ? "true" : "false")">
             <span class="nav-item__icon">👥</span> Profesionales
             <span class="nav-toggle">▾</span>
         </div>
-        <div id="submenu-pros" class="nav-submenu" style="@(ctrl is "Directorio" ? "" : "display:none")">
+        <div id="submenu-pros" class="nav-submenu @(ctrl is "Directorio" ? "is-open" : "")">
             <a asp-controller="Directorio" asp-action="Especialistas"
                class="nav-item @(Is("Directorio","Especialistas") ? "active" : "")">Especialistas</a>
             <a asp-controller="Directorio" asp-action="Psicologos"
@@ -74,7 +74,7 @@ else if (rol == "Profesional")
             <span class="nav-item__icon">👥</span> Profesionales
             <span class="nav-toggle" aria-hidden="true">▾</span>
         </div>
-        <div id="submenu-colegas" class="nav-submenu" style="@(ctrl is "Directorio" ? "" : "display:none")">
+        <div id="submenu-colegas" class="nav-submenu @(ctrl is "Directorio" ? "is-open" : "")">
             <a asp-controller="Directorio" asp-action="Especialistas"
                class="nav-item @(Is("Directorio","Especialistas") ? "active" : "")">Especialistas</a>
             <a asp-controller="Directorio" asp-action="Psicologos"
@@ -89,8 +89,8 @@ else if (rol == "Profesional")
            class="nav-item @(Is("PerfilProfesional") ? "active" : "")">
             <span class="nav-item__icon">👤</span> Mi perfil
         </a>
-        <a asp-controller="Citas" asp-action="ListaProfesional"
-           class="nav-item @(Is("Citas") ? "active" : "")">
+        <a asp-controller="PerfilProfesional" asp-action="Citas"
+           class="nav-item @(Is("PerfilProfesional","Citas") || Is("Citas") ? "active" : "")">
             <span class="nav-item__icon">📅</span> Citas
         </a>
         <a asp-controller="Mensajeria" asp-action="Index"

@@ -1,8 +1,85 @@
 @model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
 @{
-    ViewData["Title"] = "Mis Colegas";
+    ViewData["Title"] = "Mis colegas";
     Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var items = Model.ToList();
+
+    ViewData["DirectorioTitulo"] = "Mis colegas";
+    ViewData["DirectorioSubtitulo"] =
+        "Profesionales vinculados — comparte pacientes, coordina derivaciones y trabaja en equipo.";
+    ViewData["DirectorioPaginaActual"] = "Mis colegas";
+    ViewData["DirectorioHomeController"] = "HomeProfesional";
+    ViewData["Stat1Icon"] = "🤝";
+    ViewData["Stat1Label"] = "Colegas vinculados";
+    ViewData["Stat1Value"] = items.Count.ToString();
+    ViewData["Stat2Icon"] = "⭐";
+    ViewData["Stat2Label"] = "Con calificación";
+    ViewData["Stat2Value"] = items.Count(p => p.Calificacion.HasValue).ToString();
+    ViewData["Stat3Icon"] = "📍";
+    ViewData["Stat3Label"] = "Con ciudad";
+    ViewData["Stat3Value"] = items.Count(p => !string.IsNullOrEmpty(p.Ciudad)).ToString();
 }
 
-<h2 class="mb-4">Mis Colegas</h2>
-@await Html.PartialAsync("_ListaProfesionales", Model)
+@await Html.PartialAsync("_EncabezadoDirectorio")
+@await Html.PartialAsync("_StatsDirectorio")
+
+<div class="colega-tip">
+    <div class="colega-tip__icon" aria-hidden="true">💡</div>
+    <div class="colega-tip__text">
+        <strong>¿Qué son los colegas?</strong><br>
+        Son los profesionales con quienes tienes una colaboración activa dentro de Trébol — ya sea compartiendo
+        el seguimiento de un paciente, realizando derivaciones o coordinando sesiones conjuntas. Puedes vincular
+        a un colega desde su perfil público o desde Especialistas y Psicólogos con «Agregar colega».
+    </div>
+</div>
+
+<div class="prof-filter-bar" role="search" style="margin-bottom:var(--sp-5);">
+    <div class="filter-search">
+        <input type="search" id="filter-search-colegas" placeholder="Buscar colega…"
+               aria-label="Buscar colegas" />
+    </div>
+</div>
+
+<div class="directorio-results-info" id="results-info-colegas"></div>
+
+@await Html.PartialAsync("_ListaColegas", Model)
+
+@section Scripts {
+@Html.AntiForgeryToken()
+@await Html.PartialAsync("_DirectorioScripts")
+<script>
+(function () {
+  const search = document.getElementById('filter-search-colegas');
+  const list = document.getElementById('colega-list');
+  const info = document.getElementById('results-info-colegas');
+  const empty = document.getElementById('colega-empty');
+  if (!search) return;
+
+  function refreshInfo(visible, total) {
+    if (!info) return;
+    if (total === 0) {
+      info.textContent = '';
+      return;
+    }
+    info.textContent = visible + ' de ' + total + ' colega' + (total === 1 ? '' : 's');
+  }
+
+  const total = list ? list.querySelectorAll('.colega-card').length : 0;
+  refreshInfo(total, total);
+
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    if (!list) return;
+    let visible = 0;
+    list.querySelectorAll('.colega-card').forEach(card => {
+      const n = card.getAttribute('data-nombre') || '';
+      const show = !q || n.includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    refreshInfo(visible, total);
+    if (empty) empty.style.display = total === 0 ? 'block' : 'none';
+  });
+})();
+</script>
+}

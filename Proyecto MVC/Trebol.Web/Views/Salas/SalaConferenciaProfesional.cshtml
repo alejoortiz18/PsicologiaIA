@@ -1,0 +1,194 @@
+@model Trebol.Model.DTOs.Sala.SalaConferenciaProfesionalDto
+@{
+    Layout = "~/Views/Shared/_LayoutSala.cshtml";
+    ViewData["Title"] = $"Conferencia · {Model.Titulo}";
+    var proIni = Model.NombreProfesional.Length >= 2
+        ? string.Concat(Model.NombreProfesional.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpper(p[0])))
+        : Model.NombreProfesional.ToUpper();
+    if (string.IsNullOrEmpty(proIni)) proIni = "PR";
+    var fechaTxt = Model.FechaInicio?.ToString("dd MMM yyyy") ?? "Por definir";
+    var horaTxt = Model.FechaInicio?.ToString("h:mm tt") ?? "—";
+}
+
+<div class="conf-layout" role="main">
+    <header class="conf-header" role="banner">
+        <a asp-controller="MisEventos" asp-action="Index" class="conf-logo" aria-label="Volver a mis eventos">🍀 Trébol</a>
+        <div class="conf-header__title">
+            <div class="conf-header__event-name">@Model.Titulo</div>
+            <div class="conf-header__meta">
+                <span class="badge-live"><span class="live-pulse"></span> 🔴 En vivo</span>
+                <span class="conf-attendee-count">👥 @Model.TotalInscritos / @Model.Capacidad conectados</span>
+            </div>
+        </div>
+        <div class="conf-timer" id="conf-timer" role="timer" aria-label="Tiempo en vivo">00:00:00</div>
+    </header>
+
+    <div class="conf-stream">
+        <div class="conf-stream__placeholder">
+            <div class="conf-stream__avatar" aria-hidden="true">@proIni</div>
+            <div class="conf-stream__name">@Model.NombreProfesional</div>
+            <div class="conf-stream__role">Ponente · @Model.Categoria</div>
+        </div>
+        <div class="conf-stream__ponente-chip">
+            <span class="conf-stream__ponente-dot"></span> Ponente en vivo
+        </div>
+        <div class="conf-self-cam" aria-label="Tu cámara">
+            <div>📷</div>
+            <div>Tú</div>
+        </div>
+    </div>
+
+    <div class="conf-controls" role="toolbar" aria-label="Controles de transmisión">
+        <div class="ctrl-label">
+            <button type="button" class="ctrl-btn ctrl-btn--normal" id="btn-cam" onclick="toggleSalaControl(this,'cam')" title="Cámara">📷</button>
+            Cámara
+        </div>
+        <div class="ctrl-label">
+            <button type="button" class="ctrl-btn ctrl-btn--normal" id="btn-mic" onclick="toggleSalaControl(this,'mic')" title="Micrófono">🎤</button>
+            Mic
+        </div>
+        <div class="ctrl-label">
+            <button type="button" class="ctrl-btn ctrl-btn--normal" id="btn-screen" onclick="toggleSalaControl(this,'screen')" title="Compartir pantalla">🖥</button>
+            Pantalla
+        </div>
+        <div class="ctrl-label">
+            <button type="button" class="ctrl-btn ctrl-btn--active-green" id="btn-chat-toggle" onclick="toggleChatEnabled()" title="Preguntas">💬</button>
+            Preguntas
+        </div>
+        <div class="ctrl-label">
+            <button type="button" class="ctrl-btn ctrl-btn--normal" data-open-modal="attendees-modal" title="Asistentes">👥</button>
+            Asistentes
+        </div>
+        <div class="ctrl-label" style="margin-left:var(--sp-4);">
+            <button type="button" class="ctrl-btn ctrl-btn--danger" data-open-modal="end-conf-modal" title="Terminar">📵</button>
+            Terminar
+        </div>
+    </div>
+
+    <aside class="conf-side" aria-label="Panel de la conferencia">
+        <div class="conf-tabs" role="tablist">
+            <button type="button" class="conf-tab active" role="tab" data-ctab="tab-questions" aria-selected="true">
+                ❓ Preguntas <span class="conf-tab-count">3</span>
+            </button>
+            <button type="button" class="conf-tab" role="tab" data-ctab="tab-info" aria-selected="false">ℹ️ Info</button>
+        </div>
+
+        <div class="conf-panel-section active" id="tab-questions">
+            <div class="conf-chat-bar">
+                <div>
+                    <div class="conf-chat-bar__label">Preguntas de asistentes</div>
+                    <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:2px;">Solo tú ves el alias de quien escribe</div>
+                </div>
+                <label class="toggle-switch" aria-label="Habilitar preguntas">
+                    <input type="checkbox" id="chat-toggle-check" checked onchange="syncChatToggle()">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="conf-msg-list" role="log" aria-live="polite" id="conf-msg-list">
+                <div class="notif-empty" style="padding:var(--sp-6);">Aún no hay preguntas en esta sala. Las preguntas de los asistentes aparecerán aquí.</div>
+            </div>
+        </div>
+
+        <div class="conf-panel-section" id="tab-info">
+            <div class="conf-info-body">
+                <div style="margin-bottom:var(--sp-5);">
+                    <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-accent);margin-bottom:var(--sp-3);">Información del evento</div>
+                    <div class="conf-info-row"><span class="conf-info-label">📅 Fecha</span><span class="conf-info-value">@fechaTxt</span></div>
+                    <div class="conf-info-row"><span class="conf-info-label">🕕 Horario</span><span class="conf-info-value">@horaTxt</span></div>
+                    <div class="conf-info-row"><span class="conf-info-label">🏷 Categoría</span><span class="conf-info-value">@(Model.Categoria ?? "General")</span></div>
+                    <div class="conf-info-row"><span class="conf-info-label">👥 Capacidad</span><span class="conf-info-value">@Model.TotalInscritos / @Model.Capacidad inscritos</span></div>
+                    <div class="conf-info-row"><span class="conf-info-label">🎙 Modalidad</span><span class="conf-info-value">Conferencia online</span></div>
+                </div>
+                <div style="background:rgba(82,183,136,.08);border:1px solid rgba(82,183,136,.2);border-radius:var(--radius-md);padding:var(--sp-3);font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.6;">
+                    ✅ Los asistentes usan seudónimo. Solo el ponente ve el alias de cada pregunta.
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<div id="end-conf-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="end-conf-title">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon danger">⏹</div>
+            <div>
+                <div class="modal-title" id="end-conf-title">¿Deseas terminar la transmisión?</div>
+                <div class="modal-subtitle">Todos los asistentes serán desconectados</div>
+            </div>
+        </div>
+        <div class="modal-body">
+            <p>La sala quedará en estado <strong>Finalizada</strong>. Esta acción es irreversible.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="end-conf-modal">Continuar transmitiendo</button>
+            <button type="button" class="btn btn-danger" id="confirm-end-conf">Finalizar sala</button>
+        </div>
+    </div>
+</div>
+
+<div id="attendees-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="attendees-title">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="attendees-title">Asistentes conectados</div>
+            <button type="button" class="modal-close" data-close-modal="attendees-modal" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:.875rem;color:var(--color-text-muted);">
+                <strong>@Model.TotalInscritos</strong> asistentes inscritos · capacidad @Model.Capacidad.
+                Los alias individuales se muestran en el panel de preguntas.
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script>
+let chatEnabled = true;
+
+function syncChatToggle() {
+  chatEnabled = document.getElementById('chat-toggle-check').checked;
+  updateChatUI();
+}
+
+function toggleChatEnabled() {
+  chatEnabled = !chatEnabled;
+  document.getElementById('chat-toggle-check').checked = chatEnabled;
+  updateChatUI();
+}
+
+function updateChatUI() {
+  const btn = document.getElementById('btn-chat-toggle');
+  if (!btn) return;
+  if (chatEnabled) {
+    btn.classList.remove('ctrl-btn--off');
+    btn.classList.add('ctrl-btn--active-green');
+    if (typeof showToast === 'function') showToast({ title: 'Preguntas habilitadas', type: 'success' });
+  } else {
+    btn.classList.remove('ctrl-btn--active-green');
+    btn.classList.add('ctrl-btn--off');
+    if (typeof showToast === 'function') showToast({ title: 'Preguntas deshabilitadas', type: 'info' });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initConfTabs();
+
+  document.getElementById('confirm-end-conf')?.addEventListener('click', async () => {
+    const btn = document.getElementById('confirm-end-conf');
+    btn.disabled = true;
+    btn.textContent = 'Finalizando...';
+    const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+    const res = await fetch('/Salas/FinalizarConferencia', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `salaId=@Model.SalaId&__RequestVerificationToken=${encodeURIComponent(token)}`
+    });
+    const d = await res.json();
+    if (typeof showToast === 'function') showToast({ title: d.exito ? 'Conferencia finalizada' : 'Error', message: d.mensaje || '', type: d.exito ? 'success' : 'error' });
+    if (d.exito && d.redirect) window.location.href = d.redirect;
+    else { btn.disabled = false; btn.textContent = 'Finalizar sala'; }
+  });
+});
+</script>
+}

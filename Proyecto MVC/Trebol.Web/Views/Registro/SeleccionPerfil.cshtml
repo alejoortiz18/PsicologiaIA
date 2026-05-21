@@ -22,10 +22,13 @@ body { background: var(--color-surface); }
             <p class="auth-illustration__text">
                 Elige el tipo de cuenta que deseas crear. Cada perfil tiene su propio flujo diseñado para tus necesidades específicas.
             </p>
+            @{
+                var stats = ViewBag.Estadisticas as Trebol.Model.DTOs.Publico.EstadisticasLandingDto;
+            }
             <div class="auth-stats">
-                <div><div class="auth-stat-val">248</div><div class="auth-stat-lbl">Profesionales</div></div>
-                <div><div class="auth-stat-val">Gratis</div><div class="auth-stat-lbl">Registro usuario</div></div>
-                <div><div class="auth-stat-val">100%</div><div class="auth-stat-lbl">Seguro</div></div>
+                <div><div class="auth-stat-val">@(stats?.ProfesionalesActivos ?? 0)</div><div class="auth-stat-lbl">Profesionales</div></div>
+                <div><div class="auth-stat-val">@(stats?.UsuariosRegistrados ?? 0)</div><div class="auth-stat-lbl">Usuarios registrados</div></div>
+                <div><div class="auth-stat-val">@(stats?.EventosRealizados ?? 0)</div><div class="auth-stat-lbl">Eventos realizados</div></div>
             </div>
         </div>
     </div>

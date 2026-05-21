@@ -16,6 +16,11 @@ public interface IProfesionalRepository
     Task<ProfesionalDto?>         ObtenerDtoAsync(int profesionalId, CancellationToken ct = default);
     Task<ResultadoOperacion>      ActualizarAsync(ActualizarProfesionalDto dto, CancellationToken ct = default);
     Task<DashboardProfesionalDto> ObtenerDashboardAsync(int profesionalId, CancellationToken ct = default);
+    Task<int> ContarSeguidoresAsync(int profesionalId, CancellationToken ct = default);
+    Task<IReadOnlyList<ProfesionalEstudioDto>> ObtenerEstudiosAsync(int profesionalId, CancellationToken ct = default);
+    Task<IReadOnlyList<string>> ObtenerEspecialidadesAsync(int profesionalId, CancellationToken ct = default);
+    Task<IReadOnlyList<string>> ObtenerIdiomasAsync(int profesionalId, CancellationToken ct = default);
+    Task<PerfilProfesionalResumenDto> ObtenerResumenPerfilAsync(int profesionalId, CancellationToken ct = default);
     Task<ResultadoOperacion>      AprobarAsync(int profesionalId, bool aprobado, string? motivoRechazo = null, CancellationToken ct = default);
     Task<ResultadoOperacion>      ReenviarDocumentosAsync(int profesionalId, CancellationToken ct = default);
 }

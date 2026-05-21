@@ -1,0 +1,239 @@
+@model IEnumerable<Trebol.Model.Entities.TrebolEntities.HorarioDisponible>
+@{
+    ViewData["Title"] = "Mi perfil · Calendario";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var prof = ViewBag.Profesional as Trebol.Model.Entities.TrebolEntities.Profesional;
+    var bloqueos = ViewBag.Bloqueos as IEnumerable<Trebol.Model.Entities.TrebolEntities.HorarioBloqueado> ?? [];
+    var horarios = Model.ToDictionary(h => h.DiaSemana);
+    var diasOrden = new[] { (byte)1, (byte)2, (byte)3, (byte)4, (byte)5, (byte)6, (byte)0 };
+    var nombresDia = new Dictionary<byte, string> { [0] = "Domingo", [1] = "Lunes", [2] = "Martes", [3] = "Miércoles", [4] = "Jueves", [5] = "Viernes", [6] = "Sábado" };
+}
+
+@await Html.PartialAsync("_PerfilShell", prof)
+
+<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);flex-wrap:wrap;margin-bottom:var(--sp-5);">
+    <div>
+        <h2 id="cal-titulo" style="font-size:1.25rem;font-weight:700;color:var(--color-primary);margin:0;"></h2>
+        <p class="text-meta" style="margin-top:2px;">Gestiona tu disponibilidad. Los días con citas aparecen como ocupados.</p>
+    </div>
+    <div style="display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap;">
+        <div style="display:flex;gap:var(--sp-4);align-items:center;flex-wrap:wrap;font-size:.8125rem;font-weight:500;">
+            <div style="display:flex;align-items:center;gap:var(--sp-2);"><div style="width:14px;height:14px;border-radius:3px;background:#C8E6C9;border:1px solid #A5D6A7;"></div>Disponible</div>
+            <div style="display:flex;align-items:center;gap:var(--sp-2);"><div style="width:14px;height:14px;border-radius:3px;background:#FFE0B2;border:1px solid #FFCC80;"></div>Ocupado</div>
+            <div style="display:flex;align-items:center;gap:var(--sp-2);"><div style="width:14px;height:14px;border-radius:3px;background:#FFCDD2;border:1px solid #EF9A9A;"></div>Bloqueado</div>
+        </div>
+        <div style="display:flex;gap:var(--sp-2);">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-prev">‹ Anterior</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-next">Siguiente ›</button>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 360px;gap:var(--sp-6);margin-bottom:var(--sp-6);">
+    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+        <div id="calendar-grid" class="calendar-grid" role="grid" aria-label="Calendario de disponibilidad"></div>
+    </div>
+    <div>
+        <div class="card" style="margin-bottom:var(--sp-5);">
+            <div style="padding:var(--sp-4) var(--sp-5);background:var(--color-surface-alt);border-bottom:1px solid var(--color-border-light);font-weight:700;font-size:.875rem;">Bloquear horario</div>
+            <div style="padding:var(--sp-5);">
+                <div class="form-group">
+                    <label class="form-label">Desde</label>
+                    <input type="datetime-local" id="blqInicio" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hasta</label>
+                    <input type="datetime-local" id="blqFin" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Motivo (opcional)</label>
+                    <input type="text" id="blqMotivo" class="form-control" maxlength="200" />
+                </div>
+                <button type="button" class="btn btn-secondary w-full" id="btn-bloquear">Bloquear</button>
+            </div>
+        </div>
+        @if (bloqueos.Any())
+        {
+            <div class="card" style="overflow:hidden;">
+                <div style="padding:var(--sp-4) var(--sp-5);background:var(--color-surface-alt);border-bottom:1px solid var(--color-border-light);font-weight:700;font-size:.875rem;">Bloqueos activos</div>
+                @foreach (var b in bloqueos.OrderBy(x => x.FechaHoraInicio))
+                {
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--color-border-light);font-size:.855rem;">
+                        <div>
+                            <div style="font-weight:600;">@b.FechaHoraInicio.ToString("dd/MM HH:mm") — @b.FechaHoraFin.ToString("dd/MM HH:mm")</div>
+                            @if (!string.IsNullOrWhiteSpace(b.Motivo)) { <div class="text-meta" style="font-size:.75rem;">@b.Motivo</div> }
+                        </div>
+                        <button type="button" class="btn btn-ghost btn-sm btn-desbloquear" data-id="@b.BloqueoId" style="color:var(--color-danger);">✕</button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6) var(--sp-8);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-5);flex-wrap:wrap;gap:var(--sp-3);">
+        <div>
+            <h3 style="font-size:1.0625rem;font-weight:700;color:var(--color-primary);margin:0;">🕐 Horario semanal</h3>
+            <p class="text-meta" style="margin-top:2px;">Configura los horarios en que aceptas citas</p>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-guardar-horario">Guardar horario</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:var(--sp-3);" id="horario-semanal">
+        @foreach (var dia in diasOrden)
+        {
+            var h = horarios.GetValueOrDefault(dia);
+            var activo = h?.Estado ?? false;
+            <div class="horario-row" data-dia="@dia" style="display:grid;grid-template-columns:120px 1fr 1fr 80px;gap:var(--sp-4);align-items:center;padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-lg);opacity:@(activo ? "1" : ".5");">
+                <label style="font-weight:600;font-size:.9rem;color:var(--color-primary);display:flex;align-items:center;gap:var(--sp-2);">
+                    <input type="checkbox" class="horario-activo" @(activo ? "checked" : "") style="accent-color:var(--color-accent);" /> @nombresDia[dia]
+                </label>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label" style="font-size:.75rem;">Desde</label>
+                    <input type="time" class="form-control horario-inicio" value="@(h?.HoraInicio.ToString("HH:mm") ?? "08:00")" @(!activo ? "disabled" : "") />
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label" style="font-size:.75rem;">Hasta</label>
+                    <input type="time" class="form-control horario-fin" value="@(h?.HoraFin.ToString("HH:mm") ?? "18:00")" @(!activo ? "disabled" : "") />
+                </div>
+                <span class="badge @(activo ? "badge-success" : "badge-muted") horario-badge" style="justify-self:center;">@(activo ? "Activo" : "Inactivo")</span>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script>
+const CITAS_DIAS = @Html.Raw(ViewBag.CitasJson ?? "[]");
+const BLOQUEOS = @Html.Raw(ViewBag.BloqueosJson ?? "[]");
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let currentYear, currentMonth;
+
+function initCalendario() {
+  const now = new Date();
+  currentYear = now.getFullYear();
+  currentMonth = now.getMonth();
+  renderCalendar();
+}
+
+function dayState(y, m, d) {
+  const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  for (const b of BLOQUEOS) {
+    const ini = new Date(b.inicio), fin = new Date(b.fin);
+    const cur = new Date(key);
+    if (cur >= ini && cur <= fin) return 'blocked';
+  }
+  if (CITAS_DIAS.includes(key)) return 'busy';
+  return 'available';
+}
+
+function renderCalendar() {
+  document.getElementById('cal-titulo').textContent = `${MESES[currentMonth]} ${currentYear}`;
+  const grid = document.getElementById('calendar-grid');
+  grid.innerHTML = '';
+  ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].forEach(h => {
+    const el = document.createElement('div');
+    el.className = 'cal-header'; el.textContent = h;
+    grid.appendChild(el);
+  });
+  const first = new Date(currentYear, currentMonth, 1).getDay();
+  const offset = first === 0 ? 6 : first - 1;
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const today = new Date();
+  for (let i = 0; i < offset; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'cal-day empty';
+    grid.appendChild(blank);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const st = dayState(currentYear, currentMonth, d);
+    const cell = document.createElement('div');
+    cell.className = 'cal-day ' + (st === 'blocked' ? 'blocked' : st === 'busy' ? 'busy' : 'available');
+    if (today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === d) cell.classList.add('today');
+    cell.innerHTML = `<span>${d}</span>`;
+    grid.appendChild(cell);
+  }
+}
+
+document.getElementById('btn-prev')?.addEventListener('click', () => {
+  currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  renderCalendar();
+});
+document.getElementById('btn-next')?.addEventListener('click', () => {
+  currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  renderCalendar();
+});
+
+document.querySelectorAll('.horario-row .horario-activo').forEach(cb => {
+  cb.addEventListener('change', function() {
+    const row = this.closest('.horario-row');
+    row.querySelectorAll('input[type="time"]').forEach(t => t.disabled = !this.checked);
+    row.style.opacity = this.checked ? '1' : '0.5';
+    const badge = row.querySelector('.horario-badge');
+    badge.className = 'badge horario-badge ' + (this.checked ? 'badge-success' : 'badge-muted');
+    badge.textContent = this.checked ? 'Activo' : 'Inactivo';
+  });
+});
+
+document.getElementById('btn-guardar-horario')?.addEventListener('click', async () => {
+  const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+  const horarios = [];
+  document.querySelectorAll('.horario-row').forEach(row => {
+    const activo = row.querySelector('.horario-activo').checked;
+    if (!activo) return;
+    horarios.push({
+      diaSemana: parseInt(row.dataset.dia, 10),
+      horaInicio: row.querySelector('.horario-inicio').value + ':00',
+      horaFin: row.querySelector('.horario-fin').value + ':00',
+      estado: true
+    });
+  });
+  const res = await fetch('/Calendario/GuardarDisponibilidad', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'RequestVerificationToken': token
+    },
+    body: JSON.stringify(horarios)
+  });
+  const d = await res.json();
+  if (typeof showToast === 'function') showToast({ title: d.exito ? 'Horarios guardados' : 'Error', message: d.mensaje || '', type: d.exito ? 'success' : 'error' });
+});
+
+document.getElementById('btn-bloquear')?.addEventListener('click', async () => {
+  const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+  const inicio = document.getElementById('blqInicio').value;
+  const fin = document.getElementById('blqFin').value;
+  const motivo = document.getElementById('blqMotivo').value;
+  if (!inicio || !fin) {
+    if (typeof showToast === 'function') showToast({ title: 'Completa las fechas', type: 'warning' });
+    return;
+  }
+  const res = await fetch('/Calendario/Bloquear', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `inicio=${encodeURIComponent(inicio)}&fin=${encodeURIComponent(fin)}&motivo=${encodeURIComponent(motivo)}&__RequestVerificationToken=${encodeURIComponent(token)}`
+  });
+  const d = await res.json();
+  if (typeof showToast === 'function') showToast({ title: d.exito ? 'Bloqueado' : 'Error', message: d.mensaje || '', type: d.exito ? 'success' : 'error' });
+  if (d.exito) setTimeout(() => location.reload(), 800);
+});
+
+document.querySelectorAll('.btn-desbloquear').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+    const res = await fetch('/Calendario/Desbloquear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `bloqueoId=${btn.dataset.id}&__RequestVerificationToken=${encodeURIComponent(token)}`
+    });
+    const d = await res.json();
+    if (typeof showToast === 'function') showToast({ title: d.exito ? 'Desbloqueado' : 'Error', type: d.exito ? 'success' : 'error' });
+    if (d.exito) setTimeout(() => location.reload(), 800);
+  });
+});
+
+initCalendario();
+</script>
+}

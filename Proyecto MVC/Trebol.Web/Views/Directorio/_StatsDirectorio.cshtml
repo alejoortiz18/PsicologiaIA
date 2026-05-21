@@ -1,0 +1,35 @@
+@{
+    var stat1Icon = ViewData["Stat1Icon"] as string ?? "📋";
+    var stat1Label = ViewData["Stat1Label"] as string ?? "Total";
+    var stat1Value = ViewData["Stat1Value"] as string ?? "0";
+    var stat2Icon = ViewData["Stat2Icon"] as string ?? "✓";
+    var stat2Label = ViewData["Stat2Label"] as string ?? "";
+    var stat2Value = ViewData["Stat2Value"] as string ?? "—";
+    var stat3Icon = ViewData["Stat3Icon"] as string ?? "❤️";
+    var stat3Label = ViewData["Stat3Label"] as string ?? "";
+    var stat3Value = ViewData["Stat3Value"] as string ?? "—";
+}
+
+<div class="stats-grid mb-6" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">@stat1Icon</div>
+        <div>
+            <div class="stat-card__label">@stat1Label</div>
+            <div class="stat-card__value">@stat1Value</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">@stat2Icon</div>
+        <div>
+            <div class="stat-card__label">@stat2Label</div>
+            <div class="stat-card__value">@stat2Value</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">@stat3Icon</div>
+        <div>
+            <div class="stat-card__label">@stat3Label</div>
+            <div class="stat-card__value">@stat3Value</div>
+        </div>
+    </div>
+</div>

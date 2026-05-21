@@ -48,7 +48,13 @@ else
                             <span class="badge badge-muted">@sala.Categoria</span>
                         }
                     </div>
-                    <a asp-controller="Salas" asp-action="Detalle" asp-route-id="@sala.SalaId" class="btn btn-primary btn-sm">Ver sala</a>
+                    <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
+                        @if (User.IsInRole("Profesional") && sala.Estado.ToString() == "Abierta")
+                        {
+                            <a asp-controller="Salas" asp-action="SalaConferenciaProfesional" asp-route-id="@sala.SalaId" class="btn btn-primary btn-sm">▶ Gestionar</a>
+                        }
+                        <a asp-controller="Salas" asp-action="Detalle" asp-route-id="@sala.SalaId" class="btn btn-ghost btn-sm">Ver sala</a>
+                    </div>
                 </div>
             </div>
         }

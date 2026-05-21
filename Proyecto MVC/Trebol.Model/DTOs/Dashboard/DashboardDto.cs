@@ -1,4 +1,15 @@
+using Trebol.Model.DTOs.Publico;
+
 namespace Trebol.Model.DTOs.Dashboard;
+
+public class CitaHoyProfesionalDto
+{
+    public int      CitaId       { get; set; }
+    public string   AliasUsuario { get; set; } = string.Empty;
+    public DateTime FechaHora    { get; set; }
+    public string   Tipo         { get; set; } = string.Empty;
+    public string   Estado       { get; set; } = string.Empty;
+}
 
 public class DashboardUsuarioDto
 {
@@ -19,6 +30,8 @@ public class DashboardProfesionalDto
     public decimal IngresosMes         { get; set; }
     public CitaResumenDto? ProximaCita { get; set; }
     public List<SalaResumenDto> Salas  { get; set; } = [];
+    public List<CitaHoyProfesionalDto> CitasHoyLista { get; set; } = [];
+    public List<EventoPublicoDto> EventosColegas { get; set; } = [];
 }
 
 public class CitaResumenDto

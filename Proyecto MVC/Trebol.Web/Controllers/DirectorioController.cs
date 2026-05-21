@@ -15,6 +15,7 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
     public async Task<IActionResult> Especialistas([FromQuery] FiltroDirectorioDto filtro)
     {
         var lista = await directorioRepo.ObtenerEspecialistasAsync(filtro, IdentidadId);
+        ViewBag.Filtro = filtro;
         return View(lista);
     }
 
@@ -22,6 +23,7 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
     public async Task<IActionResult> Psicologos([FromQuery] FiltroDirectorioDto filtro)
     {
         var lista = await directorioRepo.ObtenerPsicologosAsync(filtro, IdentidadId);
+        ViewBag.Filtro = filtro;
         return View(lista);
     }
 

@@ -1,0 +1,51 @@
+---
+description: Alineación obligatoria de vistas MVC con Prototipo/ y decisiones autónomas de calidad para Trébol
+alwaysApply: true
+---
+
+# Trébol — Prototipo primero y decisiones autónomas
+
+## Directriz del producto (prioridad máxima)
+
+Toda vista Razor (`Trebol.Web/Views/**`) MUST estar **alineada con su HTML equivalente** en `Prototipo/`.
+
+Antes de escribir o modificar una vista:
+
+1. Abrir el `.html` de referencia en `Prototipo/` (mapa: `specs/001-profesional-vistas-prototipo/prototipo-mapa.md`).
+2. Replicar **estructura** (sidebar, secciones, paneles, tabs, tablas), **jerarquía visual** y **copy** del prototipo.
+3. Usar **`wwwroot/css/trebol.css`** y **`wwwroot/js/trebol.js`**; no Bootstrap suelto ni CSS ad hoc salvo bloques `@section Styles` ya usados en vistas similares.
+4. Cumplir **`Documentos/Requerimientos/reglas-ui-ux-frontend.md`** (modales, toasts, es-CO, UTF-8).
+
+Si el requerimiento refinado y el prototipo difieren en un detalle menor, **prevalece el prototipo** salvo conflicto de seguridad o datos; documentar la excepción en la spec activa.
+
+## Decisiones autónomas (no preguntar salvo bloqueo)
+
+El agente MUST tomar la **mejor decisión técnica y de producto** para Trébol cuando el usuario no especifique detalle:
+
+- Refinar specs, checklists y mapas prototipo cuando detecte huecos.
+- Elegir la solución **más simple correcta** (diff mínimo, sin over-engineering).
+- Priorizar: **paridad prototipo** → reglas UI/UX → requerimiento refinado → código existente.
+- Corregir bugs obvios encontrados en el camino (p. ej. HTTP 500 en directorio) si están en el alcance de la tarea.
+- Proponer y ejecutar el siguiente paso lógico (plan, tareas, implementación, E2E) sin pedir permiso para refinamientos rutinarios.
+
+Preguntar al usuario **solo** cuando:
+
+- Hay trade-off de producto irreversible (alcance, precio, legal).
+- Faltan credenciales o entorno (BD, SMTP, app no levantada).
+- Dos opciones válidas cambian el modelo de negocio de forma sustancial.
+
+## Checklist rápido antes de dar por hecha una vista
+
+- [ ] HTML prototipo revisado lado a lado
+- [ ] Mismo menú lateral / tabs / acciones principales
+- [ ] Componentes estándar reutilizados (modal §BandejaNotificaciones, tablas paginadas, toasts `showToast`)
+- [ ] Sin `alert` / `confirm` / `prompt`
+- [ ] Texto es-CO con tildes correctas
+- [ ] Estado vacío y errores con feedback visible (modal o toast según reglas UI §4)
+- [ ] Captura o script E2E actualizado si la vista es crítica
+
+Política global completa: `.cursor/rules/trebol-datos-reales-y-prueba-visual.mdc`
+
+## Spec activa
+
+Feature en curso: `specs/001-profesional-vistas-prototipo/` — vistas del rol **Profesional**.

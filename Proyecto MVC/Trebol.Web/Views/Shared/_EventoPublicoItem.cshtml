@@ -1,0 +1,31 @@
+@model Trebol.Model.DTOs.Publico.EventoPublicoDto
+@{
+    var esHoy = Model.FechaInicio.HasValue && Model.FechaInicio.Value.Date == DateTime.Today;
+    var enVivo = esHoy && Model.Estado == "Abierta";
+    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0");
+    var iniciales = string.Join("", Model.NombreProfesional.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+}
+<div class="event-list-item">
+    <div class="event-list-item__thumb" style="background:linear-gradient(135deg,var(--color-primary),#2D6A4F);">🎪</div>
+    <div class="event-list-item__body">
+        <div class="event-list-item__title">@Model.Titulo</div>
+        <div class="event-list-item__sub">
+            @Model.NombreProfesional@(Model.Categoria != null ? $" · {Model.Categoria}" : "") · 👥 @Model.TotalInscritos/@Model.Capacidad · @precioTxt
+        </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+        @if (Model.FechaInicio.HasValue)
+        {
+            <div class="event-list-item__date">
+                <div class="event-list-item__date-num">@Model.FechaInicio.Value.ToString("dd")</div>
+                <div class="event-list-item__date-label">@Model.FechaInicio.Value.ToString("MMM")</div>
+            </div>
+        }
+        @if (enVivo)
+        {
+            <span class="badge badge-success" style="white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
+        }
+        <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-secondary btn-sm">Ver perfil</a>
+    </div>
+</div>

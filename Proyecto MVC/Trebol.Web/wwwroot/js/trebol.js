@@ -346,7 +346,8 @@ function initSidebar() {
       if (!submenu) return;
 
       const isOpen = item.classList.toggle('open');
-      submenu.style.display = isOpen ? 'block' : 'none';
+      submenu.classList.toggle('is-open', isOpen);
+      item.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
   });
 }
@@ -903,6 +904,116 @@ function openGlobalPM(name, avatar, bg) {
 }
 
 // ==========================================================================
+// TOPBAR NOTIFICATIONS (prototipo home-profesional / home-usuario)
+// ==========================================================================
+function initTopbarNotificaciones(notifs) {
+  const wrapper = document.getElementById('notif-wrapper');
+  if (!wrapper || !notifs) return;
+
+  const btn = document.getElementById('notif-btn');
+  const panel = document.getElementById('notif-panel');
+  const badge = document.getElementById('notif-badge');
+  const list = document.getElementById('notif-list');
+  const markAll = panel.querySelector('.notif-mark-all');
+  const tabs = panel.querySelectorAll('.notif-tab');
+  let activeTab = 'msg';
+
+  function countUnread(tab) {
+    return notifs[tab].filter(n => n.unread).length;
+  }
+
+  function totalUnread() {
+    return countUnread('msg') + countUnread('sys');
+  }
+
+  function updateCounts() {
+    const t = totalUnread();
+    badge.textContent = t > 9 ? '9+' : String(t);
+    badge.classList.toggle('zero', t === 0);
+    panel.querySelectorAll('.ntc').forEach(el => {
+      const c = countUnread(el.dataset.ntc);
+      el.textContent = String(c);
+      el.classList.toggle('zero', c === 0);
+    });
+  }
+
+  function renderList() {
+    const items = notifs[activeTab];
+    if (!items.length) {
+      list.innerHTML = '<div class="notif-empty">Sin notificaciones</div>';
+      return;
+    }
+    list.innerHTML = items.map(n => `
+      <div class="notif-item ${n.unread ? 'unread' : 'read'}" data-id="${n.id}" data-tab="${activeTab}" role="listitem" tabindex="0">
+        <div class="notif-item__ico" style="background:${n.bg};color:${n.col};">${n.ico}</div>
+        <div class="notif-item__body">
+          <div class="notif-item__title">${n.title}</div>
+          <div class="notif-item__sub">${n.sub}</div>
+          <div class="notif-item__time">${n.time}</div>
+        </div>
+        <div class="notif-item__dot"></div>
+      </div>`).join('');
+    list.querySelectorAll('.notif-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const notif = notifs[el.dataset.tab].find(n => n.id === +el.dataset.id);
+        if (notif) {
+          notif.unread = false;
+          if (el.dataset.tab === 'msg') {
+            fetch(`/api/notificaciones/marcar-leida/${notif.id}`, { method: 'POST' }).catch(() => {});
+          }
+          renderList();
+          updateCounts();
+        }
+      });
+    });
+  }
+
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => {
+      x.classList.remove('active');
+      x.setAttribute('aria-selected', 'false');
+    });
+    t.classList.add('active');
+    t.setAttribute('aria-selected', 'true');
+    activeTab = t.dataset.tab;
+    renderList();
+  }));
+
+  markAll.addEventListener('click', () => {
+    notifs[activeTab].forEach(n => { n.unread = false; });
+    if (activeTab === 'msg') {
+      fetch('/api/notificaciones/marcar-todas-leidas', { method: 'POST' }).catch(() => {});
+    }
+    renderList();
+    updateCounts();
+  });
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = panel.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(open));
+    if (open) renderList();
+  });
+
+  document.addEventListener('click', e => {
+    if (!wrapper.contains(e.target)) {
+      panel.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && panel.classList.contains('open')) {
+      panel.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.focus();
+    }
+  });
+
+  updateCounts();
+}
+
+// ==========================================================================
 // INIT — Run on DOMContentLoaded
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -911,6 +1022,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Init sidebar
   initSidebar();
+
+  if (document.getElementById('notif-wrapper')) {
+    fetch('/api/notificaciones/resumen')
+      .then(r => r.ok ? r.json() : { msg: [], sys: [] })
+      .then(data => initTopbarNotificaciones(data))
+      .catch(() => initTopbarNotificaciones({ msg: [], sys: [] }));
+  }
 
   // Init global private messaging
   GlobalPM.init();

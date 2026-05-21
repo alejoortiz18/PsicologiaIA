@@ -9,14 +9,15 @@ using Trebol.Web.ViewModels.Auth;
 
 namespace Trebol.Web.Controllers;
 
-public class LoginController(ILoginRepository loginRepo) : Controller
+public class LoginController(ILoginRepository loginRepo, ILandingRepository landingRepo) : Controller
 {
     // GET /Login
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken ct)
     {
         if (User.Identity?.IsAuthenticated == true)
             return RedirectByRole();
+        ViewBag.Estadisticas = await landingRepo.ObtenerEstadisticasAsync(ct);
         return View();
     }
 

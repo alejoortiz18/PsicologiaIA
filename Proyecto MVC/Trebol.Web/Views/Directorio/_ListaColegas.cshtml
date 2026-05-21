@@ -1,0 +1,73 @@
+@model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
+@{
+    string Iniciales(string nombre)
+    {
+        var partes = (nombre ?? "??").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(partes.Take(2).Select(p => p.Length > 0 ? char.ToUpper(p[0]) : '?'));
+    }
+    var avatarColors = new[] { "#2D4A8F", "#8E44AD", "#1A7A5C", "#C0392B", "#D35400" };
+}
+
+@if (!Model.Any())
+{
+    <div class="empty-state" id="colega-empty">
+        <div class="empty-state__icon" aria-hidden="true">🤝</div>
+        <div class="empty-state__title">Aún no tienes colegas vinculados</div>
+        <p style="max-width:420px;margin:0 auto;font-size:.875rem;">
+            Explora <a asp-controller="Directorio" asp-action="Especialistas">Especialistas</a> o
+            <a asp-controller="Directorio" asp-action="Psicologos">Psicólogos</a> y usa «Agregar colega» en su perfil.
+        </p>
+    </div>
+}
+else
+{
+    <div class="colega-list" id="colega-list" aria-live="polite" aria-label="Lista de colegas">
+        @{ var i = 0; }
+        @foreach (var p in Model)
+        {
+            var ini = Iniciales(p.NombreCompleto);
+            var color = avatarColors[i % avatarColors.Length];
+            i++;
+            var nombreBusqueda = (p.NombreCompleto ?? "").ToLowerInvariant();
+            <article class="colega-card" data-nombre="@nombreBusqueda">
+                <div class="colega-card__avatar" style="background:@color;">@ini</div>
+                <div class="colega-card__body">
+                    <div class="colega-card__name">@p.NombreCompleto</div>
+                    @if (!string.IsNullOrEmpty(p.Titulo))
+                    {
+                        <div class="colega-card__role">@p.Titulo</div>
+                    }
+                    @if (p.Especialidades.Any())
+                    {
+                        <div class="colega-card__tags">
+                            @foreach (var esp in p.Especialidades.Take(5))
+                            {
+                                <span class="badge badge-muted" style="font-size:.75rem;">@esp</span>
+                            }
+                        </div>
+                    }
+                    <div class="colega-card__meta">
+                        @if (!string.IsNullOrEmpty(p.Ciudad))
+                        {
+                            <span>📍 @p.Ciudad</span>
+                        }
+                        @if (p.Calificacion.HasValue)
+                        {
+                            <span> · ⭐ @p.Calificacion.Value.ToString("F1")</span>
+                        }
+                    </div>
+                    <div class="colega-card__actions">
+                        <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@p.ProfesionalId"
+                           class="btn btn-ghost btn-sm">Ver perfil</a>
+                        <a asp-controller="Mensajeria" asp-action="Index"
+                           class="btn btn-secondary btn-sm">💬 Mensaje</a>
+                        <button type="button" class="btn btn-ghost btn-sm btn-colega btn-desvincular"
+                                data-id="@p.ProfesionalId" style="color:var(--color-danger);">
+                            Desvincular
+                        </button>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+}

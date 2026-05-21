@@ -4,6 +4,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Trebol.Domain.Interfaces;
+using Trebol.Model.DTOs.Dashboard;
+using Trebol.Model.DTOs.Publico;
 using Trebol.Model.DTOs.Sala;
 using Trebol.Model.Entities.TrebolEntities;
 using Trebol.Model.Models;
@@ -24,6 +26,28 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
         using var conn = CrearConexion();
         var result = await conn.QueryAsync<SalaDto>(
             "sp_ObtenerSalasPorProfesional",
+            new { ProfesionalId = profesionalId },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosColegasAsync(
+        int profesionalId, int limite = 30, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerEventosColegas",
+            new { ProfesionalId = profesionalId, Limite = limite },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<SalaResumenDto>> ObtenerActivasHoyPorProfesionalAsync(
+        int profesionalId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<SalaResumenDto>(
+            "sp_ObtenerSalasActivasHoyProfesional",
             new { ProfesionalId = profesionalId },
             commandType: CommandType.StoredProcedure);
         return result.AsList();
@@ -54,6 +78,34 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
                             CategoriaId   = s.CategoriaId
                         })
                         .FirstOrDefaultAsync(ct);
+
+    public async Task<SalaConferenciaProfesionalDto?> ObtenerConferenciaProfesionalAsync(
+        int salaId, int profesionalId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.QueryFirstOrDefaultAsync<SalaConferenciaProfesionalDto>(
+            @"SELECT s.SalaId,
+                     s.ProfesionalId,
+                     s.Nombre AS Titulo,
+                     s.Descripcion,
+                     c.Nombre AS Categoria,
+                     s.Tipo,
+                     s.Estado,
+                     s.CupoMaximo AS Capacidad,
+                     (SELECT COUNT(*)
+                      FROM   Inscripcion i
+                      WHERE  i.SalaId = s.SalaId AND i.Estado NOT IN ('Cancelada')) AS TotalInscritos,
+                     (SELECT TOP 1 e.FechaInicio
+                      FROM   Evento e
+                      WHERE  e.SalaId = s.SalaId
+                      ORDER  BY e.FechaInicio DESC) AS FechaInicio,
+                     p.NombreCompleto AS NombreProfesional
+              FROM   Sala s
+              JOIN   Profesional p ON p.ProfesionalId = s.ProfesionalId
+              LEFT JOIN Categoria c ON c.CategoriaId = s.CategoriaId
+              WHERE  s.SalaId = @SalaId AND s.ProfesionalId = @ProfesionalId",
+            new { SalaId = salaId, ProfesionalId = profesionalId });
+    }
 
     public async Task<ResultadoOperacion<int>> CrearAsync(CrearSalaDto dto, CancellationToken ct = default)
     {

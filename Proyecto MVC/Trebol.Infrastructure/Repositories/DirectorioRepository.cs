@@ -22,10 +22,11 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
             new
             {
                 TipoBusqueda = "Todos",
-                EspecialidadId  = filtro.EspecialidadId,
-                CiudadId        = filtro.CiudadId,
+                Especialidad = filtro.Especialidad,
+                Ciudad       = filtro.Ciudad,
                 UsuarioId    = usuarioId,
-                filtro.Pagina
+                Pagina       = filtro.Pagina,
+                TamanoPagina = filtro.TamanioPagina
             },
             commandType: CommandType.StoredProcedure);
         return result.AsList();
@@ -40,10 +41,11 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
             new
             {
                 TipoBusqueda = "Psicologos",
-                EspecialidadId  = filtro.EspecialidadId,
-                CiudadId        = filtro.CiudadId,
+                Especialidad = filtro.Especialidad,
+                Ciudad       = filtro.Ciudad,
                 UsuarioId    = usuarioId,
-                filtro.Pagina
+                Pagina       = filtro.Pagina,
+                TamanoPagina = filtro.TamanioPagina
             },
             commandType: CommandType.StoredProcedure);
         return result.AsList();

@@ -15,16 +15,23 @@
 @* Ticker bar (solo en landing) *@
 @if (ViewData["ShowTicker"] as bool? == true)
 {
-<div class="ticker-bar" aria-label="Profesional destacado">
+    var ticker = ViewData["TickerProfesionales"] as IEnumerable<Trebol.Model.DTOs.Publico.ProfesionalTickerDto>;
+    if (ticker != null && ticker.Any())
+    {
+<div class="ticker-bar" aria-label="Profesionales destacados">
     <div class="ticker-track" aria-live="off">
-        <div class="ticker-item">🍀 <strong>Dra. Valentina Ríos</strong> · Psicóloga Clínica · 12 años de experiencia · <span class="ticker-sep">|</span></div>
-        <div class="ticker-item">🎓 Especialista en Terapia Cognitivo-Conductual y manejo de ansiedad <span class="ticker-sep">|</span></div>
-        <div class="ticker-item">📅 Próximas conferencias en vivo — Bienestar · Ansiedad · Mindfulness <span class="ticker-sep">|</span></div>
-        <div class="ticker-item">🍀 <strong>Dra. Valentina Ríos</strong> · Psicóloga Clínica · 12 años de experiencia · <span class="ticker-sep">|</span></div>
-        <div class="ticker-item">🎓 Especialista en Terapia Cognitivo-Conductual y manejo de ansiedad <span class="ticker-sep">|</span></div>
-        <div class="ticker-item">📅 Próximas conferencias en vivo — Bienestar · Ansiedad · Mindfulness <span class="ticker-sep">|</span></div>
+        @foreach (var _ in Enumerable.Range(0, 2))
+        {
+            foreach (var pro in ticker)
+            {
+                var exp = pro.AnosExperiencia.HasValue ? $"{pro.AnosExperiencia} años de experiencia" : "";
+                var esp = pro.Especialidad ?? "Profesional de salud mental";
+                <div class="ticker-item">🍀 <strong>@pro.NombreCompleto</strong> · @esp@(string.IsNullOrEmpty(exp) ? "" : $" · {exp}") <span class="ticker-sep">|</span></div>
+            }
+        }
     </div>
 </div>
+    }
 }
 
 <nav class="public-nav" role="navigation" aria-label="Navegación principal">

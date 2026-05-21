@@ -1,4 +1,12 @@
 @model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
+@{
+    var esProfesional = User.IsInRole("Profesional");
+    string Iniciales(string nombre)
+    {
+        var partes = (nombre ?? "??").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(partes.Take(2).Select(p => p.Length > 0 ? char.ToUpper(p[0]) : '?'));
+    }
+}
 
 @if (!Model.Any())
 {
@@ -10,71 +18,76 @@
 }
 else
 {
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--sp-5);">
+    <div class="prof-cards-list" id="prof-list" aria-live="polite" aria-label="Lista de profesionales">
         @foreach (var p in Model)
         {
-            var ini = string.Concat((p.NombreCompleto ?? "??").Split(' ').Take(2).Select(x => x.Length > 0 ? x[0].ToString() : ""));
-            <div class="card" style="overflow:hidden;">
-                <div style="padding:var(--sp-5);display:flex;gap:var(--sp-4);align-items:flex-start;">
-                    @if (!string.IsNullOrEmpty(p.FotoUrl))
-                    {
-                        <img src="@p.FotoUrl" class="avatar" style="width:64px;height:64px;font-size:1.5rem;flex-shrink:0;" alt="foto" />
-                    }
-                    else
-                    {
-                        <div class="avatar" style="width:64px;height:64px;font-size:1.5rem;flex-shrink:0;">@ini</div>
-                    }
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-weight:700;color:var(--color-text-primary);margin-bottom:2px;">@p.NombreCompleto</div>
-                        @if (!string.IsNullOrEmpty(p.Titulo))
-                        {
-                            <div style="font-size:.8rem;color:var(--color-text-muted);margin-bottom:var(--sp-2);">@p.Titulo</div>
-                        }
-                        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:var(--sp-2);">
-                            @foreach (var esp in p.Especialidades)
+            var ini = Iniciales(p.NombreCompleto);
+            var nombreBusqueda = (p.NombreCompleto ?? "").ToLowerInvariant();
+            var espTexto = string.Join(" ", p.Especialidades).ToLowerInvariant();
+            <article class="prof-card" data-nombre="@nombreBusqueda @espTexto @(p.Titulo?.ToLowerInvariant() ?? "")">
+                @if (!string.IsNullOrEmpty(p.FotoUrl))
+                {
+                    <img src="@p.FotoUrl" class="prof-card__avatar" style="object-fit:cover;" alt="" />
+                }
+                else
+                {
+                    <div class="prof-card__avatar">@ini</div>
+                }
+                <div class="prof-card__body">
+                    <div class="prof-card__header">
+                        <div>
+                            <div class="prof-card__name">@p.NombreCompleto</div>
+                            @if (!string.IsNullOrEmpty(p.Titulo))
                             {
-                                <span class="badge badge-muted" style="font-size:.68rem;">@esp</span>
+                                <div class="prof-card__specialty">@p.Titulo</div>
                             }
                         </div>
-                        @if (!string.IsNullOrEmpty(p.Ciudad))
-                        {
-                            <div style="font-size:.75rem;color:var(--color-text-muted);">📍 @p.Ciudad</div>
-                        }
                         @if (p.Calificacion.HasValue)
                         {
-                            <div style="font-size:.75rem;color:#f59e0b;">⭐ @p.Calificacion.Value.ToString("F1")</div>
+                            <span style="font-size:.8125rem;color:#f59e0b;white-space:nowrap;">⭐ @p.Calificacion.Value.ToString("F1")</span>
+                        }
+                    </div>
+                    <div class="prof-card__meta">
+                        @if (!string.IsNullOrEmpty(p.Ciudad))
+                        {
+                            <span>📍 @p.Ciudad</span>
+                        }
+                        @if (p.TotalSeguidos > 0)
+                        {
+                            <span>👥 @p.TotalSeguidos seguidores</span>
+                        }
+                    </div>
+                    @if (p.Especialidades.Any())
+                    {
+                        <div style="display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:var(--sp-3);">
+                            @foreach (var esp in p.Especialidades.Take(4))
+                            {
+                                <span class="badge badge-muted" style="font-size:.75rem;">@esp</span>
+                            }
+                        </div>
+                    }
+                    <div class="prof-card__actions">
+                        @if (!esProfesional)
+                        {
+                            <a asp-controller="Citas" asp-action="NuevaCita" asp-route-profesionalId="@p.ProfesionalId"
+                               class="btn btn-primary btn-sm">Agendar</a>
+                            <button type="button" class="btn btn-secondary btn-sm btn-seguir"
+                                    data-id="@p.ProfesionalId">
+                                @(p.EsSeguido ? "Dejar de seguir" : "Seguir")
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@p.ProfesionalId"
+                               class="btn btn-primary btn-sm">Ver perfil</a>
+                            <button type="button" class="btn btn-secondary btn-sm btn-colega"
+                                    data-id="@p.ProfesionalId">
+                                Agregar colega
+                            </button>
                         }
                     </div>
                 </div>
-                <div style="padding:var(--sp-3) var(--sp-5);border-top:1px solid var(--color-border-light);display:flex;gap:var(--sp-2);">
-                    <a asp-controller="Citas" asp-action="NuevaCita" asp-route-profesionalId="@p.ProfesionalId"
-                       class="btn btn-primary btn-sm">Agendar</a>
-                    <button class="btn btn-secondary btn-sm"
-                            onclick="toggleSeguir(@p.ProfesionalId, this)">
-                        @(p.EsSeguido ? "Dejar de seguir" : "Seguir")
-                    </button>
-                </div>
-            </div>
+            </article>
         }
     </div>
-}
-
-@section Scripts {
-<script>
-function toggleSeguir(profesionalId, btn) {
-    fetch('/Directorio/ToggleSeguir', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value ?? '' },
-        body: `profesionalId=${profesionalId}`
-    })
-    .then(r => r.json())
-    .then(d => {
-        if (d.exito) {
-            const siguiendo = btn.textContent.trim() === 'Seguir';
-            btn.textContent = siguiendo ? 'Dejar de seguir' : 'Seguir';
-        }
-    });
-}
-</script>
-@Html.AntiForgeryToken()
 }

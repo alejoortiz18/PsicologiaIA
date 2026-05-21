@@ -1,0 +1,39 @@
+@model Trebol.Model.DTOs.Directorio.FiltroDirectorioDto
+@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "Especialistas";
+    var placeholder = ViewData["FiltroPlaceholder"] as string ?? "Buscar por nombre o especialidad…";
+}
+
+<form method="get" asp-action="@action" class="prof-filter-bar" role="search">
+    <div class="filter-search">
+        <input type="search" id="filter-search" name="Especialidad"
+               value="@Model?.Especialidad"
+               placeholder="@placeholder"
+               aria-label="Buscar profesionales" />
+    </div>
+    <input type="hidden" name="Pagina" value="1" />
+    <select name="Ciudad" id="filter-ciudad" aria-label="Filtrar por ciudad">
+        <option value="">Todas las ciudades</option>
+        @{
+            var ciudades = ViewBag.Ciudades as IEnumerable<string> ?? [];
+            var ciudadSel = Model?.Ciudad ?? "";
+        }
+        @foreach (var c in ciudades)
+        {
+            if (string.Equals(c, ciudadSel, StringComparison.OrdinalIgnoreCase))
+            {
+                <option value="@c" selected="selected">@c</option>
+            }
+            else
+            {
+                <option value="@c">@c</option>
+            }
+        }
+        @if (!string.IsNullOrWhiteSpace(ciudadSel) && !ciudades.Contains(ciudadSel, StringComparer.OrdinalIgnoreCase))
+        {
+            <option value="@ciudadSel" selected="selected">@ciudadSel</option>
+        }
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
+    <a asp-action="@action" class="btn btn-ghost btn-sm">Limpiar</a>
+</form>

@@ -1,0 +1,60 @@
+<script>
+(function () {
+  const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
+  document.querySelectorAll('.btn-seguir').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const res = await fetch('/Directorio/ToggleSeguir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+        body: `profesionalId=${id}&__RequestVerificationToken=${encodeURIComponent(token)}`
+      });
+      const d = await res.json();
+      if (d.exito && typeof showToast === 'function') {
+        showToast({ title: d.mensaje, type: 'success' });
+        const siguiendo = btn.textContent.trim() === 'Seguir';
+        btn.textContent = siguiendo ? 'Dejar de seguir' : 'Seguir';
+      }
+    });
+  });
+
+  document.querySelectorAll('.btn-colega').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const esDesvincular = btn.classList.contains('btn-desvincular');
+      const res = await fetch('/Directorio/ToggleColega', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+        body: `colegaId=${id}&__RequestVerificationToken=${encodeURIComponent(token)}`
+      });
+      const d = await res.json();
+      if (typeof showToast === 'function') {
+        showToast({ title: d.exito ? d.mensaje : (d.mensaje || 'Error'), type: d.exito ? 'success' : 'error' });
+      }
+      if (d.exito && esDesvincular) {
+        btn.closest('.colega-card')?.remove();
+        const list = document.getElementById('colega-list');
+        const info = document.getElementById('results-info-colegas');
+        if (list && info) {
+          const total = list.querySelectorAll('.colega-card').length;
+          info.textContent = total > 0 ? total + ' colega' + (total === 1 ? '' : 's') : '';
+          if (total === 0) {
+            list.innerHTML = '';
+            const empty = document.createElement('div');
+            empty.className = 'empty-state';
+            empty.id = 'colega-empty';
+            empty.innerHTML = '<div class="empty-state__icon" aria-hidden="true">🤝</div>' +
+              '<div class="empty-state__title">Aún no tienes colegas vinculados</div>' +
+              '<p style="max-width:420px;margin:0 auto;font-size:.875rem;">Explora Especialistas o Psicólogos y usa «Agregar colega».</p>';
+            list.parentElement?.appendChild(empty);
+          }
+        }
+      } else if (d.exito && !esDesvincular) {
+        btn.textContent = 'Solicitud enviada';
+        btn.disabled = true;
+      }
+    });
+  });
+})();
+</script>

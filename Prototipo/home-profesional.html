@@ -291,15 +291,17 @@
       </div>
     </nav>
     <div class="sidebar__footer">
-      <div class="sidebar__user sidebar__user-menu" id="user-menu">
-        <div class="sidebar__user-avatar" id="sidebar-avatar" style="background:var(--color-primary);">VR</div>
-        <div style="flex:1;min-width:0;">
-          <div class="sidebar__user-name" id="sidebar-name">Dra. Valentina Ríos</div>
-          <div class="sidebar__user-role">Profesional</div>
+      <div class="sidebar__user-menu" id="user-menu">
+        <div class="sidebar__user">
+          <div class="sidebar__user-avatar" id="sidebar-avatar" style="background:var(--color-primary);">VR</div>
+          <div class="sidebar__user-meta">
+            <div class="sidebar__user-name" id="sidebar-name">Dra. Valentina Ríos</div>
+            <div class="sidebar__user-role">Profesional</div>
+          </div>
+          <button type="button" class="sidebar__user-dots" id="user-dots-btn" aria-label="Opciones de usuario" aria-expanded="false" aria-haspopup="true">⋯</button>
         </div>
-        <button class="sidebar__user-dots" id="user-dots-btn" aria-label="Opciones de usuario" aria-expanded="false" aria-haspopup="true">⋯</button>
         <div class="sidebar__user-dropdown" id="user-dropdown" role="menu">
-          <button onclick="doLogout()" role="menuitem">
+          <button type="button" onclick="doLogout()" role="menuitem">
             <span aria-hidden="true">🚪</span> Cerrar sesión
           </button>
         </div>

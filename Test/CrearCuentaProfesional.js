@@ -33,7 +33,7 @@ const BASE_URL             = 'https://localhost:7072';
 /** Admin Trebol para bandeja y confirmación (ingreso al sistema antes de ConfirmarEmail). */
 const ADMIN_CANDIDATES = [
   { correo: 'psicologiatrevol@gmail.com', pass: 'Gm41l.C0m' },
-  { correo: 'reisavertv@gmail.com', pass: 'Gm41l.C0m1.' },
+  { correo: 'psicologiatrevol@gmail.com', pass: 'Gm41l.C0m' },
 ];
 const ADMIN_CORREO         = ADMIN_CANDIDATES[0].correo;
 const ADMIN_PASSWORD       = ADMIN_CANDIDATES[0].pass;

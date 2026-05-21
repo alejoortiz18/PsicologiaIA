@@ -15,6 +15,7 @@ namespace Trebol.Web.Controllers;
 public class RegistroController(
     IUsuarioRepository     usuarioRepo,
     IProfesionalRepository profesionalRepo,
+    ILandingRepository     landingRepo,
     IEmailHelper           emailHelper,
     IPasswordHelper        passwordHelper,
     ITokenHelper           tokenHelper,
@@ -22,7 +23,11 @@ public class RegistroController(
 {
     // GET /Registro/SeleccionPerfil
     [HttpGet]
-    public IActionResult SeleccionPerfil() => View();
+    public async Task<IActionResult> SeleccionPerfil(CancellationToken ct)
+    {
+        ViewBag.Estadisticas = await landingRepo.ObtenerEstadisticasAsync(ct);
+        return View();
+    }
 
     // GET /Registro/RegistroUsuario
     [HttpGet]

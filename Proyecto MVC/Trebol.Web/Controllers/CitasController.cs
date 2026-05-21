@@ -19,13 +19,10 @@ public class CitasController(ICitaRepository citaRepo) : Controller
         return View(citas);
     }
 
-    // GET /Citas/ListaProfesional
     [Authorize(Roles = "Profesional")]
-    public async Task<IActionResult> ListaProfesional(string estado = "Todos", int pagina = 1)
+    public IActionResult ListaProfesional(string estado = "Todos", int pagina = 1)
     {
-        var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var citas         = await citaRepo.ObtenerPorProfesionalAsync(profesionalId, estado, pagina);
-        return View(citas);
+        return RedirectToAction("Citas", "PerfilProfesional", new { estado });
     }
 
     // GET /Citas/NuevaCita?profesionalId=5

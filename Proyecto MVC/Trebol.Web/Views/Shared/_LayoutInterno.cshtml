@@ -28,30 +28,34 @@
 
         @await Html.PartialAsync("_MenuLateral")
 
+        @{
+            var nombreUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+                ?? User.Identity?.Name
+                ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                ?? "Usuario";
+            var inicialesUsuario = string.Join("", nombreUsuario.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+            if (string.IsNullOrEmpty(inicialesUsuario)) inicialesUsuario = "U";
+            var rolEtiqueta = User.IsInRole("Admin") ? "Administrador"
+                : User.IsInRole("Profesional") ? "Profesional"
+                : "Usuario";
+        }
         <div class="sidebar__footer">
-            <div class="sidebar__user sidebar__user-menu" id="user-menu">
-                <div class="sidebar__user-avatar" id="sidebar-avatar">
-                    @{
-                        var nombre = User.Identity?.Name ?? "U";
-                        var iniciales = string.Join("", nombre.Split(' ').Take(2).Select(p => p.Length > 0 ? p[0].ToString() : "")).ToUpper();
-                        if (iniciales.Length == 0) iniciales = "U";
-                    }
-                    @iniciales
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <div class="sidebar__user-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@User.Identity?.Name</div>
-                    <div class="sidebar__user-role">
-                        @if (User.IsInRole("Admin")) { <text>Administrador</text> }
-                        else if (User.IsInRole("Profesional")) { <text>Profesional</text> }
-                        else { <text>Usuario</text> }
+            <div class="sidebar__user-menu" id="user-menu">
+                <div class="sidebar__user">
+                    <div class="sidebar__user-avatar" id="sidebar-avatar">@inicialesUsuario</div>
+                    <div class="sidebar__user-meta">
+                        <div class="sidebar__user-name" id="sidebar-name" title="@nombreUsuario">@nombreUsuario</div>
+                        <div class="sidebar__user-role">@rolEtiqueta</div>
                     </div>
+                    <button type="button" class="sidebar__user-dots" id="user-dots-btn"
+                            aria-label="Opciones de usuario" aria-expanded="false" aria-haspopup="true">⋯</button>
                 </div>
-                <button class="sidebar__user-dots" id="user-dots-btn" aria-label="Opciones de usuario" aria-expanded="false" aria-haspopup="true">⋯</button>
                 <div class="sidebar__user-dropdown" id="user-dropdown" role="menu">
                     <form asp-controller="Login" asp-action="Logout" method="post">
                         @Html.AntiForgeryToken()
                         <button type="submit" role="menuitem">
-                            <span>🚪</span> Cerrar sesión
+                            <span aria-hidden="true">🚪</span> Cerrar sesión
                         </button>
                     </form>
                 </div>
@@ -68,7 +72,18 @@
             <span class="topbar__title">@(ViewData["Title"] ?? "Trébol")</span>
             <div class="topbar__spacer"></div>
             <div class="topbar__actions">
-                @RenderSection("TopbarActions", required: false)
+                @if (IsSectionDefined("TopbarActions"))
+                {
+                    @await RenderSectionAsync("TopbarActions", required: false)
+                }
+                else if (User.IsInRole("Profesional"))
+                {
+                    @await Html.PartialAsync("_TopbarAccionesProfesional")
+                }
+                else if (User.IsInRole("Usuario"))
+                {
+                    @await Html.PartialAsync("_TopbarAccionesUsuario")
+                }
             </div>
         </header>
 
@@ -122,23 +137,12 @@
             const open = dropdown.classList.toggle('open');
             dotsBtn.setAttribute('aria-expanded', open);
         });
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
         document.addEventListener('click', () => {
             dropdown.classList.remove('open');
             dotsBtn?.setAttribute('aria-expanded', 'false');
         });
     }
-    // Sidebar submenu toggles
-    document.querySelectorAll('[data-submenu]').forEach(toggle => {
-        toggle.addEventListener('click', () => {
-            const id = toggle.dataset.submenu;
-            const sub = document.getElementById(id);
-            if (sub) {
-                const open = sub.style.display !== 'none' && sub.style.display !== '';
-                sub.style.display = open ? 'none' : 'block';
-                toggle.classList.toggle('open', !open);
-            }
-        });
-    });
 </script>
 @RenderSection("Scripts", required: false)
 </body>

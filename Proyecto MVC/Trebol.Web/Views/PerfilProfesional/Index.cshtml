@@ -1,61 +1,162 @@
 @model Trebol.Model.Entities.TrebolEntities.Profesional
+@using Trebol.Model.DTOs.Profesional
 @{
-    ViewData["Title"] = "Mi Perfil Profesional";
+    ViewData["Title"] = "Mi perfil · Información personal";
     Layout = "~/Views/Shared/_LayoutInterno.cshtml";
-    var initials = string.Concat((Model?.NombreCompleto ?? "??").Split(' ').Take(2).Select(p => p.Length > 0 ? p[0].ToString() : ""));
+    var paises = ViewBag.Paises as IEnumerable<Trebol.Model.Entities.TrebolEntities.Pais> ?? [];
+    var ciudades = ViewBag.Ciudades as IEnumerable<Trebol.Model.Entities.TrebolEntities.Ciudad> ?? [];
+    var estudios = ViewBag.Estudios as IEnumerable<ProfesionalEstudioDto> ?? [];
+    var especialidades = ViewBag.Especialidades as IEnumerable<string> ?? [];
+    var idiomas = ViewBag.Idiomas as IEnumerable<string> ?? [];
+    var docMask = string.IsNullOrEmpty(Model?.NumeroDocumento) ? "—"
+        : Model.NumeroDocumento.Length > 4 ? "•••• " + Model.NumeroDocumento[^4..] : Model.NumeroDocumento;
 }
 
-<h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:var(--sp-6);">👤 Mi perfil profesional</h1>
+@await Html.PartialAsync("_PerfilShell", Model)
 
-<div style="max-width:640px;">
-    <div class="card" style="overflow:hidden;margin-bottom:var(--sp-6);">
-        <div style="padding:var(--sp-8);background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-primary-light) 100%);text-align:center;">
-            @if (!string.IsNullOrEmpty(Model?.FotoPerfil))
+<div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
+    <form asp-action="Actualizar" method="post" enctype="multipart/form-data" id="pro-info-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="ProfesionalId" value="@Model?.ProfesionalId" />
+        <input type="hidden" name="NombreCompleto" value="@Model?.NombreCompleto" />
+        <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-5);margin-bottom:var(--sp-6);">
+            <div class="form-group">
+                <label class="form-label">País</label>
+                <select name="PaisId" id="pais" class="form-control">
+                    <option value="">Seleccionar...</option>
+                    @foreach (var p in paises)
+                    {
+                        <option value="@p.PaisId" selected="@(Model?.PaisId == p.PaisId)">@p.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ciudad</label>
+                <select name="CiudadId" id="ciudad" class="form-control">
+                    <option value="">Seleccionar...</option>
+                    @foreach (var c in ciudades)
+                    {
+                        <option value="@c.CiudadId" selected="@(Model?.CiudadId == c.CiudadId)">@c.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ocupación</label>
+                <input name="Titulo" class="form-control" value="@Model?.Ocupacion" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Celular <span class="required">*</span></label>
+                <input name="Celular" type="tel" class="form-control" value="@Model?.Celular" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Años de experiencia</label>
+                <input name="AnosExperiencia" type="number" min="0" max="60" class="form-control" value="@Model?.AnosExperiencia" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tarifa por hora (COP)</label>
+                <input name="TarifaCita" type="number" min="0" step="1000" class="form-control" value="@Model?.ValorPorHora" />
+            </div>
+            @if (idiomas.Any())
             {
-                <img src="@Model.FotoPerfil" class="avatar" style="width:80px;height:80px;font-size:2rem;" alt="foto" />
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label class="form-label">Idiomas</label>
+                    <input class="form-control" value="@string.Join(", ", idiomas)" readonly style="background:var(--color-surface-alt);" />
+                </div>
             }
-            else
+            @if (especialidades.Any())
             {
-                <div class="avatar" style="width:80px;height:80px;font-size:2rem;margin:0 auto;">@initials</div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label class="form-label">Especialidades / Áreas de atención</label>
+                    <input class="form-control" value="@string.Join(", ", especialidades)" readonly style="background:var(--color-surface-alt);" />
+                </div>
             }
-            <div style="font-family:var(--font-display);font-size:1.25rem;color:white;margin-top:var(--sp-3);">@Model?.NombreCompleto</div>
-            <div style="margin-top:var(--sp-2);">
-                <span class="badge @(Model?.Estado == "Aprobado" ? "badge-success" : "badge-warning")">@Model?.Estado</span>
+            <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">Sobre mí</label>
+                <textarea name="Descripcion" class="form-control" rows="4" style="resize:vertical;">@Model?.SobreMi</textarea>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+                <label class="form-label">Foto de perfil</label>
+                <input type="file" name="foto" id="foto-pro" class="form-control" accept="image/*" />
             </div>
         </div>
 
-        <div style="padding:var(--sp-6);">
-            <form asp-action="Actualizar" method="post" enctype="multipart/form-data">
-                @Html.AntiForgeryToken()
-                <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
-                <input type="hidden" name="ProfesionalId" value="@Model?.ProfesionalId" />
+        @if (estudios.Any())
+        {
+            <div style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-6);margin-bottom:var(--sp-6);">
+                <h3 style="font-size:1rem;color:var(--color-primary);font-weight:700;margin-bottom:var(--sp-4);">📚 Formación académica</h3>
+                <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+                    @foreach (var est in estudios)
+                    {
+                        <div style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-4);display:grid;grid-template-columns:120px 1fr 1fr;gap:var(--sp-3);align-items:center;">
+                            <span class="badge badge-muted">@est.Nivel</span>
+                            <div><strong>@est.Titulo</strong></div>
+                            <div class="text-meta">@est.Universidad @(est.AnoEgreso.HasValue ? "· " + est.AnoEgreso : "")</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
 
+        <div style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-6);margin-bottom:var(--sp-6);">
+            <h3 style="font-size:1rem;color:var(--color-primary);font-weight:700;margin-bottom:var(--sp-4);">🔒 Datos registrales (no editables)</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);">
                 <div class="form-group">
                     <label class="form-label">Nombre completo</label>
-                    <input name="NombreCompleto" class="form-control" value="@Model?.NombreCompleto" />
+                    <input type="text" class="form-control" value="@Model?.NombreCompleto" disabled style="background:var(--color-surface-alt);color:var(--color-text-muted);" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Título / especialidad</label>
-                    <input name="Ocupacion" class="form-control" value="@Model?.Ocupacion" />
+                    <label class="form-label">Correo electrónico</label>
+                    <input type="email" class="form-control" value="@Model?.Correo" disabled style="background:var(--color-surface-alt);color:var(--color-text-muted);" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Sobre mí</label>
-                    <textarea name="SobreMi" class="form-control" rows="3">@Model?.SobreMi</textarea>
+                    <label class="form-label">N.° cédula</label>
+                    <input type="text" class="form-control" value="@docMask" disabled style="background:var(--color-surface-alt);color:var(--color-text-muted);" />
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Celular</label>
-                    <input name="Celular" class="form-control" value="@Model?.Celular" />
+                    <label class="form-label">Tarjeta profesional</label>
+                    <input type="text" class="form-control" value="@Model?.NumerTarjetaProfesional" disabled style="background:var(--color-surface-alt);color:var(--color-text-muted);" />
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Tarifa por cita ($)</label>
-                    <input name="ValorPorHora" type="number" min="0" step="1000" class="form-control" value="@Model?.ValorPorHora" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Foto de perfil</label>
-                    <input type="file" name="foto" class="form-control" accept="image/*" />
-                </div>
-                <button type="submit" class="btn btn-primary w-full">Guardar cambios</button>
-            </form>
+            </div>
         </div>
-    </div>
+
+        <div style="display:flex;gap:var(--sp-3);">
+            <button type="submit" class="btn btn-primary"><span class="btn-text">Guardar cambios</span></button>
+            <button type="button" class="btn btn-secondary" onclick="location.reload()">Cancelar</button>
+        </div>
+    </form>
 </div>
+
+@section Scripts {
+<script>
+document.getElementById('pais')?.addEventListener('change', async function() {
+  const paisId = this.value;
+  const sel = document.getElementById('ciudad');
+  if (!paisId) { sel.innerHTML = '<option value="">Seleccionar...</option>'; return; }
+  const res = await fetch('/PerfilProfesional/CiudadesPorPais?paisId=' + encodeURIComponent(paisId));
+  const data = await res.json();
+  sel.innerHTML = '<option value="">Seleccionar...</option>';
+  data.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.ciudadId; opt.textContent = c.nombre;
+    sel.appendChild(opt);
+  });
+});
+document.getElementById('foto-pro')?.addEventListener('change', function() {
+  if (!this.files?.length) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const av = document.getElementById('pro-avatar');
+    if (!av) return;
+    if (av.tagName === 'IMG') { av.src = e.target.result; }
+    else {
+      av.style.backgroundImage = `url(${e.target.result})`;
+      av.style.backgroundSize = 'cover';
+      av.textContent = '';
+    }
+  };
+  reader.readAsDataURL(this.files[0]);
+});
+</script>
+}

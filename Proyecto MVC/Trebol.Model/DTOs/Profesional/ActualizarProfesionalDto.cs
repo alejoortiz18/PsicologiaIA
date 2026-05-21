@@ -7,7 +7,9 @@ public class ActualizarProfesionalDto
     public string? Titulo        { get; set; }
     public string? Descripcion   { get; set; }
     public string? Celular       { get; set; }
+    public int?   PaisId         { get; set; }
     public int?   CiudadId       { get; set; }
+    public byte?  AnosExperiencia { get; set; }
     public decimal? TarifaCita   { get; set; }
     public string? FotoUrl       { get; set; }
     public List<int> EspecialidadIds { get; set; } = [];
