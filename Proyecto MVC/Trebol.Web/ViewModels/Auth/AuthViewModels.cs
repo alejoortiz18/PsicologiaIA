@@ -15,9 +15,23 @@ public class LoginViewModel
 
 public class RegistroUsuarioViewModel
 {
-    [Required] public string NombreCompleto  { get; set; } = string.Empty;
-    [Required][EmailAddress] public string Correo { get; set; } = string.Empty;
-    [Required] public string NumeroDocumento { get; set; } = string.Empty;
+    [Required(ErrorMessage = "El nombre completo es obligatorio.")]
+    public string NombreCompleto  { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El correo es obligatorio.")]
+    [EmailAddress(ErrorMessage = "Correo inválido.")]
+    public string Correo { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El número de identificación es obligatorio.")]
+    public string NumeroDocumento { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El número de celular es obligatorio.")]
+    [Phone(ErrorMessage = "Número de celular inválido.")]
+    public string Celular { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El alias es obligatorio.")]
+    [StringLength(100, MinimumLength = 2, ErrorMessage = "El alias debe tener entre 2 y 100 caracteres.")]
+    public string Alias { get; set; } = string.Empty;
 }
 
 public class RegistroProfesionalViewModel

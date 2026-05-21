@@ -47,6 +47,17 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
         return result.AsList();
     }
 
+    public async Task<IReadOnlyList<CitaListaDto>> ObtenerProximasPorUsuarioAsync(
+        int usuarioId, int limite = 5, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<CitaListaDto>(
+            "sp_ObtenerCitasProximasUsuario",
+            new { UsuarioId = usuarioId, Limite = limite },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
     public async Task<IReadOnlyList<CitaHoyProfesionalDto>> ObtenerHoyPorProfesionalAsync(
         int profesionalId, CancellationToken ct = default)
     {

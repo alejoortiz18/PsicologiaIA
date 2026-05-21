@@ -145,10 +145,10 @@ BEGIN
     SET NOCOUNT ON;
 
     IF EXISTS (SELECT 1 FROM Usuario WHERE Correo = @Correo)
-    BEGIN SELECT 0 AS Exito, 'El correo ya está registrado.' AS Mensaje, 0 AS Id; RETURN; END
+    BEGIN SELECT 0 AS Exito, N'El correo ya está registrado.' AS Mensaje, 0 AS Id; RETURN; END
 
     IF EXISTS (SELECT 1 FROM Usuario WHERE NumeroDocumento = @NumeroDocumento)
-    BEGIN SELECT 0 AS Exito, 'El documento ya está registrado.' AS Mensaje, 0 AS Id; RETURN; END
+    BEGIN SELECT 0 AS Exito, N'El documento ya está registrado.' AS Mensaje, 0 AS Id; RETURN; END
 
     DECLARE @NuevoId INT;
     INSERT INTO Usuario (NombreCompleto, Correo, NumeroDocumento, Alias, Celular, FechaNacimiento, CiudadId)
@@ -158,7 +158,7 @@ BEGIN
     INSERT INTO TokenValidacion (UsuarioId, Token, FechaExpiracion)
     VALUES (@NuevoId, @Token, @Expiracion);
 
-    SELECT 1 AS Exito, 'Registro exitoso.' AS Mensaje, @NuevoId AS Id;
+    SELECT 1 AS Exito, N'Registro exitoso.' AS Mensaje, @NuevoId AS Id;
 END
 GO
 
@@ -174,13 +174,13 @@ BEGIN
     WHERE  Token = @Token AND Usado = 0 AND FechaExpiracion > GETDATE();
 
     IF @UsuarioId IS NULL
-    BEGIN SELECT 0 AS Exito, 'Token inválido o expirado.'; RETURN; END
+    BEGIN SELECT 0 AS Exito, N'Token inválido o expirado.' AS Mensaje; RETURN; END
 
     UPDATE Usuario SET PasswordHash = @PasswordHash, Estado = 'ACTIVO', FechaModificacion = GETDATE()
     WHERE  UsuarioId = @UsuarioId;
 
     UPDATE TokenValidacion SET Usado = 1 WHERE Token = @Token;
-    SELECT 1 AS Exito, 'Cuenta activada correctamente.';
+    SELECT 1 AS Exito, N'Cuenta activada correctamente.' AS Mensaje;
 END
 GO
 
@@ -227,8 +227,8 @@ BEGIN
     -- Notificación admin (estado = PENDIENTE_VALIDACION; aún no puede aprobar)
     INSERT INTO Notificacion (Tipo, EntidadId, Titulo, Descripcion)
     VALUES ('RegistroProfesional', @NuevoId,
-            'Nuevo profesional — pendiente de validación de correo',
-            'Profesional: ' + @NombreCompleto + ' | Correo: ' + @Correo);
+            N'Nuevo profesional — pendiente de validación de correo',
+            N'Profesional: ' + @NombreCompleto + N' | Correo: ' + @Correo);
 
     SELECT 1 AS Exito, 'Registro exitoso. Revisa tu correo para confirmar tu cuenta.' AS Mensaje, @NuevoId AS Id;
 END
@@ -263,12 +263,12 @@ BEGIN
 
     -- Actualizar título de la notificación para indicar que ya puede ser revisada
     UPDATE Notificacion
-    SET    Titulo = 'Profesional listo para revisión',
-           Descripcion = Descripcion + ' | Email confirmado',
+    SET    Titulo = N'Profesional listo para revisión',
+           Descripcion = Descripcion + N' | Correo confirmado',
            FechaModificacion = GETDATE()
     WHERE  EntidadId = @ProfesionalId AND Tipo = 'RegistroProfesional' AND Estado = 'Pendiente';
 
-    SELECT 1 AS Exito, 'Correo confirmado. Tu solicitud está en revisión.';
+    SELECT 1 AS Exito, N'Correo confirmado. Tu solicitud está en revisión.';
 END
 GO
 
@@ -326,16 +326,16 @@ BEGIN
     IF EXISTS (SELECT 1 FROM Notificacion WHERE EntidadId = @ProfesionalId AND Tipo = 'RegistroProfesional')
         UPDATE Notificacion
         SET    Estado = 'Pendiente', Leida = 0,
-               Titulo = 'Profesional reenviando documentos para nueva revisión',
+               Titulo = N'Profesional reenviando documentos para nueva revisión',
                FechaModificacion = GETDATE()
         WHERE  EntidadId = @ProfesionalId AND Tipo = 'RegistroProfesional';
     ELSE
         INSERT INTO Notificacion (Tipo, EntidadId, Titulo, Descripcion)
         VALUES ('RegistroProfesional', @ProfesionalId,
-                'Profesional reenviando documentos para nueva revisión',
-                'Profesional: ' + @NombreCompleto + ' | Correo: ' + @Correo);
+                N'Profesional reenviando documentos para nueva revisión',
+                N'Profesional: ' + @NombreCompleto + N' | Correo: ' + @Correo);
 
-    SELECT 1 AS Exito, 'Documentos reenviados. Tu solicitud está nuevamente en revisión.';
+    SELECT 1 AS Exito, N'Documentos reenviados. Tu solicitud está nuevamente en revisión.';
 END
 GO
 
@@ -909,8 +909,7 @@ BEGIN
            p.MotivoRechazo  AS MotivoRechazo
     FROM   Notificacion n
     LEFT JOIN Profesional p ON p.ProfesionalId = n.EntidadId AND n.Tipo = 'RegistroProfesional'
-    WHERE  n.Estado = 'Pendiente'
-    ORDER  BY n.FechaCreacion DESC;
+    ORDER  BY n.Leida ASC, n.FechaCreacion DESC;
 END
 GO
 

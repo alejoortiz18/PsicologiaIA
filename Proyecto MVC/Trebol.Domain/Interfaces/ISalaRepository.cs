@@ -9,6 +9,9 @@ public interface ISalaRepository
 {
     Task<IReadOnlyList<SalaDto>> ObtenerPorProfesionalAsync(int profesionalId, CancellationToken ct = default);
     Task<IReadOnlyList<SalaDto>> ObtenerPublicasAsync(int? categoriaId = null, int pagina = 1, CancellationToken ct = default);
+    Task<IReadOnlyList<EventoPublicoDto>> ObtenerPublicasPaginadasAsync(int pagina = 1, int tamanoPagina = 10, int? categoriaId = null, CancellationToken ct = default);
+    Task<IReadOnlyList<EventoPublicoDto>> ObtenerHoyPublicasAsync(int limite = 4, CancellationToken ct = default);
+    Task<int> ContarPublicasAsync(int? categoriaId = null, CancellationToken ct = default);
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosColegasAsync(int profesionalId, int limite = 30, CancellationToken ct = default);
     Task<IReadOnlyList<SalaResumenDto>> ObtenerActivasHoyPorProfesionalAsync(int profesionalId, CancellationToken ct = default);
     Task<SalaDto?>               ObtenerDetalleAsync(int salaId, CancellationToken ct = default);

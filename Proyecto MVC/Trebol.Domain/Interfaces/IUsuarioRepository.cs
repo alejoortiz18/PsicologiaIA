@@ -10,10 +10,12 @@ public interface IUsuarioRepository
 {
     Task<ResultadoOperacion<int>> RegistrarAsync(RegistroUsuarioDto dto, CancellationToken ct = default);
     Task<bool>                    EsTokenValidoAsync(string token, CancellationToken ct = default);
+    Task<(string Correo, string NombreCompleto)?> ObtenerPorTokenAsync(string token, CancellationToken ct = default);
     Task<ResultadoOperacion>      ActivarAsync(string token, string passwordHash, CancellationToken ct = default);
     Task<Usuario?>                ObtenerPorCorreoAsync(string correo, CancellationToken ct = default);
     Task<Usuario?>                ObtenerPorIdAsync(int usuarioId, CancellationToken ct = default);
     Task<UsuarioDto?>             ObtenerDtoAsync(int usuarioId, CancellationToken ct = default);
     Task<ResultadoOperacion>      ActualizarAsync(ActualizarUsuarioDto dto, CancellationToken ct = default);
     Task<DashboardUsuarioDto>     ObtenerDashboardAsync(int usuarioId, CancellationToken ct = default);
+    Task<IReadOnlyList<InscripcionHomeItemDto>> ObtenerInscripcionesHomeAsync(int usuarioId, int limite = 4, CancellationToken ct = default);
 }

@@ -46,10 +46,11 @@ public class RegistroController(
 
         var dto = new RegistroUsuarioDto
         {
-            NombreCompleto  = vm.NombreCompleto,
-            Correo          = vm.Correo,
-            NumeroDocumento = vm.NumeroDocumento,
-            Alias           = vm.NombreCompleto.Split(' ')[0].ToLower() + new Random().Next(100, 999),
+            NombreCompleto  = vm.NombreCompleto.Trim(),
+            Correo          = vm.Correo.Trim(),
+            NumeroDocumento = vm.NumeroDocumento.Trim(),
+            Alias           = vm.Alias.Trim(),
+            Celular         = vm.Celular.Trim(),
             Token           = token,
             Expiracion      = expiracion
         };
@@ -102,13 +103,11 @@ public class RegistroController(
             return RedirectToAction("Index", "Login");
 
         var esValido = await usuarioRepo.EsTokenValidoAsync(token);
+        ViewBag.TokenValido = esValido;
         var vm = new ConfirmarEmailViewModel { Token = token };
 
         if (!esValido)
-        {
-            ModelState.AddModelError(string.Empty, "Ocurrió un error al procesar tu solicitud. Por favor, intenta iniciar sesión.");
-            ViewData["ShowErrorModal"] = true;
-        }
+            ModelState.AddModelError(string.Empty, RegistroConstant.TokenInvalidoUsuario);
 
         return View(vm);
     }
@@ -118,16 +117,41 @@ public class RegistroController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ConfirmarEmailUsuario(ConfirmarEmailViewModel vm)
     {
+        ViewBag.TokenValido = await usuarioRepo.EsTokenValidoAsync(vm.Token);
+
+        if (!ViewBag.TokenValido)
+        {
+            ModelState.AddModelError(string.Empty, RegistroConstant.TokenInvalidoUsuario);
+            return View(vm);
+        }
+
         if (!ModelState.IsValid) return View(vm);
 
+        var datosUsuario = await usuarioRepo.ObtenerPorTokenAsync(vm.Token);
         var passwordHash = passwordHelper.HashPassword(vm.Password);
         var resultado = await usuarioRepo.ActivarAsync(vm.Token, passwordHash);
 
         if (!resultado.Exito)
         {
-            ModelState.AddModelError(string.Empty, "Ocurrió un error al procesar tu solicitud. Por favor, intenta iniciar sesión.");
-            ViewData["ShowErrorModal"] = true;
+            ViewBag.TokenValido = false;
+            ModelState.AddModelError(string.Empty, RegistroConstant.TokenInvalidoUsuario);
             return View(vm);
+        }
+
+        if (datosUsuario is not null)
+        {
+            var baseUrl = config["App:BaseUrl"] ?? "https://localhost:7072";
+            var enlaceLogin = $"{baseUrl}/Login";
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                await emailHelper.EnviarAsync(
+                    datosUsuario.Value.Correo,
+                    RegistroConstant.AsuntoCuentaActiva,
+                    RegistroEmailTemplates.BuildCuentaActivaUsuario(datosUsuario.Value.NombreCompleto, enlaceLogin),
+                    cts.Token);
+            }
+            catch { /* el registro ya quedó activo; el usuario puede ir al login */ }
         }
 
         TempData["Mensaje"] = RegistroConstant.ActivacionExitosa;

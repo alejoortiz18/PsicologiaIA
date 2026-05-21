@@ -1,11 +1,12 @@
 @model Trebol.Model.DTOs.Common.PaginacionVm
 @{
-    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+    var controller = Model.Controller ?? ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
+    var action = Model.Action ?? ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
     var query = Context.Request.Query
         .Where(q => q.Key != "pagina")
         .Select(q => $"{q.Key}={Uri.EscapeDataString(q.Value.ToString())}");
     var qs = string.Join("&", query);
-    var baseUrl = Url.Action(action, "PerfilProfesional") + (string.IsNullOrEmpty(qs) ? "?" : "?" + qs + "&");
+    var baseUrl = Url.Action(action, controller) + (string.IsNullOrEmpty(qs) ? "?" : "?" + qs + "&");
 }
 
 <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--sp-4) var(--sp-5);border-top:1px solid var(--color-border-light);flex-wrap:wrap;gap:var(--sp-3);">

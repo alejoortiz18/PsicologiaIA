@@ -1,68 +1,316 @@
-@model Trebol.Model.DTOs.Dashboard.DashboardUsuarioDto
+@model Trebol.Model.DTOs.Dashboard.HomeUsuarioIndexViewModel
+@using Trebol.Model.Enums
 @{
     ViewData["Title"] = "Inicio";
     Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var d = Model.Dashboard;
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+
+    string Iniciales(string nombre)
+    {
+        var partes = nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(partes.Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    }
+
+    string BadgeCita(EstadoCita estado) => estado switch
+    {
+        EstadoCita.Programada => "badge-success",
+        EstadoCita.Movida => "badge-warning",
+        EstadoCita.Cancelada => "badge-danger",
+        _ => "badge-muted"
+    };
+
+    string EtiquetaCita(EstadoCita estado) => estado switch
+    {
+        EstadoCita.Programada => "Confirmada",
+        EstadoCita.Movida => "Reprogramada",
+        _ => estado.ToString()
+    };
+
+    string BadgeInscripcion(InscripcionHomeItemDto item)
+    {
+        if (item.Finalizado) return "badge-muted";
+        if (item.EnVivo) return "badge-success";
+        if (!item.FechaInicio.HasValue) return "badge-muted";
+        var dias = (item.FechaInicio.Value.Date - DateTime.Today).Days;
+        if (dias <= 0) return "badge-primary";
+        if (dias <= 7) return "badge-primary";
+        return "badge-muted";
+    }
+
+    string TextoBadgeInscripcion(InscripcionHomeItemDto item)
+    {
+        if (item.Finalizado) return "Finalizado";
+        if (item.EnVivo) return "En vivo";
+        if (!item.FechaInicio.HasValue) return item.EstadoInscripcion;
+        var dias = (item.FechaInicio.Value.Date - DateTime.Today).Days;
+        if (dias <= 0 && !item.EnVivo) return "Hoy";
+        if (dias == 1) return "Mañana";
+        if (dias > 1 && dias <= 30) return $"En {dias} días";
+        return item.FechaInicio.Value.ToString("d MMM", cultura);
+    }
+
+    var proxSalaValor = d.ProximaSalaFecha.HasValue
+        ? d.ProximaSalaFecha.Value.ToString("d MMM", cultura)
+        : "—";
+    var proxSalaSub = !string.IsNullOrWhiteSpace(d.ProximaSalaSubtitulo)
+        ? d.ProximaSalaSubtitulo
+        : (d.ProximaSalaTitulo ?? "Sin eventos próximos");
 }
 
+<!-- Stats -->
 <div class="stats-grid mb-6" role="region" aria-label="Resumen de actividad">
     <div class="stat-card">
         <div class="stat-card__icon" aria-hidden="true">🎪</div>
         <div>
             <div class="stat-card__label">Eventos inscritos</div>
-            <div class="stat-card__value">@(Model?.EventosInscritos ?? 0)</div>
-            <div class="stat-card__sub">Próximos</div>
+            <div class="stat-card__value">@d.EventosInscritos</div>
+            <div class="stat-card__sub">@d.EventosProximos próximo@(d.EventosProximos == 1 ? "" : "s")</div>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-card__icon" aria-hidden="true">📅</div>
         <div>
             <div class="stat-card__label">Próximas citas</div>
-            <div class="stat-card__value">@(Model?.CitasProximas ?? 0)</div>
+            <div class="stat-card__value">@d.CitasProximas</div>
             <div class="stat-card__sub">Esta semana</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-card__icon" aria-hidden="true">💬</div>
+        <div class="stat-card__icon" aria-hidden="true">⭐</div>
         <div>
-            <div class="stat-card__label">Mensajes nuevos</div>
-            <div class="stat-card__value">@(Model?.MensajesNoLeidos ?? 0)</div>
-            <div class="stat-card__sub">Sin leer</div>
+            <div class="stat-card__label">Sala más próxima</div>
+            <div class="stat-card__value" style="font-size:1.375rem;">@proxSalaValor</div>
+            <div class="stat-card__sub">@proxSalaSub</div>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-card__icon" aria-hidden="true">❤️</div>
         <div>
             <div class="stat-card__label">Mis mentores</div>
-            <div class="stat-card__value">@(Model?.ProfesionalesSeguidos ?? 0)</div>
+            <div class="stat-card__value">@d.ProfesionalesSeguidos</div>
             <div class="stat-card__sub">Profesionales seguidos</div>
         </div>
     </div>
 </div>
 
-<div class="card" style="margin-bottom:var(--sp-6);padding:var(--sp-6);background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-primary-light) 100%);border:none;">
-    <h2 style="font-family:var(--font-display);color:white;font-size:1.5rem;margin-bottom:var(--sp-2);">Bienvenido, @User.Identity?.Name 👋</h2>
-    <p style="color:rgba(255,255,255,.8);margin:0;">Explora tu panel, revisa tus citas y mantente al día con los eventos disponibles.</p>
+<!-- Citas + Inscripciones -->
+<div class="home-two-col">
+    <section aria-labelledby="citas-heading">
+        <div class="home-section-head">
+            <h2 id="citas-heading">📅 Mis próximas citas</h2>
+            <a asp-controller="Citas" asp-action="Index" class="btn btn-ghost btn-sm">Ver todas</a>
+        </div>
+        <div class="home-panel">
+            <div class="table-scroll">
+                <table class="home-citas-table" role="table" aria-label="Tabla de próximas citas">
+                    <thead>
+                        <tr>
+                            <th>Profesional</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.CitasProximas.Any())
+                        {
+                            foreach (var cita in Model.CitasProximas)
+                            {
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                                            <div class="avatar avatar-xs" style="background:var(--color-primary);flex-shrink:0;">@Iniciales(cita.NombreProfesional)</div>
+                                            <div>
+                                                <div style="font-weight:600;color:var(--color-text-primary);line-height:1.3;">@cita.NombreProfesional</div>
+                                                <div style="font-size:.72rem;color:var(--color-text-muted);">@cita.Tipo</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--color-text-secondary);white-space:nowrap;">@cita.FechaHora.ToString("d MMM yyyy", cultura)</td>
+                                    <td style="color:var(--color-text-secondary);white-space:nowrap;">@cita.FechaHora.ToString("h:mm tt", cultura)</td>
+                                    <td><span class="badge @BadgeCita(cita.Estado)" style="white-space:nowrap;">@EtiquetaCita(cita.Estado)</span></td>
+                                    <td>
+                                        <a asp-controller="Citas" asp-action="Detalle" asp-route-id="@cita.CitaId" class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;">Ver</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" style="text-align:center;padding:var(--sp-8);color:var(--color-text-muted);">
+                                    <div style="font-size:2rem;margin-bottom:var(--sp-2);">📭</div>
+                                    No tienes citas próximas programadas
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="home-panel__footer">
+                <a asp-controller="Citas" asp-action="Index">Ver historial completo →</a>
+            </div>
+        </div>
+    </section>
+
+    <section aria-labelledby="eventos-inscritos-heading">
+        <div class="home-section-head">
+            <h2 id="eventos-inscritos-heading">🎪 Mis eventos inscritos</h2>
+            <a asp-controller="MisEventos" asp-action="Index" class="btn btn-ghost btn-sm">Ver todos</a>
+        </div>
+        <div class="home-panel" style="display:flex;flex-direction:column;">
+            @if (Model.Inscripciones.Any())
+            {
+                foreach (var ev in Model.Inscripciones)
+                {
+                    var meta = $"{ev.NombreProfesional}";
+                    if (ev.FechaInicio.HasValue)
+                    {
+                        meta += ev.FechaInicio.Value.Date == DateTime.Today
+                            ? " · Hoy · " + ev.FechaInicio.Value.ToString("h:mm tt", cultura)
+                            : " · " + ev.FechaInicio.Value.ToString("d MMM · h:mm tt", cultura);
+                    }
+                    var iconBg = ev.Finalizado
+                        ? "#EEEEEE"
+                        : "linear-gradient(135deg,var(--color-primary),#2D6A4F)";
+                    var itemClass = "home-inscripcion-item home-inscripcion-item--static"
+                        + (ev.Finalizado ? " home-inscripcion-item--muted" : "")
+                        + (ev.EnVivo ? " home-inscripcion-item--live" : "");
+
+                    if (ev.EnVivo)
+                    {
+                        <a asp-controller="MisEventos" asp-action="Index" class="@itemClass" aria-label="Ingresar a @ev.Titulo — en vivo">
+                            <div class="home-inscripcion-item__icon" style="background:@iconBg;">🧘</div>
+                            <div class="home-inscripcion-item__body">
+                                <div class="home-inscripcion-item__title" style="color:var(--color-primary);">@ev.Titulo</div>
+                                <div class="home-inscripcion-item__sub">@meta</div>
+                            </div>
+                            <span class="badge badge-success" style="flex-shrink:0;white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
+                            <span class="evt-enter">Ingresar →</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <div class="@itemClass">
+                            <div class="home-inscripcion-item__icon" style="background:@iconBg;">🎪</div>
+                            <div class="home-inscripcion-item__body">
+                                <div class="home-inscripcion-item__title">@ev.Titulo</div>
+                                <div class="home-inscripcion-item__sub">@meta</div>
+                            </div>
+                            <span class="badge @BadgeInscripcion(ev)" style="flex-shrink:0;white-space:nowrap;">@TextoBadgeInscripcion(ev)</span>
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div style="padding:var(--sp-8);text-align:center;color:var(--color-text-muted);">
+                    <div style="font-size:2rem;margin-bottom:var(--sp-2);">🎪</div>
+                    No estás inscrito en eventos aún
+                </div>
+            }
+            <div class="home-panel__footer">
+                <a asp-controller="MisEventos" asp-action="Index">Ver todos mis eventos →</a>
+            </div>
+        </div>
+    </section>
 </div>
 
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--sp-4);">
-    <a asp-controller="Citas" asp-action="Index" class="card" style="padding:var(--sp-5);text-align:center;text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        <div style="font-size:2rem;margin-bottom:var(--sp-2);">📅</div>
-        <div style="font-weight:600;color:var(--color-text-primary);">Mis citas</div>
-        <div style="font-size:.8rem;color:var(--color-text-muted);">Gestiona tus sesiones</div>
-    </a>
-    <a asp-controller="MisEventos" asp-action="Index" class="card" style="padding:var(--sp-5);text-align:center;text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        <div style="font-size:2rem;margin-bottom:var(--sp-2);">🎪</div>
-        <div style="font-weight:600;color:var(--color-text-primary);">Mis eventos</div>
-        <div style="font-size:.8rem;color:var(--color-text-muted);">Conferencias inscritas</div>
-    </a>
-    <a asp-controller="Mensajeria" asp-action="Index" class="card" style="padding:var(--sp-5);text-align:center;text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        <div style="font-size:2rem;margin-bottom:var(--sp-2);">💬</div>
-        <div style="font-weight:600;color:var(--color-text-primary);">Mensajes</div>
-        <div style="font-size:.8rem;color:var(--color-text-muted);">Chatea con profesionales</div>
-    </a>
-    <a asp-controller="Directorio" asp-action="Especialistas" class="card" style="padding:var(--sp-5);text-align:center;text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        <div style="font-size:2rem;margin-bottom:var(--sp-2);">🔍</div>
-        <div style="font-weight:600;color:var(--color-text-primary);">Buscar profesional</div>
-        <div style="font-size:.8rem;color:var(--color-text-muted);">Encuentra especialistas</div>
-    </a>
+<!-- Comienzan hoy -->
+<div class="mb-8">
+    <div class="home-section-head">
+        <h2 style="color:var(--color-danger);font-family:var(--font-display);">
+            🔴 Comienzan hoy
+            <span style="font-size:.78rem;font-weight:600;background:var(--color-danger);color:#fff;padding:2px 10px;border-radius:99px;vertical-align:middle;">
+                @DateTime.Today.ToString("d MMMM yyyy", cultura)
+            </span>
+        </h2>
+        <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Explorar salas</a>
+    </div>
+    @if (Model.SalasHoy.Any())
+    {
+        <div class="rooms-grid">
+            @foreach (var sala in Model.SalasHoy)
+            {
+                @await Html.PartialAsync("_SalaRoomCardUsuario", sala)
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card" style="padding:var(--sp-8);text-align:center;">
+            <div style="font-size:2rem;margin-bottom:var(--sp-3);">📅</div>
+            <p style="margin:0;color:var(--color-text-muted);font-size:.875rem;">No hay salas públicas que comiencen hoy.</p>
+        </div>
+    }
 </div>
+
+<!-- Salas destacadas -->
+<div>
+    <div class="home-section-head">
+        <h2 style="color:var(--color-primary);font-family:var(--font-display);margin:0;">⭐ Salas destacadas</h2>
+        <div class="d-flex gap-3 items-center" style="flex-wrap:wrap;">
+            @if (Model.Paginacion.TotalPaginas > 0)
+            {
+                <span class="text-meta">Página @Model.Paginacion.PaginaActual de @Model.Paginacion.TotalPaginas</span>
+            }
+            <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Ver todas</a>
+        </div>
+    </div>
+
+    @if (Model.SalasDestacadas.Any())
+    {
+        <div class="rooms-grid">
+            @foreach (var sala in Model.SalasDestacadas)
+            {
+                @await Html.PartialAsync("_SalaRoomCardUsuario", sala)
+            }
+        </div>
+        <div style="margin-top:var(--sp-6);">
+            @await Html.PartialAsync("_Paginacion", Model.Paginacion)
+        </div>
+    }
+    else
+    {
+        <div class="card" style="padding:var(--sp-8);text-align:center;">
+            <div style="font-size:2rem;margin-bottom:var(--sp-3);">⭐</div>
+            <p style="margin:0;color:var(--color-text-muted);font-size:.875rem;">No hay salas destacadas disponibles por el momento.</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script>
+function inscribirSala(btn) {
+  const salaId = btn.dataset.salaId;
+  const titulo = btn.dataset.salaTitulo || 'esta sala';
+  const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+  btn.disabled = true;
+  fetch('/Inscripcion/Inscribir', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+    body: 'salaId=' + encodeURIComponent(salaId)
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.exito) {
+      btn.textContent = '✓ Inscrito';
+      btn.classList.remove('btn-primary', 'btn-danger');
+      btn.classList.add('btn-secondary');
+      showToast({ title: '¡Inscripción confirmada!', message: 'Ya estás inscrito en “' + titulo + '”.', type: 'success' });
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      btn.disabled = false;
+      showToast({ title: 'No se pudo inscribir', message: d.mensaje || 'Intenta de nuevo.', type: 'error' });
+    }
+  })
+  .catch(() => {
+    btn.disabled = false;
+    showToast({ title: 'Error de conexión', message: 'No pudimos completar la inscripción.', type: 'error' });
+  });
+}
+</script>
+}

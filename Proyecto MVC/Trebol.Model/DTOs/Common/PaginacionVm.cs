@@ -2,6 +2,8 @@ namespace Trebol.Model.DTOs.Common;
 
 public class PaginacionVm
 {
+    public string? Controller { get; set; }
+    public string? Action { get; set; }
     public int PaginaActual { get; set; } = 1;
     public int TamanoPagina { get; set; } = 10;
     public int TotalRegistros { get; set; }

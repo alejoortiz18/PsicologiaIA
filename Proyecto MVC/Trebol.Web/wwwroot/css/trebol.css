@@ -2749,6 +2749,154 @@ tbody td {
   .wizard-connector { width: 40px; }
 }
 
+/* Home Usuario */
+.home-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-8);
+}
+
+.home-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.home-section-head h2 {
+  font-family: var(--font-display);
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.home-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.home-panel__footer {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--color-surface-alt);
+  border-top: 1px solid var(--color-border-light);
+  text-align: center;
+}
+
+.home-panel__footer a {
+  font-size: .8rem;
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home-citas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .855rem;
+}
+
+.home-citas-table thead tr {
+  background: var(--color-surface-alt);
+  border-bottom: 2px solid var(--color-border-light);
+}
+
+.home-citas-table th {
+  padding: var(--sp-3) var(--sp-4);
+  text-align: left;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.home-citas-table td {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: middle;
+}
+
+.home-citas-table tbody tr:hover { background: var(--color-surface-alt); }
+.home-citas-table tbody tr:last-child td { border-bottom: none; }
+
+.home-inscripcion-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background .12s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.home-inscripcion-item--static { cursor: default; }
+.home-inscripcion-item--live:hover { background: rgba(82, 183, 136, .06); }
+.home-inscripcion-item--muted { opacity: .6; }
+.home-inscripcion-item:last-child { border-bottom: none; }
+
+.home-inscripcion-item__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.home-inscripcion-item__body { flex: 1; min-width: 0; }
+
+.home-inscripcion-item__title {
+  font-weight: 600;
+  font-size: .88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-inscripcion-item__sub {
+  font-size: .75rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.evt-enter {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  margin-left: var(--sp-2);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .15s;
+}
+
+.home-inscripcion-item--live:hover .evt-enter { opacity: 1; }
+
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 900px) {
+  .home-two-col { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .home-citas-table th:nth-child(3),
+  .home-citas-table td:nth-child(3) { display: none; }
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
 /* ==========================================================================
    26. ANIMATIONS
    ========================================================================== */

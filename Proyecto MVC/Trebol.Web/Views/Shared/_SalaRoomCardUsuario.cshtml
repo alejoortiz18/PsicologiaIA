@@ -1,0 +1,57 @@
+@model Trebol.Model.DTOs.Publico.EventoPublicoDto
+@{
+    var esHoy = Model.FechaInicio.HasValue && Model.FechaInicio.Value.Date == DateTime.Today;
+    var enVivoHoy = esHoy && Model.Estado == "Abierta";
+    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", new System.Globalization.CultureInfo("es-CO"));
+    var cuposRestantes = Math.Max(0, Model.Capacidad - Model.TotalInscritos);
+    var pocosCupos = cuposRestantes > 0 && cuposRestantes <= 10;
+    var gradients = new[]
+    {
+        "linear-gradient(135deg,#1A3C34,#2D6A4F)",
+        "linear-gradient(135deg,#1565C0,#1976D2)",
+        "linear-gradient(135deg,#6A1B4D,#8B2252)",
+        "linear-gradient(135deg,#4A148C,#6A1B9A)"
+    };
+    var bannerBg = gradients[Model.SalaId % gradients.Length];
+    var badgeClass = enVivoHoy ? "badge-success" : (pocosCupos ? "badge-muted" : "badge-success");
+    var badgeText = enVivoHoy ? "En vivo hoy" : (pocosCupos ? "Cerrada pronto" : "Abierta");
+}
+<article class="room-card" aria-label="Sala: @Model.Titulo">
+    <div class="room-card__banner" style="background:@bannerBg;">
+        <div class="room-card__banner-text">@Model.Titulo</div>
+        <div class="room-card__badge">
+            <span class="badge @badgeClass">
+                @if (enVivoHoy || !pocosCupos) { <span class="badge-dot" aria-hidden="true"></span> }
+                @badgeText
+            </span>
+        </div>
+    </div>
+    <div class="room-card__body">
+        <div class="room-card__speaker">🎓 @Model.NombreProfesional</div>
+        <div class="room-card__meta">
+            @if (Model.FechaInicio.HasValue)
+            {
+                <span class="room-card__meta-item">📅 @Model.FechaInicio.Value.ToString("d MMM yyyy", new System.Globalization.CultureInfo("es-CO"))</span>
+                <span class="room-card__meta-item">🕐 @Model.FechaInicio.Value.ToString("h:mm tt", new System.Globalization.CultureInfo("es-CO"))</span>
+            }
+            <span class="room-card__meta-item">👥 @Model.TotalInscritos/@Model.Capacidad</span>
+        </div>
+        <div class="d-flex items-center justify-between">
+            <span class="room-card__price @(Model.Precio <= 0 ? "free" : "")">@precioTxt</span>
+            <span class="text-meta" style="@(pocosCupos ? "color:var(--color-danger);font-weight:600;" : "")">
+                @(cuposRestantes == 0 ? "Sin cupos" : $"{cuposRestantes} cupo{(cuposRestantes == 1 ? "" : "s")}")
+            </span>
+        </div>
+    </div>
+    <div class="room-card__footer">
+        <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@Model.ProfesionalId" class="btn btn-secondary btn-sm">Ver más</a>
+        @if (pocosCupos && cuposRestantes > 0)
+        {
+            <button type="button" class="btn btn-danger btn-sm" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo" onclick="inscribirSala(this)">¡Últimos cupos!</button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-primary btn-sm" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo" onclick="inscribirSala(this)">Registrarse</button>
+        }
+    </div>
+</article>

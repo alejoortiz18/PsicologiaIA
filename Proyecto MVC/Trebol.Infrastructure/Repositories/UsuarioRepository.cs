@@ -53,6 +53,22 @@ public class UsuarioRepository(AppDbContext context, IConfiguration configuratio
         return count > 0;
     }
 
+    public async Task<(string Correo, string NombreCompleto)?> ObtenerPorTokenAsync(
+        string token, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return null;
+
+        using var conn = CrearConexion();
+        var row = await conn.QueryFirstOrDefaultAsync<TokenUsuarioRow>(
+            @"SELECT u.Correo, u.NombreCompleto
+              FROM   TokenValidacion tv
+              INNER JOIN Usuario u ON u.UsuarioId = tv.UsuarioId
+              WHERE  tv.Token = @Token",
+            new { Token = token });
+
+        return row is null ? null : (row.Correo, row.NombreCompleto);
+    }
+
     public async Task<ResultadoOperacion> ActivarAsync(
         string token, string passwordHash, CancellationToken ct = default)
     {
@@ -124,6 +140,18 @@ public class UsuarioRepository(AppDbContext context, IConfiguration configuratio
         return result ?? new DashboardUsuarioDto();
     }
 
+    public async Task<IReadOnlyList<InscripcionHomeItemDto>> ObtenerInscripcionesHomeAsync(
+        int usuarioId, int limite = 4, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<InscripcionHomeItemDto>(
+            "sp_ObtenerInscripcionesUsuarioHome",
+            new { UsuarioId = usuarioId, Limite = limite },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
     private sealed class SpResult { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; }
     private sealed class SpResultId { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; public int Id { get; init; } }
+    private sealed class TokenUsuarioRow { public string Correo { get; init; } = ""; public string NombreCompleto { get; init; } = ""; }
 }

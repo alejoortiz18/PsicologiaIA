@@ -8,7 +8,7 @@ using Microsoft.Data.SqlClient;
 
 const string password    = "Gm41l.C0m1.";
 const string correo      = "psicologiatrevol@gmail.com";
-const string nombre      = "Administrador Trebol";
+const string nombre      = "Administrador Trébol";
 const string connStr     = @"Server=DESKALEJO\SQLEXPRESS;Database=TrebolDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
 // Hash Argon2id igual que PasswordHelper.cs

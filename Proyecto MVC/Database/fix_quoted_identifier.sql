@@ -40,9 +40,9 @@ BEGIN
     -- Crear notificación para el administrador
     INSERT INTO Notificacion (Tipo, EntidadId, Titulo, Descripcion)
     VALUES ('RegistroProfesional', @NuevoId,
-            'Nuevo profesional pendiente de aprobación',
-            'Profesional: ' + @NombreCompleto + ' | Correo: ' + @Correo);
+            N'Nuevo profesional — pendiente de validación de correo',
+            N'Profesional: ' + @NombreCompleto + N' | Correo: ' + @Correo);
 
-    SELECT 1 AS Exito, 'Registro enviado para revisión.' AS Mensaje, @NuevoId AS Id;
+    SELECT 1 AS Exito, N'Registro enviado para revisión.' AS Mensaje, @NuevoId AS Id;
 END
 GO

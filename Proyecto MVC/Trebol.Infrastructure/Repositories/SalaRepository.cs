@@ -64,6 +64,37 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
         return result.AsList();
     }
 
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerPublicasPaginadasAsync(
+        int pagina = 1, int tamanoPagina = 10, int? categoriaId = null, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerSalasPublicasPaginadas",
+            new { CategoriaId = categoriaId, Pagina = pagina, TamanoPagina = tamanoPagina },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerHoyPublicasAsync(
+        int limite = 4, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerSalasHoyPublicas",
+            new { Limite = limite },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<int> ContarPublicasAsync(int? categoriaId = null, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.QueryFirstOrDefaultAsync<int>(
+            "sp_ContarSalasPublicas",
+            new { CategoriaId = categoriaId },
+            commandType: CommandType.StoredProcedure);
+    }
+
     public async Task<SalaDto?> ObtenerDetalleAsync(int salaId, CancellationToken ct = default)
         => await context.Salas
                         .AsNoTracking()

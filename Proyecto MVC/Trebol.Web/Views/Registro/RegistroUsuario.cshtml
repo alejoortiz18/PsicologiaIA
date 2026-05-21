@@ -28,7 +28,7 @@ body { background: var(--color-surface); }
                     <strong style="color:white;font-size:.9375rem;">Tu privacidad es primero</strong>
                 </div>
                 <p style="color:rgba(255,255,255,.7);font-size:.875rem;line-height:1.65;">
-                    Tus datos personales están protegidos bajo la Ley 1581 de 2012. Puedes activar el anonimato para navegar con un alias.
+                    Puedes usar un alias para mantener tu anonimato en la plataforma. Tus datos personales están protegidos bajo la Ley 1581 de 2012.
                 </p>
             </div>
         </div>
@@ -37,13 +37,13 @@ body { background: var(--color-surface); }
     <div class="auth-panel auth-panel--right" style="align-items:flex-start;padding-top:var(--sp-10);">
         <div class="auth-form" style="max-width:480px;width:100%;">
 
-            <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
+            <a asp-controller="Registro" asp-action="SeleccionPerfil" class="auth-form__logo">
                 <div class="auth-form__logo-icon">🍀</div>
                 <span class="auth-form__logo-name">Trébol</span>
             </a>
 
             <h2 class="auth-form__title">Crear cuenta</h2>
-            <p class="auth-form__subtitle">Completa el formulario. Te enviaremos un enlace por correo para confirmar tu cuenta y crear tu contraseña.</p>
+            <p class="auth-form__subtitle">Completa el formulario para crear tu cuenta de usuario.</p>
 
             <form asp-controller="Registro" asp-action="RegistroUsuario" method="post">
                 @Html.AntiForgeryToken()
@@ -69,18 +69,52 @@ body { background: var(--color-surface); }
                         <input asp-for="Correo" class="form-control" type="email"
                                placeholder="usuario@correo.com"
                                autocomplete="email" aria-required="true" />
-                        <div class="form-hint">Te enviaremos un enlace de confirmación a este correo.</div>
+                        <div class="form-hint">Úsalo para activar tu cuenta y acceder.</div>
                         <span asp-validation-for="Correo" class="form-error"></span>
                     </div>
 
+                    <div class="form-row form-row-2">
+                        <div class="form-group">
+                            <label asp-for="NumeroDocumento" class="form-label">
+                                N.° de identificación <span class="required" aria-hidden="true">*</span>
+                            </label>
+                            <input asp-for="NumeroDocumento" class="form-control"
+                                   placeholder="Ej: 1234567890"
+                                   autocomplete="off" aria-required="true" />
+                            <span asp-validation-for="NumeroDocumento" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Celular" class="form-label">
+                                Número de celular <span class="required" aria-hidden="true">*</span>
+                            </label>
+                            <input asp-for="Celular" class="form-control" type="tel"
+                                   placeholder="Ej: 3001234567"
+                                   autocomplete="tel" aria-required="true" />
+                            <span asp-validation-for="Celular" class="form-error"></span>
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label asp-for="NumeroDocumento" class="form-label">
-                            N.° de identificación <span class="required" aria-hidden="true">*</span>
+                        <label asp-for="Alias" class="form-label">
+                            Alias / seudónimo <span class="required" aria-hidden="true">*</span>
                         </label>
-                        <input asp-for="NumeroDocumento" class="form-control"
-                               placeholder="Ej: 1234567890"
-                               autocomplete="off" aria-required="true" />
-                        <span asp-validation-for="NumeroDocumento" class="form-error"></span>
+                        <input asp-for="Alias" class="form-control"
+                               placeholder="Ej: Luna Verde"
+                               aria-required="true" />
+                        <div class="form-hint">Tu alias es el nombre visible en la plataforma cuando activas el anonimato.</div>
+                        <span asp-validation-for="Alias" class="form-error"></span>
+                    </div>
+                </div>
+
+                <div style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-5);margin-bottom:var(--sp-5);border:1px solid var(--color-border-light);">
+                    <div style="display:flex;gap:var(--sp-3);align-items:flex-start;">
+                        <span style="font-size:1.25rem;">📧</span>
+                        <div>
+                            <div style="font-weight:600;font-size:.9rem;margin-bottom:4px;color:var(--color-text-primary);">Activación por correo</div>
+                            <p style="font-size:.8125rem;color:var(--color-text-muted);line-height:1.6;margin:0;">
+                                Después de registrarte, recibirás un enlace para crear tu contraseña. El enlace es válido por <strong>1 hora</strong>.
+                            </p>
+                        </div>
                     </div>
                 </div>
 

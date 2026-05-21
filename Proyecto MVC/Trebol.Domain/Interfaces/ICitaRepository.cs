@@ -9,6 +9,7 @@ public interface ICitaRepository
 {
     Task<ResultadoOperacion<int>> AgendarAsync(CrearCitaDto dto, CancellationToken ct = default);
     Task<IReadOnlyList<CitaListaDto>> ObtenerPorUsuarioAsync(int usuarioId, string estado, int pagina, CancellationToken ct = default);
+    Task<IReadOnlyList<CitaListaDto>> ObtenerProximasPorUsuarioAsync(int usuarioId, int limite = 5, CancellationToken ct = default);
     Task<IReadOnlyList<CitaHoyProfesionalDto>> ObtenerHoyPorProfesionalAsync(
         int profesionalId, CancellationToken ct = default);
 

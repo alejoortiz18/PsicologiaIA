@@ -9,7 +9,7 @@ const { execSync } = require('child_process');
 async function main() {
   const password = 'Gm41l.C0m';
   const correo   = 'psicologiatrevol@gmail.com';
-  const nombre   = 'Administrador Trebol';
+  const nombre   = 'Administrador Trébol';
   const connStr  = 'Server=DESKALEJO\\SQLEXPRESS;Database=TrebolDB;Trusted_Connection=True;TrustServerCertificate=True;';
 
   // Replicar exactamente PasswordHelper.cs
