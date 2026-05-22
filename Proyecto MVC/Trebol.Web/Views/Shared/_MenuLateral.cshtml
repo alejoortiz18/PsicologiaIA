@@ -20,6 +20,11 @@
            aria-current="@(Is("HomeUsuario") ? "page" : null)">
             <span class="nav-item__icon">🏠</span> Inicio
         </a>
+        <a asp-controller="Eventos" asp-action="Index"
+           class="nav-item @(Is("Eventos") ? "active" : "")"
+           aria-current="@(Is("Eventos") ? "page" : null)">
+            <span class="nav-item__icon">🎪</span> Eventos
+        </a>
         <div class="nav-item @(ctrl is "Directorio" ? "open" : "")" data-submenu="submenu-pros" tabindex="0" role="button" aria-expanded="@(ctrl is "Directorio" ? "true" : "false")">
             <span class="nav-item__icon">👥</span> Profesionales
             <span class="nav-toggle">▾</span>

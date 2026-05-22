@@ -1,0 +1,93 @@
+@model Trebol.Model.DTOs.Dashboard.EventosUsuarioViewModel
+@{
+    ViewData["Title"] = "Eventos";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var diasDesdeLunes = ((int)DateTime.Today.DayOfWeek + 6) % 7;
+    var inicioSemana = DateTime.Today.AddDays(-diasDesdeLunes);
+    var finSemana = inicioSemana.AddDays(6);
+}
+
+<div class="page-header mb-6">
+    <nav class="breadcrumb" aria-label="Ruta">
+        <a asp-controller="HomeUsuario" asp-action="Index">Inicio</a>
+        <span class="breadcrumb__sep" aria-hidden="true">›</span>
+        <span>Eventos</span>
+    </nav>
+    <h1 style="color:var(--color-primary);">Eventos</h1>
+    <p style="color:var(--color-text-secondary);margin-top:4px;">
+        Explora conferencias y talleres vigentes, revisa tus inscripciones y los que comienzan esta semana.
+    </p>
+</div>
+
+<section class="mb-8" aria-labelledby="evt-inscritos-heading">
+    <div class="home-section-head">
+        <h2 id="evt-inscritos-heading" style="color:var(--color-primary);font-family:var(--font-display);">🎫 Eventos inscritos</h2>
+    </div>
+    @if (Model.Inscritos.Any())
+    {
+        <div class="rooms-grid">
+            @foreach (var sala in Model.Inscritos)
+            {
+                @await Html.PartialAsync("_SalaRoomCardUsuario", sala)
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card" style="padding:var(--sp-8);text-align:center;">
+            <p style="margin:0;color:var(--color-text-muted);">Aún no estás inscrito en ningún evento vigente.</p>
+        </div>
+    }
+</section>
+
+<section class="mb-8" aria-labelledby="evt-semana-heading">
+    <div class="home-section-head">
+        <h2 id="evt-semana-heading" style="color:var(--color-primary);font-family:var(--font-display);">
+            📅 Eventos que comienzan esta semana
+        </h2>
+        <span class="text-meta">@inicioSemana.ToString("d MMM", cultura) – @finSemana.ToString("d MMM yyyy", cultura)</span>
+    </div>
+    @if (Model.EstaSemana.Any())
+    {
+        <div class="rooms-grid">
+            @foreach (var sala in Model.EstaSemana)
+            {
+                @await Html.PartialAsync("_SalaRoomCardUsuario", sala)
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card" style="padding:var(--sp-8);text-align:center;">
+            <p style="margin:0;color:var(--color-text-muted);">No hay eventos que inicien esta semana.</p>
+        </div>
+    }
+</section>
+
+<section class="mb-6" aria-labelledby="evt-todos-heading">
+    <div class="home-section-head">
+        <h2 id="evt-todos-heading" style="color:var(--color-primary);font-family:var(--font-display);">🌐 Todos los eventos creados</h2>
+        <span class="text-meta">@Model.TodosVigentes.Count evento(s) vigente(s)</span>
+    </div>
+    @if (Model.TodosVigentes.Any())
+    {
+        <div class="rooms-grid">
+            @foreach (var sala in Model.TodosVigentes)
+            {
+                @await Html.PartialAsync("_SalaRoomCardUsuario", sala)
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card" style="padding:var(--sp-8);text-align:center;">
+            <p style="margin:0;color:var(--color-text-muted);">No hay eventos abiertos disponibles en este momento.</p>
+        </div>
+    }
+</section>
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
+}

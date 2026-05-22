@@ -81,6 +81,13 @@ public class EventoResumenDto
     public string  Profesional { get; set; } = string.Empty;
 }
 
+public class EventosUsuarioViewModel
+{
+    public IReadOnlyList<EventoPublicoDto> Inscritos     { get; set; } = [];
+    public IReadOnlyList<EventoPublicoDto> EstaSemana    { get; set; } = [];
+    public IReadOnlyList<EventoPublicoDto> TodosVigentes { get; set; } = [];
+}
+
 public class ProfesionalResumenDto
 {
     public int    ProfesionalId { get; set; }

@@ -1,10 +1,11 @@
 @model Trebol.Model.DTOs.Publico.EventoPublicoDto
 @{
+    var cultura = new System.Globalization.CultureInfo("es-CO");
     var esHoy = Model.FechaInicio.HasValue && Model.FechaInicio.Value.Date == DateTime.Today;
     var enVivoHoy = esHoy && Model.Estado == "Abierta";
-    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", new System.Globalization.CultureInfo("es-CO"));
+    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", cultura);
     var cuposRestantes = Math.Max(0, Model.Capacidad - Model.TotalInscritos);
-    var pocosCupos = cuposRestantes > 0 && cuposRestantes <= 10;
+    var pocosCupos = !Model.EsInscrito && cuposRestantes > 0 && cuposRestantes <= 10;
     var gradients = new[]
     {
         "linear-gradient(135deg,#1A3C34,#2D6A4F)",
@@ -15,8 +16,16 @@
     var bannerBg = gradients[Model.SalaId % gradients.Length];
     var badgeClass = enVivoHoy ? "badge-success" : (pocosCupos ? "badge-muted" : "badge-success");
     var badgeText = enVivoHoy ? "En vivo hoy" : (pocosCupos ? "Cerrada pronto" : "Abierta");
+    var iniciales = string.Join("", (Model.NombreProfesional ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    var regClass = Model.EsInscrito ? "btn btn-secondary btn-sm btn-reg-sala is-inscrito" : (pocosCupos ? "btn btn-danger btn-sm btn-reg-sala" : "btn btn-primary btn-sm btn-reg-sala");
+    var regText = Model.EsInscrito ? "✓ Inscrito" : (pocosCupos ? "¡Últimos cupos!" : "Registrarse");
 }
-<article class="room-card" aria-label="Sala: @Model.Titulo">
+<article class="room-card" aria-label="Sala: @Model.Titulo"
+         data-sala-id="@Model.SalaId"
+         data-sala-titulo="@Model.Titulo"
+         data-profesional-id="@Model.ProfesionalId"
+         data-inscrito="@(Model.EsInscrito ? "1" : "0")">
     <div class="room-card__banner" style="background:@bannerBg;">
         <div class="room-card__banner-text">@Model.Titulo</div>
         <div class="room-card__badge">
@@ -31,8 +40,8 @@
         <div class="room-card__meta">
             @if (Model.FechaInicio.HasValue)
             {
-                <span class="room-card__meta-item">📅 @Model.FechaInicio.Value.ToString("d MMM yyyy", new System.Globalization.CultureInfo("es-CO"))</span>
-                <span class="room-card__meta-item">🕐 @Model.FechaInicio.Value.ToString("h:mm tt", new System.Globalization.CultureInfo("es-CO"))</span>
+                <span class="room-card__meta-item">📅 @Model.FechaInicio.Value.ToString("d MMM yyyy", cultura)</span>
+                <span class="room-card__meta-item">🕐 @Model.FechaInicio.Value.ToString("h:mm tt", cultura)</span>
             }
             <span class="room-card__meta-item">👥 @Model.TotalInscritos/@Model.Capacidad</span>
         </div>
@@ -43,15 +52,21 @@
             </span>
         </div>
     </div>
-    <div class="room-card__footer">
-        <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@Model.ProfesionalId" class="btn btn-secondary btn-sm">Ver más</a>
-        @if (pocosCupos && cuposRestantes > 0)
-        {
-            <button type="button" class="btn btn-danger btn-sm" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo" onclick="inscribirSala(this)">¡Últimos cupos!</button>
-        }
-        else
-        {
-            <button type="button" class="btn btn-primary btn-sm" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo" onclick="inscribirSala(this)">Registrarse</button>
-        }
+    <div class="room-card__footer room-card__footer--actions">
+        <button type="button" class="btn btn-secondary btn-sm btn-ver-sala" data-sala-id="@Model.SalaId">Ver más</button>
+        <button type="button" class="@regClass" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo"
+                @(Model.EsInscrito ? "disabled" : null)>@regText</button>
+        <button type="button" class="btn btn-ghost btn-sm btn-like-sala @(Model.EsSeguido ? "is-liked" : "")"
+                data-liked="@(Model.EsSeguido ? "true" : "false")"
+                data-profesional-id="@Model.ProfesionalId"
+                aria-label="Me gusta">
+            @(Model.EsSeguido ? "💚" : "🤍") <span class="like-count">@Model.TotalSeguidos</span>
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm"
+                data-pm-name="@Model.NombreProfesional"
+                data-pm-avatar="@iniciales"
+                data-pm-profesional-id="@Model.ProfesionalId"
+                data-pm-bg="@bannerBg"
+                aria-label="Mensaje a @Model.NombreProfesional">Mensaje</button>
     </div>
 </article>

@@ -82,12 +82,14 @@ Antes de implementar, identificar el HTML de referencia en `Prototipo/` (mapa: `
 
 ---
 
-## 5. Prueba visual obligatoria
+## 5. Prueba visual obligatoria (cada crear / actualizar / eliminar)
 
-1. App en `https://localhost:7072` (perfil `https`)
-2. Ejecutar Playwright en `Test/` (crear script si no existe)
+**Requisito fijo:** tras **cualquier** creación, actualización o eliminación en código o BD, el agente MUST ejecutar la prueba en **navegador visible** (`headless: false`) antes de dar por cerrado.
+
+1. App en `https://localhost:7072` (perfil `https`); reiniciar si cambió DLL o SP
+2. Ejecutar Playwright en `Test/` con `chromium.launch({ headless: false })`
 3. Capturas en `Test/screenshots/`
-4. Verificar: HTTP 200, modales/toasts correctos, paridad con prototipo, paginación en tablas
+4. Verificar: HTTP 200, datos visibles en UI, modales/toasts correctos, paridad con prototipo
 
 | Área | Script |
 |------|--------|

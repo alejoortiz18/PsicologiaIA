@@ -667,7 +667,7 @@ function toggleRoomStatus(btn, roomName) {
 // Declared with var so onclick="GlobalPM.xxx()" in injected HTML can resolve it
 var GlobalPM = (function () {
   var ID = 'global-pm-modal';
-  var _name = '', _avatar = '', _bg = '';
+  var _name = '', _avatar = '', _bg = '', _profesionalId = 0;
 
   function _init() {
     if (document.getElementById(ID + '-backdrop')) return;
@@ -829,14 +829,16 @@ var GlobalPM = (function () {
       e.stopPropagation();
       var initials = trigger.dataset.pmAvatar ||
         trigger.dataset.pmName.split(' ').map(function (w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase();
+      _profesionalId = parseInt(trigger.dataset.pmProfesionalId || '0', 10) || 0;
       GlobalPM.open(trigger.dataset.pmName, initials, trigger.dataset.pmBg || 'var(--color-primary)');
     });
   }
 
-  function open(name, avatar, bg) {
+  function open(name, avatar, bg, profesionalId) {
     _name   = name;
     _avatar = avatar || name.split(' ').map(function (w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase();
     _bg     = bg || 'var(--color-primary)';
+    if (profesionalId) _profesionalId = profesionalId;
 
     var titleEl = document.getElementById(ID + '-title');
     var avEl    = document.getElementById(ID + '-av');
@@ -874,25 +876,41 @@ var GlobalPM = (function () {
       if (typeof showToast !== 'undefined') showToast({ title: 'Escribe un mensaje', type: 'warning' });
       return;
     }
-    var now  = new Date();
-    var h = now.getHours(), m = now.getMinutes();
-    var time = (h % 12 || 12) + ':' + String(m).padStart(2, '0') + (h >= 12 ? ' PM' : ' AM');
-
-    var sent;
-    try { sent = JSON.parse(localStorage.getItem('trebol_pm_user_sent') || '[]'); } catch (ex) { sent = []; }
-    sent.push({ to: _name, avatar: _avatar, bg: _bg, text: text, time: time, date: now.toISOString() });
-    localStorage.setItem('trebol_pm_user_sent', JSON.stringify(sent));
-
-    var proInbox;
-    try { proInbox = JSON.parse(localStorage.getItem('trebol_pm_pro_inbox') || '[]'); } catch (ex) { proInbox = []; }
-    proInbox.push({ from: 'Mar\u00eda Garc\u00eda', fromAvatar: 'MG', fromBg: '#9E9E9E',
-      to: _name, text: text, time: time, date: now.toISOString() });
-    localStorage.setItem('trebol_pm_pro_inbox', JSON.stringify(proInbox));
-
-    close();
-    if (typeof showToast !== 'undefined') {
-      showToast({ title: 'Mensaje enviado', message: 'Tu mensaje fue enviado a ' + _name, type: 'success' });
+    if (!_profesionalId) {
+      if (typeof showToast !== 'undefined') showToast({ title: 'Destinatario no válido', type: 'error' });
+      return;
     }
+
+    var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    var sendBtn = document.querySelector('#' + ID + '-backdrop .gpm-btn-s');
+    if (sendBtn) sendBtn.disabled = true;
+
+    fetch('/Mensajeria/Enviar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'RequestVerificationToken': token
+      },
+      body: 'destinoId=' + encodeURIComponent(_profesionalId) +
+        '&tipoDestino=Profesional&texto=' + encodeURIComponent(text) +
+        '&__RequestVerificationToken=' + encodeURIComponent(token)
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (sendBtn) sendBtn.disabled = false;
+        if (d.exito) {
+          close();
+          if (typeof showToast !== 'undefined') {
+            showToast({ title: 'Mensaje enviado', message: 'Tu mensaje fue enviado a ' + _name, type: 'success' });
+          }
+        } else if (typeof showToast !== 'undefined') {
+          showToast({ title: d.mensaje || 'No se pudo enviar', type: 'error' });
+        }
+      })
+      .catch(function () {
+        if (sendBtn) sendBtn.disabled = false;
+        if (typeof showToast !== 'undefined') showToast({ title: 'Error de conexión', type: 'error' });
+      });
   }
 
   return { init: _init, open: open, close: close, updateCount: updateCount, send: send };

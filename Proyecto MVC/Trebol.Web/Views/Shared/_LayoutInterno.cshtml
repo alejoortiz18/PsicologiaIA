@@ -144,6 +144,10 @@
         });
     }
 </script>
+@if (User.IsInRole("Usuario"))
+{
+    @await Html.PartialAsync("_ModalesEventosUsuario")
+}
 @RenderSection("Scripts", required: false)
 </body>
 </html>

@@ -1089,7 +1089,40 @@ h3 { font-size: 1.125rem; font-weight: 600; font-family: var(--font-body); }   /
 .room-card__footer {
   padding: var(--sp-4) var(--sp-5);
   border-top: 1px solid var(--color-border-light);
-  display: flex; gap: var(--sp-3);
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.room-card__footer--actions .btn-reg-sala.is-inscrito {
+  background: var(--color-success) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  opacity: 1 !important;
+  cursor: default !important;
+}
+
+.btn-like-sala.is-liked {
+  color: var(--color-accent-hover);
+  font-weight: 600;
+}
+
+.sala-detalle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-6);
+}
+
+.sala-detalle-orador {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .sala-detalle-grid { grid-template-columns: 1fr; }
 }
 
 .rooms-grid {

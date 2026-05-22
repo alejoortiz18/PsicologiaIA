@@ -227,7 +227,7 @@
                 @DateTime.Today.ToString("d MMMM yyyy", cultura)
             </span>
         </h2>
-        <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Explorar salas</a>
+        <a asp-controller="Eventos" asp-action="Index" class="btn btn-ghost btn-sm">Ver todas</a>
     </div>
     @if (Model.SalasHoy.Any())
     {
@@ -256,7 +256,7 @@
             {
                 <span class="text-meta">Página @Model.Paginacion.PaginaActual de @Model.Paginacion.TotalPaginas</span>
             }
-            <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Ver todas</a>
+            <a asp-controller="Eventos" asp-action="Index" class="btn btn-ghost btn-sm">Ver todas</a>
         </div>
     </div>
 
@@ -283,34 +283,5 @@
 
 @section Scripts {
 @Html.AntiForgeryToken()
-<script>
-function inscribirSala(btn) {
-  const salaId = btn.dataset.salaId;
-  const titulo = btn.dataset.salaTitulo || 'esta sala';
-  const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
-  btn.disabled = true;
-  fetch('/Inscripcion/Inscribir', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
-    body: 'salaId=' + encodeURIComponent(salaId)
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.exito) {
-      btn.textContent = '✓ Inscrito';
-      btn.classList.remove('btn-primary', 'btn-danger');
-      btn.classList.add('btn-secondary');
-      showToast({ title: '¡Inscripción confirmada!', message: 'Ya estás inscrito en “' + titulo + '”.', type: 'success' });
-      setTimeout(() => location.reload(), 1200);
-    } else {
-      btn.disabled = false;
-      showToast({ title: 'No se pudo inscribir', message: d.mensaje || 'Intenta de nuevo.', type: 'error' });
-    }
-  })
-  .catch(() => {
-    btn.disabled = false;
-    showToast({ title: 'Error de conexión', message: 'No pudimos completar la inscripción.', type: 'error' });
-  });
-}
-</script>
+<script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
 }

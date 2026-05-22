@@ -65,25 +65,68 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
     }
 
     public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerPublicasPaginadasAsync(
-        int pagina = 1, int tamanoPagina = 10, int? categoriaId = null, CancellationToken ct = default)
+        int pagina = 1, int tamanoPagina = 10, int? categoriaId = null, int? usuarioId = null, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
         var result = await conn.QueryAsync<EventoPublicoDto>(
             "sp_ObtenerSalasPublicasPaginadas",
-            new { CategoriaId = categoriaId, Pagina = pagina, TamanoPagina = tamanoPagina },
+            new { CategoriaId = categoriaId, Pagina = pagina, TamanoPagina = tamanoPagina, UsuarioId = usuarioId },
             commandType: CommandType.StoredProcedure);
         return result.AsList();
     }
 
     public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerHoyPublicasAsync(
-        int limite = 4, CancellationToken ct = default)
+        int limite = 4, int? usuarioId = null, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
         var result = await conn.QueryAsync<EventoPublicoDto>(
             "sp_ObtenerSalasHoyPublicas",
-            new { Limite = limite },
+            new { Limite = limite, UsuarioId = usuarioId },
             commandType: CommandType.StoredProcedure);
         return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerInscritosUsuarioAsync(
+        int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerEventosInscritosUsuario",
+            new { UsuarioId = usuarioId },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerSemanaUsuarioAsync(
+        int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerEventosSemanaUsuario",
+            new { UsuarioId = usuarioId },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerTodosVigentesAsync(
+        int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerTodosEventosVigentes",
+            new { UsuarioId = usuarioId },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<SalaDetalleUsuarioDto?> ObtenerDetalleUsuarioAsync(
+        int salaId, int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.QueryFirstOrDefaultAsync<SalaDetalleUsuarioDto>(
+            "sp_ObtenerSalaDetalleUsuario",
+            new { SalaId = salaId, UsuarioId = usuarioId },
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<int> ContarPublicasAsync(int? categoriaId = null, CancellationToken ct = default)
@@ -151,7 +194,8 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
                 Tipo        = dto.Tipo.ToString(),
                 dto.CategoriaId,
                 CupoMaximo  = dto.Capacidad,
-                dto.Precio
+                dto.FechaInicio,
+                Precio      = dto.Precio ?? 0m
             },
             commandType: CommandType.StoredProcedure);
 

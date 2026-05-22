@@ -12,6 +12,18 @@ public class EventoPublicoDto
     public int       TotalInscritos     { get; set; }
     public decimal   Precio             { get; set; }
     public DateTime? FechaInicio        { get; set; }
+    public DateTime? FechaFin           { get; set; }
+    public bool      EsInscrito         { get; set; }
+    public bool      EsSeguido          { get; set; }
+    public int       TotalSeguidos      { get; set; }
+}
+
+public class SalaDetalleUsuarioDto : EventoPublicoDto
+{
+    public string? Descripcion         { get; set; }
+    public string? OcupacionOrador     { get; set; }
+    public string? FotoOrador          { get; set; }
+    public string? EspecialidadesTexto { get; set; }
 }
 
 public class EspecialidadConteoDto

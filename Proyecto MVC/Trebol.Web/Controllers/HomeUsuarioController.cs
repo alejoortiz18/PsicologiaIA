@@ -23,9 +23,9 @@ public class HomeUsuarioController(
         var dashboard     = await usuarioRepo.ObtenerDashboardAsync(usuarioId);
         var citas         = await citaRepo.ObtenerProximasPorUsuarioAsync(usuarioId, 5);
         var inscripciones = await usuarioRepo.ObtenerInscripcionesHomeAsync(usuarioId, 4);
-        var salasHoy      = await salaRepo.ObtenerHoyPublicasAsync(4);
+        var salasHoy      = await salaRepo.ObtenerHoyPublicasAsync(4, usuarioId);
         var totalSalas    = await salaRepo.ContarPublicasAsync();
-        var destacadas    = await salaRepo.ObtenerPublicasPaginadasAsync(pagina, TamanoPaginaSalas);
+        var destacadas    = await salaRepo.ObtenerPublicasPaginadasAsync(pagina, TamanoPaginaSalas, usuarioId: usuarioId);
 
         var vm = new HomeUsuarioIndexViewModel
         {
