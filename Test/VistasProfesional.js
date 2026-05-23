@@ -254,7 +254,7 @@ async function loginProfesional(page, correo) {
 
     // Conversación si hay
     await page.goto(`${BASE_URL}/Mensajeria`, { waitUntil: 'domcontentloaded' });
-    const linkConv = page.locator('a[href*="Conversacion"]').first();
+    const linkConv = page.locator('a.msg-conv-item, a[href*="conversacionId"]').first();
     if (await linkConv.count()) {
       const href = await linkConv.getAttribute('href');
       resultados.push(await visitarVista(page, {

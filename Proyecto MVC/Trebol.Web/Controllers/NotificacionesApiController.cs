@@ -17,19 +17,21 @@ public class NotificacionesApiController(IMensajeriaRepository mensajeriaRepo) :
         var conversaciones = await mensajeriaRepo.ObtenerConversacionesAsync(entidadId, tipoEntidad, ct);
 
         var msg = conversaciones
+            .Where(c => c.MensajesNoLeidos > 0)
             .OrderByDescending(c => c.UltimaFecha)
             .Take(15)
             .Select(c => new
             {
                 id = c.ConversacionId,
                 tab = "msg",
-                unread = c.MensajesNoLeidos > 0,
+                unread = true,
                 ico = "💬",
                 bg = "#E3F2FD",
                 col = "#1565C0",
                 title = c.OtroNombre,
                 sub = string.IsNullOrWhiteSpace(c.UltimoMensaje) ? "Sin mensajes" : c.UltimoMensaje,
-                time = FormatearTiempo(c.UltimaFecha)
+                time = FormatearTiempo(c.UltimaFecha),
+                url = $"/Mensajeria?conversacionId={c.ConversacionId}"
             })
             .ToList();
 
@@ -39,8 +41,8 @@ public class NotificacionesApiController(IMensajeriaRepository mensajeriaRepo) :
     [HttpPost("marcar-leida/{conversacionId:int}")]
     public async Task<IActionResult> MarcarLeida(int conversacionId, CancellationToken ct)
     {
-        var (entidadId, _) = ObtenerIdentidad();
-        await mensajeriaRepo.MarcarLeidosAsync(conversacionId, entidadId, ct);
+        var (entidadId, tipoEntidad) = ObtenerIdentidad();
+        await mensajeriaRepo.MarcarLeidosAsync(conversacionId, entidadId, tipoEntidad, ct);
         return Ok();
     }
 
@@ -50,7 +52,7 @@ public class NotificacionesApiController(IMensajeriaRepository mensajeriaRepo) :
         var (entidadId, tipoEntidad) = ObtenerIdentidad();
         var conversaciones = await mensajeriaRepo.ObtenerConversacionesAsync(entidadId, tipoEntidad, ct);
         foreach (var c in conversaciones.Where(x => x.MensajesNoLeidos > 0))
-            await mensajeriaRepo.MarcarLeidosAsync(c.ConversacionId, entidadId, ct);
+            await mensajeriaRepo.MarcarLeidosAsync(c.ConversacionId, entidadId, tipoEntidad, ct);
         return Ok();
     }
 

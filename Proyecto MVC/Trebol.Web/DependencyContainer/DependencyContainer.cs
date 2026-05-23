@@ -33,6 +33,16 @@ public static class DependencyContainer
                 options.Cookie.HttpOnly    = true;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.Cookie.SameSite    = SameSiteMode.Strict;
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/hubs"))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.CompletedTask;
+                    }
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                };
             });
 
         // ── Sesión (para almacenar hash temporal durante activación) ──────
@@ -43,6 +53,13 @@ public static class DependencyContainer
             options.Cookie.IsEssential = true;
         });
         services.AddHttpContextAccessor();
+
+        services.AddAntiforgery(options =>
+        {
+            options.HeaderName = "RequestVerificationToken";
+        });
+
+        services.AddSignalR();
 
         // ── Prevenir caché de páginas protegidas (Back button tras logout) ─
         services.AddControllersWithViews(options =>

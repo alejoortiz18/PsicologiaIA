@@ -88,7 +88,7 @@
         </header>
 
         <!-- Content -->
-        <main class="main-content" role="main">
+        <main class="main-content@(ViewData["FullBleed"] is true ? " main-content--bleed" : "")" role="main">
             @if (TempData["Mensaje"] != null)
             {
                 <div style="background:var(--color-success-pale);border:1px solid var(--color-accent);color:var(--color-success);padding:12px 16px;border-radius:var(--radius-md);font-size:.875rem;font-weight:600;margin-bottom:var(--sp-5);">
@@ -111,6 +111,11 @@
 <!-- Toast container -->
 <div class="toast-container" id="toast-container" aria-live="polite"></div>
 
+@if (User.IsInRole("Usuario") || User.IsInRole("Profesional"))
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="~/js/mensajeria-hub.js" asp-append-version="true"></script>
+}
 <script src="~/js/trebol.js" asp-append-version="true"></script>
 <script>
     // Sidebar toggle (mobile)

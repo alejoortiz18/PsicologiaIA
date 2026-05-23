@@ -13,6 +13,11 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
 {
     private int IdentidadId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    private (int? usuarioSeguidorId, int? excluirProfesionalId) ContextoDirectorio()
+        => User.IsInRole("Profesional")
+            ? (null, IdentidadId)
+            : (IdentidadId, null);
+
     // GET /Directorio/Medicos
     public async Task<IActionResult> Medicos([FromQuery] FiltroDirectorioDto filtro)
         => await VistaDirectorioAsync("Medicos", filtro, directorioRepo.ObtenerMedicosAsync);
@@ -59,10 +64,11 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
     private async Task<IActionResult> VistaDirectorioAsync(
         string action,
         FiltroDirectorioDto filtro,
-        Func<FiltroDirectorioDto, int, CancellationToken, Task<DirectorioPaginadoDto>> obtener)
+        Func<FiltroDirectorioDto, int?, int?, CancellationToken, Task<DirectorioPaginadoDto>> obtener)
     {
         filtro = NormalizarFiltro(filtro);
-        var resultado = await obtener(filtro, IdentidadId, HttpContext.RequestAborted);
+        var (usuarioSeguidorId, excluirProfesionalId) = ContextoDirectorio();
+        var resultado = await obtener(filtro, usuarioSeguidorId, excluirProfesionalId, HttpContext.RequestAborted);
 
         ViewBag.Filtro = filtro;
         ViewBag.Paginacion = new PaginacionVm

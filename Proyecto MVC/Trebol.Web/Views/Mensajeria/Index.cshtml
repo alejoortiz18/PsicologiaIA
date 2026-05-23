@@ -1,43 +1,164 @@
-@model IEnumerable<Trebol.Model.DTOs.Mensajeria.ConversacionDto>
+@using System.Text.Json
+@using Trebol.Web.Helpers
+@model Trebol.Web.Models.Mensajeria.MensajeriaIndexVm
 @{
     ViewData["Title"] = "Mensajes";
     Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+
+    var activa = Model.ConversacionActiva;
+    var miIniciales = MensajeriaUiHelper.Iniciales(Model.MiNombre);
+    var idsIniciales = Model.Mensajes.Select(m => m.MensajeId).ToList();
+    var otroGradient = activa is not null ? MensajeriaUiHelper.AvatarGradient(activa.OtroId) : "";
+    var otroIniciales = activa is not null ? MensajeriaUiHelper.Iniciales(activa.OtroNombre) : "";
 }
 
-<h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:var(--sp-6);">💬 Conversaciones</h1>
+<div class="msg-layout" data-page="mensajeria">
 
-@if (!Model.Any())
-{
-    <div class="card" style="padding:var(--sp-12);text-align:center;">
-        <div style="font-size:3rem;margin-bottom:var(--sp-4);">💬</div>
-        <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">No tienes conversaciones activas</div>
-        <div style="color:var(--color-text-muted);font-size:.875rem;">Inicia una sesión con un profesional para comenzar a chatear.</div>
-    </div>
-}
-else
-{
-    <div class="card" style="overflow:hidden;">
-        @foreach (var conv in Model)
-        {
-            var initials = conv.OtroNombre?.Length > 1
-                ? string.Concat(conv.OtroNombre.Split(' ').Take(2).Select(p => p[0].ToString()))
-                : "?";
-            <a asp-action="Conversacion" asp-route-conversacionId="@conv.ConversacionId"
-               style="display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4) var(--sp-5);border-bottom:1px solid var(--color-border-light);text-decoration:none;transition:background .12s;"
-               onmouseover="this.style.background='var(--color-surface-alt)'" onmouseout="this.style.background=''">
-                <div class="avatar" style="flex-shrink:0;">@initials</div>
-                <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                        <span style="font-weight:600;color:var(--color-text-primary);">@conv.OtroNombre</span>
-                        <span style="font-size:.72rem;color:var(--color-text-muted);">@(conv.UltimaFecha?.ToString("dd/MM HH:mm") ?? "")</span>
-                    </div>
-                    <div style="font-size:.8125rem;color:var(--color-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@conv.UltimoMensaje</div>
+    <div class="msg-conv-panel">
+        <div class="msg-conv-header">
+            <h2>Conversaciones</h2>
+            <input type="search" class="msg-search" id="msg-search" placeholder="🔍 Buscar conversación…" aria-label="Buscar conversación">
+        </div>
+
+        <div class="msg-conv-list" role="list">
+            @if (!Model.Conversaciones.Any())
+            {
+                <div class="msg-conv-empty">
+                    <span aria-hidden="true">💬</span>
+                    <p>No tienes conversaciones activas</p>
+                    <small>Inicia un chat desde el directorio o un evento.</small>
                 </div>
-                @if (conv.MensajesNoLeidos > 0)
+            }
+            else
+            {
+                @foreach (var conv in Model.Conversaciones)
                 {
-                    <span class="badge badge-success" style="flex-shrink:0;">@conv.MensajesNoLeidos</span>
+                    var ini = MensajeriaUiHelper.Iniciales(conv.OtroNombre);
+                    var grad = MensajeriaUiHelper.AvatarGradient(conv.OtroId);
+                    var esActiva = Model.ConversacionActivaId == conv.ConversacionId;
+                    var esPro = MensajeriaUiHelper.EsProfesional(conv.TipoOtro);
+                    <a asp-action="Index" asp-route-conversacionId="@conv.ConversacionId"
+                       class="msg-conv-item@(esActiva ? " active" : "")"
+                       role="listitem"
+                       data-conversacion-id="@conv.ConversacionId"
+                       data-search="@conv.OtroNombre.ToLowerInvariant()"
+                       aria-label="Conversación con @conv.OtroNombre">
+                        <div class="msg-conv-avatar" style="background:@grad;">@ini</div>
+                        <div class="msg-conv-info">
+                            <div class="msg-conv-name">
+                                @conv.OtroNombre
+                                <span class="msg-conv-role-tag @(esPro ? "msg-conv-role-tag--pro" : "msg-conv-role-tag--user")">
+                                    @MensajeriaUiHelper.SubtituloContacto(conv.TipoOtro)
+                                </span>
+                            </div>
+                            <div class="msg-conv-preview">@(conv.UltimoMensaje ?? "Sin mensajes")</div>
+                        </div>
+                        <div class="msg-conv-meta">
+                            <span class="msg-conv-time">@MensajeriaUiHelper.FormatearTiempoLista(conv.UltimaFecha)</span>
+                            @if (conv.MensajesNoLeidos > 0 && !esActiva)
+                            {
+                                <span class="msg-conv-badge" data-conv-badge="@conv.ConversacionId">@conv.MensajesNoLeidos</span>
+                            }
+                        </div>
+                    </a>
                 }
-            </a>
+            }
+        </div>
+    </div>
+
+    <div class="msg-chat-panel" id="chat-panel">
+        @if (activa is null)
+        {
+            <div class="msg-empty-state visible">
+                <span class="msg-empty-state__icon" aria-hidden="true">💬</span>
+                <p class="msg-empty-state__title">Selecciona una conversación</p>
+                <p class="msg-empty-state__sub">Elige un chat de la lista para ver los mensajes</p>
+            </div>
+        }
+        else
+        {
+            <div class="msg-chat-header">
+                <div class="msg-chat-header__avatar" id="chat-avatar" style="background:@otroGradient;">@otroIniciales</div>
+                <div>
+                    <div class="msg-chat-header__name" id="chat-name">@activa.OtroNombre</div>
+                    <div class="msg-chat-header__sub" id="chat-sub">@MensajeriaUiHelper.SubtituloContacto(activa.TipoOtro)</div>
+                </div>
+                <span id="chat-live-indicator" class="msg-live-badge" title="Conectado en tiempo real">● En vivo</span>
+            </div>
+
+            <div class="msg-chat-body" id="chat-body">
+                @{
+                    DateTime? ultimaFecha = null;
+                    foreach (var msg in Model.Mensajes)
+                    {
+                        var fechaMsg = msg.FechaEnvio.Date;
+                        if (ultimaFecha != fechaMsg)
+                        {
+                            ultimaFecha = fechaMsg;
+                            <div class="msg-date-sep">@MensajeriaUiHelper.FormatearSeparadorFecha(fechaMsg)</div>
+                        }
+
+                        var esMio = msg.EmisorId == Model.MiId &&
+                            string.Equals(msg.EmisorTipo, Model.MiTipo, StringComparison.OrdinalIgnoreCase);
+                        if (esMio)
+                        {
+                            <div class="msg-bubble-row msg-bubble-row--own" data-mensaje-id="@msg.MensajeId">
+                                <div class="msg-bubble msg-bubble--own">
+                                    @msg.Contenido
+                                    <div class="msg-bubble__time">
+                                        @msg.FechaEnvio.ToString("h:mm tt")
+                                        @(msg.Leido ? " ✓✓" : " ✓")
+                                    </div>
+                                </div>
+                                <div class="msg-bubble-avatar msg-bubble-avatar--own">@miIniciales</div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="msg-bubble-row" data-mensaje-id="@msg.MensajeId">
+                                <div class="msg-bubble-avatar" style="background:@otroGradient;">@otroIniciales</div>
+                                <div class="msg-bubble">
+                                    @msg.Contenido
+                                    <div class="msg-bubble__time">@msg.FechaEnvio.ToString("h:mm tt")</div>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+
+            <div class="msg-chat-compose">
+                <p class="msg-privacy-note">
+                    Los mensajes son privados · solo tú y el destinatario los ven
+                </p>
+                <div class="msg-input-area">
+                    <textarea class="msg-input" id="msg-input" rows="1"
+                              placeholder="Escribe un mensaje…"
+                              aria-label="Escribe un mensaje"></textarea>
+                    <button type="button" class="msg-send-btn" id="msg-send-btn" aria-label="Enviar mensaje">➤</button>
+                </div>
+            </div>
         }
     </div>
+</div>
+
+@section Scripts {
+    @if (activa is not null)
+    {
+        @Html.AntiForgeryToken()
+        <script>
+        window.mensajeriaChat = @Html.Raw(JsonSerializer.Serialize(new {
+            conversacionId = activa.ConversacionId,
+            destinoId = Model.DestinoId,
+            tipoDestino = Model.TipoDestino,
+            miId = Model.MiId,
+            miTipo = Model.MiTipo,
+            miIniciales,
+            otroGradient,
+            otroIniciales,
+            mensajesIniciales = idsIniciales
+        }));
+        </script>
+    }
+    <script src="~/js/mensajeria-chat.js" asp-append-version="true"></script>
 }

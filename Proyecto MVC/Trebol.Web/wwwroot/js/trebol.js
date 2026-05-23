@@ -935,6 +935,7 @@ function initTopbarNotificaciones(notifs) {
   const markAll = panel.querySelector('.notif-mark-all');
   const tabs = panel.querySelectorAll('.notif-tab');
   let activeTab = 'msg';
+  let panelAbierto = false;
 
   function countUnread(tab) {
     return notifs[tab].filter(n => n.unread).length;
@@ -974,16 +975,45 @@ function initTopbarNotificaciones(notifs) {
     list.querySelectorAll('.notif-item').forEach(el => {
       el.addEventListener('click', () => {
         const notif = notifs[el.dataset.tab].find(n => n.id === +el.dataset.id);
-        if (notif) {
-          notif.unread = false;
-          if (el.dataset.tab === 'msg') {
-            fetch(`/api/notificaciones/marcar-leida/${notif.id}`, { method: 'POST' }).catch(() => {});
-          }
-          renderList();
-          updateCounts();
+        if (!notif) return;
+        notif.unread = false;
+        if (el.dataset.tab === 'msg') {
+          fetch(`/api/notificaciones/marcar-leida/${notif.id}`, { method: 'POST' }).catch(() => {});
+          const destino = notif.url || `/Mensajeria?conversacionId=${notif.id}`;
+          window.location.href = destino;
+          return;
         }
+        renderList();
+        updateCounts();
       });
     });
+  }
+
+  function pushMensaje(data) {
+    const id = data.conversacionId;
+    let existing = notifs.msg.find(n => n.id === id);
+    if (existing) {
+      existing.sub = data.contenido;
+      existing.time = data.time || 'ahora';
+      existing.unread = true;
+      existing.title = data.emisorNombre || existing.title;
+    } else {
+      notifs.msg.unshift({
+        id: id,
+        tab: 'msg',
+        unread: true,
+        ico: '💬',
+        bg: '#E3F2FD',
+        col: '#1565C0',
+        title: data.emisorNombre || 'Mensaje nuevo',
+        sub: data.contenido,
+        time: data.time || 'ahora',
+        url: `/Mensajeria?conversacionId=${id}`
+      });
+    }
+    notifs.msg = notifs.msg.slice(0, 15);
+    updateCounts();
+    if (panelAbierto) renderList();
   }
 
   tabs.forEach(t => t.addEventListener('click', () => {
@@ -1009,6 +1039,7 @@ function initTopbarNotificaciones(notifs) {
   btn.addEventListener('click', e => {
     e.stopPropagation();
     const open = panel.classList.toggle('open');
+    panelAbierto = open;
     btn.setAttribute('aria-expanded', String(open));
     if (open) renderList();
   });
@@ -1016,6 +1047,7 @@ function initTopbarNotificaciones(notifs) {
   document.addEventListener('click', e => {
     if (!wrapper.contains(e.target)) {
       panel.classList.remove('open');
+      panelAbierto = false;
       btn.setAttribute('aria-expanded', 'false');
     }
   });
@@ -1023,12 +1055,24 @@ function initTopbarNotificaciones(notifs) {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && panel.classList.contains('open')) {
       panel.classList.remove('open');
+      panelAbierto = false;
       btn.setAttribute('aria-expanded', 'false');
       btn.focus();
     }
   });
 
   updateCounts();
+
+  window.TopbarNotifs = {
+    pushMensaje: pushMensaje,
+    isMensajeriaPage: () => /\/mensajeria/i.test(window.location.pathname) ||
+      !!document.querySelector('[data-page="mensajeria"]')
+  };
+
+  if (window._colaNotifsCampana && window._colaNotifsCampana.length) {
+    window._colaNotifsCampana.forEach(pushMensaje);
+    delete window._colaNotifsCampana;
+  }
 }
 
 // ==========================================================================

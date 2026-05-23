@@ -14,25 +14,26 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
         => new SqlConnection(configuration.GetConnectionString("TrebolDB"));
 
     public Task<DirectorioPaginadoDto> ObtenerMedicosAsync(
-        FiltroDirectorioDto filtro, int usuarioId, CancellationToken ct = default)
-        => ObtenerPaginadoAsync("Medicos", filtro, usuarioId, ct);
+        FiltroDirectorioDto filtro, int? usuarioSeguidorId, int? excluirProfesionalId, CancellationToken ct = default)
+        => ObtenerPaginadoAsync("Medicos", filtro, usuarioSeguidorId, excluirProfesionalId, ct);
 
     public Task<DirectorioPaginadoDto> ObtenerPsicologosAsync(
-        FiltroDirectorioDto filtro, int usuarioId, CancellationToken ct = default)
-        => ObtenerPaginadoAsync("Psicologos", filtro, usuarioId, ct);
+        FiltroDirectorioDto filtro, int? usuarioSeguidorId, int? excluirProfesionalId, CancellationToken ct = default)
+        => ObtenerPaginadoAsync("Psicologos", filtro, usuarioSeguidorId, excluirProfesionalId, ct);
 
     private async Task<DirectorioPaginadoDto> ObtenerPaginadoAsync(
-        string tipoBusqueda, FiltroDirectorioDto filtro, int usuarioId, CancellationToken ct)
+        string tipoBusqueda, FiltroDirectorioDto filtro, int? usuarioSeguidorId, int? excluirProfesionalId, CancellationToken ct)
     {
         using var conn = CrearConexion();
         var param = new
         {
-            TipoBusqueda = tipoBusqueda,
-            Especialidad = filtro.Especialidad,
-            Ciudad       = filtro.Ciudad,
-            UsuarioId    = usuarioId,
-            Pagina       = filtro.Pagina,
-            TamanoPagina = filtro.TamanioPagina
+            TipoBusqueda         = tipoBusqueda,
+            Especialidad         = filtro.Especialidad,
+            Ciudad               = filtro.Ciudad,
+            UsuarioId            = usuarioSeguidorId,
+            ExcluirProfesionalId = excluirProfesionalId,
+            Pagina               = filtro.Pagina,
+            TamanoPagina         = filtro.TamanioPagina
         };
 
         var filas = await conn.QueryAsync<ProfesionalDirectorioRow>(
@@ -47,7 +48,8 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
                 param.TipoBusqueda,
                 param.Especialidad,
                 param.Ciudad,
-                param.UsuarioId
+                param.UsuarioId,
+                param.ExcluirProfesionalId
             },
             commandType: CommandType.StoredProcedure);
 

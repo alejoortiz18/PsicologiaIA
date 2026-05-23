@@ -132,7 +132,7 @@ public class RespuestaComentario    { public int RespuestaId { get; set; } publi
 public class ColaboracionProfesional { public int ColaboracionId { get; set; } public int ProfesionalId1 { get; set; } public int ProfesionalId2 { get; set; } public string Estado { get; set; } = "Activa"; public DateTime FechaCreacion { get; set; } public DateTime FechaModificacion { get; set; } }
 
 // ── Mensajería ────────────────────────────────────────────────
-public class Conversacion   { public int ConversacionId { get; set; } public int UsuarioId { get; set; } public int ProfesionalId { get; set; } public DateTime FechaInicio { get; set; } public DateTime? UltimoMensaje { get; set; } public string Estado { get; set; } = "Activa"; }
+public class Conversacion   { public int ConversacionId { get; set; } public int? UsuarioId { get; set; } public int ProfesionalId { get; set; } public int? ProfesionalIdColega { get; set; } public DateTime FechaInicio { get; set; } public DateTime? UltimoMensaje { get; set; } public string Estado { get; set; } = "Activa"; }
 public class MensajePrivado { public int MensajePrivadoId { get; set; } public int ConversacionId { get; set; } public int AutorId { get; set; } public string TipoAutor { get; set; } = string.Empty; public string Texto { get; set; } = string.Empty; public bool Leido { get; set; } public DateTime FechaCreacion { get; set; } }
 
 // ── Notificaciones ────────────────────────────────────────────
