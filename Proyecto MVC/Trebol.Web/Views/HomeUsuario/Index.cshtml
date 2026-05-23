@@ -218,6 +218,18 @@
     </section>
 </div>
 
+<!-- Eventos de colegas (esta semana) -->
+@if (Model.EventosColegas.Any())
+{
+    <div class="mb-8">
+        <div class="home-section-head">
+            <h2 style="color:var(--color-primary);font-family:var(--font-display);">🌐 Eventos de colegas</h2>
+            <a asp-controller="Eventos" asp-action="Index" class="btn btn-ghost btn-sm">Ver todos</a>
+        </div>
+        @await Html.PartialAsync("_EventosColegasLista", Model.EventosColegas)
+    </div>
+}
+
 <!-- Comienzan hoy -->
 <div class="mb-8">
     <div class="home-section-head">

@@ -3,30 +3,34 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Dashboard;
+using Trebol.Web.Helpers;
 
 namespace Trebol.Web.Controllers;
 
-[Authorize(Roles = "Usuario")]
+[Authorize(Roles = "Usuario,Profesional")]
 public class EventosController(ISalaRepository salaRepo) : Controller
 {
-    private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private int EntidadId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     // GET /Eventos
+    [Authorize(Roles = "Usuario")]
     public async Task<IActionResult> Index(CancellationToken ct)
     {
         var vm = new EventosUsuarioViewModel
         {
-            Inscritos     = await salaRepo.ObtenerInscritosUsuarioAsync(UsuarioId, ct),
-            EstaSemana    = await salaRepo.ObtenerSemanaUsuarioAsync(UsuarioId, ct),
-            TodosVigentes = await salaRepo.ObtenerTodosVigentesAsync(UsuarioId, ct)
+            Inscritos     = await salaRepo.ObtenerInscritosUsuarioAsync(EntidadId, ct),
+            EstaSemana    = await salaRepo.ObtenerSemanaUsuarioAsync(EntidadId, ct),
+            TodosVigentes = await salaRepo.ObtenerTodosVigentesAsync(EntidadId, ct)
         };
         return View(vm);
     }
 
-    // GET /Eventos/Detalle/5
+    // GET /Eventos/Detalle/5 — modal en home (usuario y profesional)
+    [Authorize(Roles = "Usuario,Profesional")]
     public async Task<IActionResult> Detalle(int id, CancellationToken ct)
     {
-        var detalle = await salaRepo.ObtenerDetalleUsuarioAsync(id, UsuarioId, ct);
+        var p = InscripcionParticipante.From(User);
+        var detalle = await salaRepo.ObtenerDetalleInscripcionAsync(id, p.UsuarioId, p.ProfesionalInscriptorId, ct);
         if (detalle is null)
             return NotFound(new { mensaje = "Evento no encontrado o no disponible." });
         return Json(detalle);

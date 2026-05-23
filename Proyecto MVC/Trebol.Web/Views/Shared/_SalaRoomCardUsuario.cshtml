@@ -6,6 +6,12 @@
     var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", cultura);
     var cuposRestantes = Math.Max(0, Model.Capacidad - Model.TotalInscritos);
     var pocosCupos = !Model.EsInscrito && cuposRestantes > 0 && cuposRestantes <= 10;
+    var sinCupos = !Model.EsInscrito && cuposRestantes == 0;
+    var esProxima = Model.FechaInicio.HasValue && Model.FechaInicio > DateTime.Now;
+    var esFinalizada = string.Equals(Model.Estado, "Cerrada", StringComparison.OrdinalIgnoreCase)
+        || (Model.FechaInicio.HasValue && Model.FechaInicio < DateTime.Now && Model.Estado != "Abierta");
+    var filtroEstado = esFinalizada ? "finalizada" : esProxima ? "proxima" : "abierta";
+    var puedeInscribirse = !Model.EsInscrito && !sinCupos && !esFinalizada;
     var gradients = new[]
     {
         "linear-gradient(135deg,#1A3C34,#2D6A4F)",
@@ -15,22 +21,30 @@
     };
     var bannerBg = gradients[Model.SalaId % gradients.Length];
     var badgeClass = enVivoHoy ? "badge-success" : (pocosCupos ? "badge-muted" : "badge-success");
-    var badgeText = enVivoHoy ? "En vivo hoy" : (pocosCupos ? "Cerrada pronto" : "Abierta");
+    var badgeText = enVivoHoy ? "En vivo hoy" : (pocosCupos ? "Cerrada pronto" : (esFinalizada ? "Finalizada" : "Abierta"));
     var iniciales = string.Join("", (Model.NombreProfesional ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
         .Take(2).Select(p => char.ToUpperInvariant(p[0])));
-    var regClass = Model.EsInscrito ? "btn btn-secondary btn-sm btn-reg-sala is-inscrito" : (pocosCupos ? "btn btn-danger btn-sm btn-reg-sala" : "btn btn-primary btn-sm btn-reg-sala");
-    var regText = Model.EsInscrito ? "✓ Inscrito" : (pocosCupos ? "¡Últimos cupos!" : "Registrarse");
+    var regClass = Model.EsInscrito
+        ? "btn btn-secondary btn-sm btn-reg-sala is-inscrito"
+        : (sinCupos ? "btn btn-secondary btn-sm btn-reg-sala"
+            : (pocosCupos ? "btn btn-danger btn-sm btn-reg-sala" : "btn btn-primary btn-sm btn-reg-sala"));
+    var regText = Model.EsInscrito
+        ? "Inscrito"
+        : (sinCupos ? "Sin cupos"
+            : (Model.Precio > 0 ? "Inscribirse y pagar" : "Registrarse"));
 }
 <article class="room-card" aria-label="Sala: @Model.Titulo"
          data-sala-id="@Model.SalaId"
          data-sala-titulo="@Model.Titulo"
          data-profesional-id="@Model.ProfesionalId"
-         data-inscrito="@(Model.EsInscrito ? "1" : "0")">
+         data-inscrito="@(Model.EsInscrito ? "1" : "0")"
+         data-nombre="@Model.Titulo.ToLowerInvariant()"
+         data-estado="@filtroEstado">
     <div class="room-card__banner" style="background:@bannerBg;">
         <div class="room-card__banner-text">@Model.Titulo</div>
         <div class="room-card__badge">
             <span class="badge @badgeClass">
-                @if (enVivoHoy || !pocosCupos) { <span class="badge-dot" aria-hidden="true"></span> }
+                @if (enVivoHoy || (!pocosCupos && !esFinalizada)) { <span class="badge-dot" aria-hidden="true"></span> }
                 @badgeText
             </span>
         </div>
@@ -48,25 +62,33 @@
         <div class="d-flex items-center justify-between">
             <span class="room-card__price @(Model.Precio <= 0 ? "free" : "")">@precioTxt</span>
             <span class="text-meta" style="@(pocosCupos ? "color:var(--color-danger);font-weight:600;" : "")">
-                @(cuposRestantes == 0 ? "Sin cupos" : $"{cuposRestantes} cupo{(cuposRestantes == 1 ? "" : "s")}")
+                @(sinCupos ? "Sin cupos" : $"{cuposRestantes} cupo{(cuposRestantes == 1 ? "" : "s")}")
             </span>
         </div>
     </div>
     <div class="room-card__footer room-card__footer--actions">
-        <button type="button" class="btn btn-secondary btn-sm btn-ver-sala" data-sala-id="@Model.SalaId">Ver más</button>
-        <button type="button" class="@regClass" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo"
-                @(Model.EsInscrito ? "disabled" : null)>@regText</button>
-        <button type="button" class="btn btn-ghost btn-sm btn-like-sala @(Model.EsSeguido ? "is-liked" : "")"
-                data-liked="@(Model.EsSeguido ? "true" : "false")"
-                data-profesional-id="@Model.ProfesionalId"
-                aria-label="Me gusta">
-            @(Model.EsSeguido ? "💚" : "🤍") <span class="like-count">@Model.TotalSeguidos</span>
-        </button>
-        <button type="button" class="btn btn-ghost btn-sm"
-                data-pm-name="@Model.NombreProfesional"
-                data-pm-avatar="@iniciales"
-                data-pm-profesional-id="@Model.ProfesionalId"
-                data-pm-bg="@bannerBg"
-                aria-label="Mensaje a @Model.NombreProfesional">Mensaje</button>
+        <div class="room-card__footer-primary">
+            <button type="button" class="btn btn-secondary btn-sm btn-ver-sala" data-sala-id="@Model.SalaId" aria-label="Ver detalle de @Model.Titulo">
+                Detalle
+            </button>
+            <button type="button" class="@regClass" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo"
+                    @(puedeInscribirse ? null : "disabled") aria-label="@(Model.EsInscrito ? "Ya inscrito" : regText)">
+                @regText
+            </button>
+        </div>
+        <div class="room-card__footer-extra">
+            <button type="button" class="btn btn-ghost btn-sm btn-like-sala @(Model.EsSeguido ? "is-liked" : "")"
+                    data-liked="@(Model.EsSeguido ? "true" : "false")"
+                    data-profesional-id="@Model.ProfesionalId"
+                    aria-label="Seguir al orador">
+                @(Model.EsSeguido ? "💚" : "🤍") <span class="like-count">@Model.TotalSeguidos</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm"
+                    data-pm-name="@Model.NombreProfesional"
+                    data-pm-avatar="@iniciales"
+                    data-pm-profesional-id="@Model.ProfesionalId"
+                    data-pm-bg="@bannerBg"
+                    aria-label="Mensaje a @Model.NombreProfesional">Mensaje</button>
+        </div>
     </div>
 </article>

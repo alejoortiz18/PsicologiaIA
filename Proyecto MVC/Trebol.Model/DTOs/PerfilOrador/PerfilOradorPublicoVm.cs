@@ -1,4 +1,5 @@
 using Trebol.Model.DTOs.Profesional;
+using Trebol.Model.DTOs.Publico;
 using Trebol.Model.DTOs.Sala;
 using Trebol.Model.Entities.TrebolEntities;
 
@@ -16,6 +17,7 @@ public class PerfilOradorPublicoVm
     public IReadOnlyList<string> LineasExperiencia { get; set; } = [];
     public IReadOnlyList<ProfesionalEstudioDto> Estudios { get; set; } = [];
     public IReadOnlyList<SalaDto> Salas { get; set; } = [];
+    public IReadOnlyList<EventoPublicoDto> SalasEventos { get; set; } = [];
     public IReadOnlyList<ComentarioPerfilDto> Comentarios { get; set; } = [];
     public ResumenComentariosPerfilDto ResumenComentarios { get; set; } = new();
     public IReadOnlyList<HorarioDisponible> Disponibilidad { get; set; } = [];

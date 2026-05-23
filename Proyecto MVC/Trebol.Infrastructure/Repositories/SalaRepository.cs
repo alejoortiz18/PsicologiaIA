@@ -119,13 +119,42 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
         return result.AsList();
     }
 
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosPorProfesionalUsuarioAsync(
+        int profesionalId, int usuarioId, CancellationToken ct = default)
+        => await ObtenerEventosPorProfesionalParticipanteAsync(profesionalId, usuarioId, null, ct);
+
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosPorProfesionalParticipanteAsync(
+        int profesionalOradorId, int? usuarioId, int? profesionalInscriptorId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerEventosPorProfesionalUsuario",
+            new
+            {
+                ProfesionalId = profesionalOradorId,
+                UsuarioId = usuarioId ?? 0,
+                ProfesionalInscriptorId = profesionalInscriptorId ?? 0
+            },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
     public async Task<SalaDetalleUsuarioDto?> ObtenerDetalleUsuarioAsync(
         int salaId, int usuarioId, CancellationToken ct = default)
+        => await ObtenerDetalleInscripcionAsync(salaId, usuarioId, null, ct);
+
+    public async Task<SalaDetalleUsuarioDto?> ObtenerDetalleInscripcionAsync(
+        int salaId, int? usuarioId, int? profesionalInscriptorId, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
         return await conn.QueryFirstOrDefaultAsync<SalaDetalleUsuarioDto>(
             "sp_ObtenerSalaDetalleUsuario",
-            new { SalaId = salaId, UsuarioId = usuarioId },
+            new
+            {
+                SalaId = salaId,
+                UsuarioId = usuarioId ?? 0,
+                ProfesionalInscriptorId = profesionalInscriptorId ?? 0
+            },
             commandType: CommandType.StoredProcedure);
     }
 

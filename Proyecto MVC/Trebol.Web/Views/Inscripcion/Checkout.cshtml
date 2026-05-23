@@ -1,0 +1,241 @@
+@model Trebol.Model.DTOs.Pago.CheckoutVm
+@using Trebol.Constants.Pagos
+@{
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var paso = ViewBag.PasoInicial as int? ?? 1;
+    var esCita = Model.Tipo == "cita";
+    var esInscripcion = !esCita;
+    var exito = ViewBag.Exito as bool? ?? false;
+    var sinCupos = ViewBag.SinCupos as bool? ?? false;
+    var tarjeta = ViewBag.TarjetaPrueba;
+    var tituloPagina = esCita ? "Reservar cita y pago" : "Inscripción y pago";
+    ViewData["Title"] = tituloPagina;
+    string Fmt(decimal v) => v.ToString("C0", cultura);
+    string FmtFecha(DateTime? d) => d?.ToString("d MMM yyyy", cultura) ?? "—";
+    string FmtHora(DateTime? d) => d?.ToString("h:mm tt", cultura) ?? "";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/checkout-pago.css" asp-append-version="true" />
+}
+
+<header class="topbar" style="margin-bottom:var(--sp-6);">
+    <a href="javascript:history.back()" class="btn btn-ghost btn-sm" aria-label="Volver">← Volver</a>
+    <span class="topbar__title">@tituloPagina</span>
+    <div class="topbar__spacer"></div>
+</header>
+
+@if (TempData["Error"] is string err)
+{
+    <div class="alert alert-error mb-4" role="alert">@err</div>
+}
+@if (TempData["Mensaje"] is string ok)
+{
+    <div class="alert alert-success mb-4" role="alert">@ok</div>
+}
+
+<nav class="wizard-steps" aria-label="Pasos del proceso">
+    <div class="wizard-step @(paso >= 1 ? "active" : "") @(paso > 1 ? "done" : "")" id="step-indicator-1" aria-current="@(paso == 1 ? "step" : null)">
+        <div class="wizard-step__num">1</div>
+        <div class="wizard-step__label">Confirmación</div>
+    </div>
+    <div class="wizard-connector @(paso > 1 ? "done" : "")" aria-hidden="true"></div>
+    <div class="wizard-step @(paso == 2 ? "active" : "") @(paso > 2 ? "done" : "")" id="step-indicator-2">
+        <div class="wizard-step__num">2</div>
+        <div class="wizard-step__label">Pago</div>
+    </div>
+    <div class="wizard-connector @(paso > 2 ? "done" : "")" aria-hidden="true"></div>
+    <div class="wizard-step @(paso == 3 ? "active" : "")" id="step-indicator-3">
+        <div class="wizard-step__num">3</div>
+        <div class="wizard-step__label">Resultado</div>
+    </div>
+</nav>
+
+@if (paso == 1)
+{
+    <div id="wizard-step-1" class="checkout-grid">
+        <div class="checkout-card">
+            <h2 class="checkout-card__title">@Model.Titulo</h2>
+            <p class="text-meta mb-4">@Model.Subtitulo</p>
+
+            @if (esInscripcion && Model.FechaEvento.HasValue)
+            {
+                <div class="session-info-row">
+                    <span class="session-info-label">📅 Fecha</span>
+                    <span class="session-info-value">@FmtFecha(Model.FechaEvento) · @FmtHora(Model.FechaEvento)</span>
+                </div>
+                @if (Model.Capacidad > 0)
+                {
+                    <div class="session-info-row">
+                        <span class="session-info-label">👥 Cupos disponibles</span>
+                        <span class="session-info-value @(Model.CuposDisponibles <= 10 ? "text-danger" : "")">@Model.CuposDisponibles de @Model.Capacidad</span>
+                    </div>
+                }
+            }
+            @if (esCita && Model.FechaHoraCita.HasValue)
+            {
+                <div class="session-info-row">
+                    <span class="session-info-label">📅 Fecha y hora</span>
+                    <span class="session-info-value">@FmtFecha(Model.FechaHoraCita) · @FmtHora(Model.FechaHoraCita)</span>
+                </div>
+                <div class="session-info-row">
+                    <span class="session-info-label">⏱ Duración</span>
+                    <span class="session-info-value">@Model.DuracionMinutos min</span>
+                </div>
+                <div class="session-info-row">
+                    <span class="session-info-label">🎓 Profesional</span>
+                    <span class="session-info-value">@Model.NombreProfesional</span>
+                </div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
+            {
+                <p class="checkout-desc">@Model.Descripcion</p>
+            }
+        </div>
+
+        <aside class="checkout-summary">
+            <h3 class="checkout-summary__title">Resumen</h3>
+            <div class="session-info-row">
+                <span class="session-info-label">@(esCita ? "Cita" : "Sala")</span>
+                <span class="session-info-value">@Model.Titulo</span>
+            </div>
+            <div class="session-info-row">
+                <span class="session-info-label">Subtotal</span>
+                <span class="session-info-value">@(Model.Subtotal <= 0 ? "Entrada libre" : Fmt(Model.Subtotal))</span>
+            </div>
+            @if (Model.RequierePago)
+            {
+                <div class="session-info-row">
+                    <span class="session-info-label">Tarifa plataforma</span>
+                    <span class="session-info-value">@Fmt(Model.TarifaPlataforma)</span>
+                </div>
+            }
+            <div class="checkout-total">
+                <span>Total</span>
+                <strong>@(Model.Total <= 0 ? "Gratis" : Fmt(Model.Total))</strong>
+            </div>
+            @if (Model.RequierePago)
+            {
+                <p class="checkout-hint">🔒 Al confirmar, tu lugar quedará reservado para completar el pago.</p>
+            }
+
+            @if (esInscripcion)
+            {
+                <form asp-controller="Inscripcion" asp-action="ConfirmarInscripcion" asp-route-id="@Model.SalaId" method="post" class="mt-4">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primary w-full">
+                        @(Model.RequierePago ? "Confirmar y pagar" : "Confirmar inscripción")
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form asp-controller="PagoCita" asp-action="Confirmar" method="post" class="mt-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="profesionalId" value="@Model.ProfesionalId" />
+                    <input type="hidden" name="fechaHora" value="@(Model.FechaHoraCita?.ToString("o"))" />
+                    <input type="hidden" name="duracionMinutos" value="@Model.DuracionMinutos" />
+                    <input type="hidden" name="tipo" value="@Trebol.Model.Enums.TipoCita.Asesoria" />
+                    <button type="submit" class="btn btn-primary w-full">
+                        @(Model.RequierePago ? "Confirmar y pagar" : "Confirmar cita")
+                    </button>
+                </form>
+            }
+            <a href="javascript:history.back()" class="btn btn-ghost w-full mt-3">Cancelar</a>
+        </aside>
+    </div>
+}
+
+@if (paso == 2)
+{
+    <div id="wizard-step-2" class="checkout-pay-wrap">
+        <div class="checkout-card">
+            <h2 class="checkout-card__title">Método de pago</h2>
+            <p class="text-meta mb-4">Total a pagar: <strong>@Fmt(Model.Total)</strong></p>
+
+            @if (esInscripcion)
+            {
+                <form asp-controller="Inscripcion" asp-action="ProcesarPago" method="post" id="form-pago">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.InscripcionId" />
+                    @{ ViewData["MetodoPago"] = Model.MetodoPago; }
+                    <partial name="~/Views/Shared/_CheckoutMetodosPago.cshtml" model="tarjeta" />
+                    <div class="checkout-pay-actions">
+                        <a asp-action="Confirmar" asp-controller="Inscripcion" asp-route-id="@Model.SalaId" class="btn btn-secondary">← Volver</a>
+                        <button type="submit" class="btn btn-primary" id="checkout-pay-btn" style="flex:1;">Pagar @Fmt(Model.Total)</button>
+                    </div>
+                </form>
+            }
+            else
+            {
+                <form asp-controller="PagoCita" asp-action="ProcesarPago" method="post" id="form-pago">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.CitaId" />
+                    @{ ViewData["MetodoPago"] = Model.MetodoPago; }
+                    <partial name="~/Views/Shared/_CheckoutMetodosPago.cshtml" model="tarjeta" />
+                    <div class="checkout-pay-actions">
+                        <a asp-action="Pago" asp-controller="PagoCita" asp-route-id="@Model.CitaId" class="btn btn-secondary">← Volver</a>
+                        <button type="submit" class="btn btn-primary" id="checkout-pay-btn" style="flex:1;">Pagar @Fmt(Model.Total)</button>
+                    </div>
+                </form>
+            }
+        </div>
+    </div>
+}
+
+@if (paso == 3)
+{
+    <div id="wizard-step-3" class="checkout-result">
+        @if (exito)
+        {
+            <div class="checkout-card text-center">
+                <div style="font-size:3rem;" aria-hidden="true">✅</div>
+                <h2 class="checkout-card__title">@(ViewBag.MensajeResultado ?? "¡Operación exitosa!")</h2>
+                @if (!string.IsNullOrEmpty(Model.CodigoInscripcion))
+                {
+                    <div class="checkout-codigo">
+                        <div class="text-meta">Código</div>
+                        <div class="checkout-codigo__val">@Model.CodigoInscripcion</div>
+                    </div>
+                }
+                <div class="session-info-row"><span class="session-info-label">@(esCita ? "Cita" : "Sala")</span><span class="session-info-value">@Model.Titulo</span></div>
+                @if (Model.RequierePago || Model.Total > 0)
+                {
+                    <div class="session-info-row"><span class="session-info-label">💰 Pagado</span><span class="session-info-value" style="color:var(--color-success);">@Fmt(Model.Total)</span></div>
+                }
+                <div class="mt-6" style="display:flex;flex-direction:column;gap:var(--sp-3);">
+                    @if (esCita)
+                    {
+                        <a asp-controller="Citas" asp-action="Index" class="btn btn-primary">Ver mis citas</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Eventos" asp-action="Index" class="btn btn-primary">Ver mis eventos</a>
+                    }
+                    <a asp-controller="HomeUsuario" asp-action="Index" class="btn btn-ghost">Ir al inicio</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="checkout-card text-center">
+                <div style="font-size:3rem;" aria-hidden="true">❌</div>
+                <h2 class="checkout-card__title">@(sinCupos ? "Sin cupos" : "Pago no completado")</h2>
+                <p class="text-meta mb-4">@(ViewBag.MensajeResultado ?? "Intenta de nuevo o elige otro evento.")</p>
+                @if (esInscripcion && Model.InscripcionId.HasValue)
+                {
+                    <a asp-action="Pago" asp-controller="Inscripcion" asp-route-id="@Model.InscripcionId" class="btn btn-primary">Reintentar pago</a>
+                }
+                else if (esCita && Model.CitaId.HasValue)
+                {
+                    <a asp-action="Pago" asp-controller="PagoCita" asp-route-id="@Model.CitaId" class="btn btn-primary">Reintentar pago</a>
+                }
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/checkout-pago.js" asp-append-version="true"></script>
+}

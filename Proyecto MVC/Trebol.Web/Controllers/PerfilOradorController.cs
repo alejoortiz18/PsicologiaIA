@@ -33,6 +33,36 @@ public class PerfilOradorController(
         => MostrarAsync(id, "salas", async vm =>
         {
             vm.Salas = await salaRepo.ObtenerPorProfesionalAsync(id, HttpContext.RequestAborted);
+            var participante = InscripcionParticipante.From(User);
+            if (participante.UsuarioId is int uid)
+            {
+                vm.SalasEventos = await salaRepo.ObtenerEventosPorProfesionalParticipanteAsync(
+                    id, uid, null, HttpContext.RequestAborted);
+            }
+            else if (participante.ProfesionalInscriptorId is int pid)
+            {
+                vm.SalasEventos = await salaRepo.ObtenerEventosPorProfesionalParticipanteAsync(
+                    id, null, pid, HttpContext.RequestAborted);
+            }
+
+            if (vm.SalasEventos.Count == 0 && vm.Salas.Count > 0
+                && (participante.UsuarioId.HasValue || participante.ProfesionalInscriptorId.HasValue))
+            {
+                vm.SalasEventos = vm.Salas.Select(s => new Trebol.Model.DTOs.Publico.EventoPublicoDto
+                {
+                    SalaId            = s.SalaId,
+                    ProfesionalId     = s.ProfesionalId,
+                    Titulo            = s.Titulo,
+                    NombreProfesional = vm.Perfil.NombreCompleto,
+                    Categoria         = s.Categoria,
+                    Estado            = s.Estado.ToString(),
+                    Capacidad         = s.Capacidad,
+                    TotalInscritos    = s.TotalInscritos,
+                    Precio            = s.Precio,
+                    FechaInicio       = s.FechaInicio
+                }).ToList();
+            }
+
             return View("Salas", vm);
         });
 

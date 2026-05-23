@@ -15,7 +15,11 @@ public interface ISalaRepository
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerInscritosUsuarioAsync(int usuarioId, CancellationToken ct = default);
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerSemanaUsuarioAsync(int usuarioId, CancellationToken ct = default);
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerTodosVigentesAsync(int usuarioId, CancellationToken ct = default);
+    Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosPorProfesionalUsuarioAsync(int profesionalId, int usuarioId, CancellationToken ct = default);
+    Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosPorProfesionalParticipanteAsync(
+        int profesionalOradorId, int? usuarioId, int? profesionalInscriptorId, CancellationToken ct = default);
     Task<SalaDetalleUsuarioDto?> ObtenerDetalleUsuarioAsync(int salaId, int usuarioId, CancellationToken ct = default);
+    Task<SalaDetalleUsuarioDto?> ObtenerDetalleInscripcionAsync(int salaId, int? usuarioId, int? profesionalInscriptorId, CancellationToken ct = default);
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosColegasAsync(int profesionalId, int limite = 30, CancellationToken ct = default);
     Task<IReadOnlyList<SalaResumenDto>> ObtenerActivasHoyPorProfesionalAsync(int profesionalId, CancellationToken ct = default);
     Task<SalaDto?>               ObtenerDetalleAsync(int salaId, CancellationToken ct = default);

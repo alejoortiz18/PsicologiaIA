@@ -1,12 +1,26 @@
 @model Trebol.Model.DTOs.Publico.EventoPublicoDto
 @{
+    var cultura = new System.Globalization.CultureInfo("es-CO");
     var esHoy = Model.FechaInicio.HasValue && Model.FechaInicio.Value.Date == DateTime.Today;
     var enVivo = esHoy && Model.Estado == "Abierta";
-    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0");
-    var iniciales = string.Join("", Model.NombreProfesional.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-        .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", cultura);
+    var cuposRestantes = Math.Max(0, Model.Capacidad - Model.TotalInscritos);
+    var sinCupos = !Model.EsInscrito && cuposRestantes == 0;
+    var esFinalizada = string.Equals(Model.Estado, "Cerrada", StringComparison.OrdinalIgnoreCase);
+    var puedeParticipar = User.IsInRole("Usuario") || User.IsInRole("Profesional");
+    var puedeInscribirse = puedeParticipar && !Model.EsInscrito && !sinCupos && !esFinalizada;
+    var regText = Model.EsInscrito
+        ? "Inscrito"
+        : (sinCupos ? "Sin cupos" : (Model.Precio > 0 ? "Inscribirse y pagar" : "Inscribirse"));
+    var regClass = Model.EsInscrito
+        ? "btn btn-secondary btn-sm btn-reg-sala is-inscrito"
+        : (sinCupos ? "btn btn-secondary btn-sm btn-reg-sala"
+            : (cuposRestantes <= 10 && cuposRestantes > 0 ? "btn btn-danger btn-sm btn-reg-sala" : "btn btn-primary btn-sm btn-reg-sala"));
 }
-<div class="event-list-item">
+<div class="event-list-item"
+     data-sala-id="@Model.SalaId"
+     data-sala-titulo="@Model.Titulo"
+     data-profesional-id="@Model.ProfesionalId">
     <div class="event-list-item__thumb" style="background:linear-gradient(135deg,var(--color-primary),#2D6A4F);">🎪</div>
     <div class="event-list-item__body">
         <div class="event-list-item__title">@Model.Titulo</div>
@@ -14,18 +28,32 @@
             @Model.NombreProfesional@(Model.Categoria != null ? $" · {Model.Categoria}" : "") · 👥 @Model.TotalInscritos/@Model.Capacidad · @precioTxt
         </div>
     </div>
-    <div style="display:flex;align-items:center;gap:var(--sp-3);flex-shrink:0;">
+    <div class="event-list-item__aside">
         @if (Model.FechaInicio.HasValue)
         {
             <div class="event-list-item__date">
                 <div class="event-list-item__date-num">@Model.FechaInicio.Value.ToString("dd")</div>
-                <div class="event-list-item__date-label">@Model.FechaInicio.Value.ToString("MMM")</div>
+                <div class="event-list-item__date-label">@Model.FechaInicio.Value.ToString("MMM", cultura)</div>
             </div>
         }
         @if (enVivo)
         {
             <span class="badge badge-success" style="white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
         }
-        <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@Model.ProfesionalId" class="btn btn-secondary btn-sm">Ver perfil</a>
+        <div class="event-list-item__actions">
+            <button type="button" class="btn btn-secondary btn-sm btn-ver-sala" data-sala-id="@Model.SalaId" aria-label="Ver detalle de @Model.Titulo">
+                Detalle
+            </button>
+            @if (puedeParticipar)
+            {
+                <button type="button" class="@regClass" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo"
+                        @(puedeInscribirse ? null : "disabled") aria-label="@regText">
+                    @regText
+                </button>
+            }
+            <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@Model.ProfesionalId" class="btn btn-ghost btn-sm">
+                Ver perfil
+            </a>
+        </div>
     </div>
 </div>

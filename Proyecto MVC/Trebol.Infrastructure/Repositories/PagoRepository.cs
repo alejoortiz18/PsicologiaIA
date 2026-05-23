@@ -3,7 +3,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Trebol.Domain.Interfaces;
-using Trebol.Model.Models;
+using Trebol.Model.DTOs.Pago;
 
 namespace Trebol.Infrastructure.Repositories;
 
@@ -12,33 +12,42 @@ public class PagoRepository(IConfiguration configuration) : IPagoRepository
     private IDbConnection CrearConexion()
         => new SqlConnection(configuration.GetConnectionString("TrebolDB"));
 
-    public async Task<ResultadoOperacion> PagarCitaAsync(
+    public async Task<PagoProcesadoDto> PagarCitaAsync(
         int citaId, int usuarioId, string metodoPago, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
-        var result = await conn.QueryFirstOrDefaultAsync<SpResult>(
+        var result = await conn.QueryFirstOrDefaultAsync<SpPagoResult>(
             "sp_PagarCita",
             new { CitaId = citaId, UsuarioId = usuarioId, MetodoPago = metodoPago },
             commandType: CommandType.StoredProcedure);
 
-        return result?.Exito == true
-            ? ResultadoOperacion.Ok(result.Mensaje)
-            : ResultadoOperacion.Fail(result?.Mensaje ?? "Error al procesar pago.");
+        return Map(result);
     }
 
-    public async Task<ResultadoOperacion> PagarInscripcionAsync(
+    public async Task<PagoProcesadoDto> PagarInscripcionAsync(
         int inscripcionId, string metodoPago, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
-        var result = await conn.QueryFirstOrDefaultAsync<SpResult>(
+        var result = await conn.QueryFirstOrDefaultAsync<SpPagoResult>(
             "sp_PagarInscripcion",
             new { InscripcionId = inscripcionId, MetodoPago = metodoPago },
             commandType: CommandType.StoredProcedure);
 
-        return result?.Exito == true
-            ? ResultadoOperacion.Ok(result.Mensaje)
-            : ResultadoOperacion.Fail(result?.Mensaje ?? "Error al procesar pago.");
+        return Map(result);
     }
 
-    private sealed class SpResult { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; }
+    private static PagoProcesadoDto Map(SpPagoResult? result)
+        => new()
+        {
+            Exito   = result?.Exito == true,
+            Mensaje = result?.Mensaje ?? "Error al procesar pago.",
+            Codigo  = result?.Codigo
+        };
+
+    private sealed class SpPagoResult
+    {
+        public bool    Exito   { get; init; }
+        public string  Mensaje { get; init; } = "";
+        public string? Codigo  { get; init; }
+    }
 }

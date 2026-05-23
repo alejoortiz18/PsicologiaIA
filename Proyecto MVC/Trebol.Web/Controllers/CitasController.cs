@@ -29,12 +29,7 @@ public class CitasController(ICitaRepository citaRepo) : Controller
     [Authorize(Roles = "Usuario")]
     [HttpGet]
     public IActionResult NuevaCita(int profesionalId, DateTime? fechaHora)
-        => View(new CrearCitaDto
-        {
-            ProfesionalId = profesionalId,
-            FechaHora     = fechaHora ?? DateTime.Now.AddDays(1).Date.AddHours(9),
-            DuracionMinutos = 60
-        });
+        => RedirectToAction("Confirmar", "PagoCita", new { profesionalId, fechaHora, duracionMinutos = 60 });
 
     // POST /Citas/NuevaCita
     [Authorize(Roles = "Usuario")]

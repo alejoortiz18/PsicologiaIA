@@ -16,9 +16,15 @@
     var bannerBg = gradients[Model.SalaId % gradients.Length];
     var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", cultura);
     var tituloBanner = Model.Titulo.Length > 28 ? Model.Titulo[..28] + "…" : Model.Titulo;
+    var cuposRestantes = Math.Max(0, Model.Capacidad - Model.TotalInscritos);
+    var sinCupos = cuposRestantes == 0;
+    var puedeInscribirse = User.IsInRole("Usuario") && !esFinalizada && !sinCupos;
+    var regText = sinCupos ? "Sin cupos" : (Model.Precio > 0 ? "Inscribirme" : "Inscribirme");
+    var esUsuario = User.IsInRole("Usuario");
 }
 
-<article class="room-card perf-orador-sala" data-estado="@filtro" data-nombre="@Model.Titulo.ToLowerInvariant()" aria-label="Sala: @Model.Titulo">
+<article class="room-card perf-orador-sala" data-estado="@filtro" data-nombre="@Model.Titulo.ToLowerInvariant()"
+         data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo" aria-label="Sala: @Model.Titulo">
     <div class="room-card__banner" style="background:@bannerBg;">
         <div class="room-card__banner-text">@tituloBanner</div>
     </div>
@@ -46,15 +52,37 @@
             <span class="room-card__meta-item">@precioTxt</span>
         </div>
     </div>
-    <div class="room-card__footer">
-        <a asp-controller="Salas" asp-action="Detalle" asp-route-id="@Model.SalaId" class="btn btn-secondary btn-sm">Detalle</a>
-        @if (esFinalizada)
+    <div class="room-card__footer @(esUsuario ? "room-card__footer--actions" : "")">
+        @if (esUsuario)
         {
-            <button type="button" class="btn btn-primary btn-sm" disabled style="opacity:.45;cursor:not-allowed;">Finalizada</button>
+            <div class="room-card__footer-primary">
+                <button type="button" class="btn btn-secondary btn-sm btn-ver-sala" data-sala-id="@Model.SalaId" aria-label="Ver detalle">
+                    Detalle
+                </button>
+                @if (esFinalizada)
+                {
+                    <button type="button" class="btn btn-primary btn-sm" disabled style="opacity:.45;">Finalizada</button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-primary btn-sm btn-reg-sala" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo"
+                            @(puedeInscribirse ? null : "disabled")>
+                        @regText
+                    </button>
+                }
+            </div>
         }
         else
         {
-            <a asp-controller="Salas" asp-action="Detalle" asp-route-id="@Model.SalaId" class="btn btn-primary btn-sm">@(esProxima ? "Registrarse" : "Ver sala")</a>
+            <a asp-controller="Salas" asp-action="Detalle" asp-route-id="@Model.SalaId" class="btn btn-secondary btn-sm">Detalle</a>
+            @if (esFinalizada)
+            {
+                <button type="button" class="btn btn-primary btn-sm" disabled style="opacity:.45;cursor:not-allowed;">Finalizada</button>
+            }
+            else
+            {
+                <a asp-controller="Salas" asp-action="Detalle" asp-route-id="@Model.SalaId" class="btn btn-primary btn-sm">Gestionar sala</a>
+            }
         }
     </div>
 </article>

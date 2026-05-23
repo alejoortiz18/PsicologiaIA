@@ -4,7 +4,7 @@
   function filterSalas() {
     const q = (document.getElementById('search-salas')?.value || '').toLowerCase().trim();
     const estado = document.getElementById('filter-estado')?.value || '';
-    const cards = document.querySelectorAll('.perf-orador-sala');
+    const cards = document.querySelectorAll('#salas-grid .perf-orador-sala, #salas-grid .room-card[data-sala-id]');
     let visible = 0;
     cards.forEach(card => {
       const nombre = (card.dataset.nombre || '').toLowerCase();

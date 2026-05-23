@@ -74,7 +74,7 @@
             profesionalId: @p.ProfesionalId,
             usuarioId: @(ViewBag.UsuarioActualId?.ToString() ?? "null"),
             puedeAgendar: @(User.IsInRole("Usuario") ? "true" : "false"),
-            nuevaCitaUrl: '@Url.Action("NuevaCita", "Citas", new { profesionalId = p.ProfesionalId })',
+            nuevaCitaUrl: '@Url.Action("Confirmar", "PagoCita", new { profesionalId = p.ProfesionalId })',
             disponibilidad: @Html.Raw(ViewBag.DisponibilidadJson ?? "[]"),
             bloqueos: @Html.Raw(ViewBag.BloqueosJson ?? "[]"),
             citas: @Html.Raw(ViewBag.CitasSlotsJson ?? "[]")

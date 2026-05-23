@@ -1095,6 +1095,81 @@ h3 { font-size: 1.125rem; font-weight: 600; font-family: var(--font-body); }   /
   align-items: center;
 }
 
+.room-card__footer-primary {
+  display: flex;
+  gap: var(--sp-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.room-card__footer-primary .btn {
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+}
+
+.room-card__footer-extra {
+  display: flex;
+  gap: var(--sp-1);
+  flex-shrink: 0;
+}
+
+.room-card__footer--actions {
+  flex-wrap: wrap;
+}
+
+.event-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background .12s;
+}
+.event-list-item:last-child { border-bottom: none; }
+.event-list-item:hover { background: var(--color-surface-alt); }
+.event-list-item__thumb {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+}
+.event-list-item__body { flex: 1; min-width: 0; }
+.event-list-item__title {
+  font-weight: 700; font-size: .88rem;
+  color: var(--color-text-primary); line-height: 1.35;
+}
+.event-list-item__sub { font-size: .76rem; color: var(--color-text-muted); margin-top: 2px; }
+.event-list-item__date { text-align: center; flex-shrink: 0; min-width: 36px; }
+.event-list-item__date-num {
+  font-size: 1.15rem; font-weight: 800;
+  color: var(--color-primary); line-height: 1;
+}
+.event-list-item__date-label {
+  font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .04em;
+  color: var(--color-text-muted);
+}
+.event-list-item__aside {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.event-list-item__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+@media (max-width: 720px) {
+  .event-list-item { flex-wrap: wrap; }
+  .event-list-item__aside { width: 100%; justify-content: flex-start; }
+}
+
 .room-card__footer--actions .btn-reg-sala.is-inscrito {
   background: var(--color-success) !important;
   color: #fff !important;

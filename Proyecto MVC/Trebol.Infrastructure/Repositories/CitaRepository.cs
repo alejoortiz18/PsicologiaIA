@@ -96,6 +96,7 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
         using var conn = CrearConexion();
         return await conn.QueryFirstOrDefaultAsync<CitaListaDto>(
             @"SELECT c.CitaId,
+                     c.UsuarioId,
                      p.NombreCompleto AS NombreProfesional,
                      ISNULL(p.FotoPerfil,'') AS FotoProfesional,
                      u.Alias AS AliasUsuario,

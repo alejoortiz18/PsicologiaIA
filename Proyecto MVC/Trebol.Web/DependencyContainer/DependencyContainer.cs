@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Trebol.Helpers.AccessDependency;
 using Trebol.Infrastructure.AccessDependency;
 using Trebol.Web.AutoMapper;
+using Trebol.Web.Services;
 
 namespace Trebol.Web.DependencyContainer;
 
@@ -26,7 +27,7 @@ public static class DependencyContainer
             {
                 options.LoginPath          = "/Login";
                 options.LogoutPath         = "/Login/Logout";
-                options.AccessDeniedPath   = "/Login";
+                options.AccessDeniedPath   = "/Home/AccesoDenegado";
                 options.ExpireTimeSpan     = TimeSpan.FromHours(
                     int.TryParse(configuration["App:SessionExpirationHours"], out var h) ? h : 8);
                 options.SlidingExpiration  = true;
@@ -60,6 +61,8 @@ public static class DependencyContainer
         });
 
         services.AddSignalR();
+
+        services.AddScoped<IPagoSimuladoService, PagoSimuladoService>();
 
         // ── Prevenir caché de páginas protegidas (Back button tras logout) ─
         services.AddControllersWithViews(options =>

@@ -1,0 +1,96 @@
+@using Trebol.Constants.Pagos
+@{
+    var metodo = ViewData["MetodoPago"] as string ?? "TarjetaCredito";
+}
+<div class="checkout-metodos" role="radiogroup" aria-label="Seleccionar método de pago">
+    <label class="payment-option @(metodo == "TarjetaCredito" ? "is-selected" : "")">
+        <input type="radio" name="metodo-pago-ui" value="TarjetaCredito" @(metodo == "TarjetaCredito" ? "checked" : "") />
+        <span class="payment-option__icon" aria-hidden="true">💳</span>
+        <span>
+            <span class="payment-option__title">Tarjeta de crédito</span>
+            <span class="payment-option__meta">Visa, Mastercard, Amex</span>
+        </span>
+    </label>
+    <label class="payment-option @(metodo == "TarjetaDebito" ? "is-selected" : "")">
+        <input type="radio" name="metodo-pago-ui" value="TarjetaDebito" @(metodo == "TarjetaDebito" ? "checked" : "") />
+        <span class="payment-option__icon" aria-hidden="true">🏧</span>
+        <span>
+            <span class="payment-option__title">Tarjeta débito</span>
+            <span class="payment-option__meta">Débito bancario</span>
+        </span>
+    </label>
+    <label class="payment-option @(metodo == "PSE" ? "is-selected" : "")">
+        <input type="radio" name="metodo-pago-ui" value="PSE" @(metodo == "PSE" ? "checked" : "") />
+        <span class="payment-option__icon" aria-hidden="true">🏦</span>
+        <span>
+            <span class="payment-option__title">PSE</span>
+            <span class="payment-option__meta">Débito en línea de tu banco</span>
+        </span>
+    </label>
+    <label class="payment-option @(metodo == "Efecty" ? "is-selected" : "")">
+        <input type="radio" name="metodo-pago-ui" value="Efecty" @(metodo == "Efecty" ? "checked" : "") />
+        <span class="payment-option__icon" aria-hidden="true">↔️</span>
+        <span>
+            <span class="payment-option__title">Transferencia bancaria</span>
+            <span class="payment-option__meta">Pago por transferencia (simulado)</span>
+        </span>
+    </label>
+</div>
+
+<input type="hidden" name="tarjeta.MetodoPago" id="checkout-metodo-pago" value="@metodo" />
+
+<div id="checkout-panel-tarjeta" class="checkout-panel">
+    <div class="alert alert-success mb-4" role="note">
+        <strong>Tarjeta de prueba</strong><br />
+        Número: <code>4242 4242 4242 4242</code> · CVV: <code>@TarjetaPruebaConstant.CvvValido</code> · Vence: <code>@TarjetaPruebaConstant.VencimientoValido</code><br />
+        Rechazo: <code>4000 0000 0000 0002</code>
+    </div>
+    <partial name="~/Views/Shared/_CheckoutTarjetaForm.cshtml" model="ViewData.Model" />
+</div>
+
+<div id="checkout-panel-pse" class="checkout-panel" hidden>
+    <div class="alert alert-success mb-4" role="note">
+        <strong>PSE de prueba</strong><br />
+        Banco: <strong>Bancolombia</strong> · Documento: <strong>CC</strong> · Número: <code>@PsePruebaConstant.NumeroDocumento</code>
+    </div>
+    <div class="checkout-card-form">
+        <div class="form-group">
+            <label for="pse-banco" class="form-label">Banco</label>
+            <select id="pse-banco" name="tarjeta.PseBanco" class="form-control" required>
+                <option value="">Selecciona tu banco</option>
+                <option value="bancolombia" selected>Bancolombia (prueba)</option>
+                <option value="davivienda">Davivienda</option>
+                <option value="bogota">Banco de Bogotá</option>
+            </select>
+        </div>
+        <div class="form-row form-row-2">
+            <div class="form-group">
+                <label for="pse-tipo-doc" class="form-label">Tipo de documento</label>
+                <select id="pse-tipo-doc" name="tarjeta.PseTipoDocumento" class="form-control" required>
+                    <option value="CC" selected>Cédula de ciudadanía</option>
+                    <option value="CE">Cédula de extranjería</option>
+                    <option value="NIT">NIT</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="pse-doc" class="form-label">Número de documento</label>
+                <input type="text" id="pse-doc" name="tarjeta.PseNumeroDocumento" class="form-control"
+                       value="@PsePruebaConstant.NumeroDocumento" inputmode="numeric" required />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="pse-email" class="form-label">Correo electrónico</label>
+            <input type="email" id="pse-email" name="tarjeta.PseEmail" class="form-control"
+                   value="@PsePruebaConstant.Email" autocomplete="email" />
+        </div>
+    </div>
+</div>
+
+<div id="checkout-panel-transferencia" class="checkout-panel" hidden>
+    <div class="alert alert-info mb-4" role="note">
+        En producción verás los datos de la cuenta. En desarrollo, al pulsar <strong>Pagar</strong> se simula la aprobación.
+    </div>
+    <p class="text-meta" style="line-height:1.6;">
+        Referencia sugerida: <strong>TREBOL-@DateTime.Now.ToString("yyyyMMdd")</strong>
+    </p>
+</div>
