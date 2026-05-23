@@ -2613,6 +2613,16 @@ tbody td {
   color: var(--color-text-primary);
 }
 
+.prof-card__name-link {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.prof-card__name-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
 .prof-card__specialty {
   font-size: 0.8125rem;
   color: var(--color-text-secondary);

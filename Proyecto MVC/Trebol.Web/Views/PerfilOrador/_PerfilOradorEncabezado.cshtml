@@ -4,6 +4,12 @@
     var partes = (p.NombreCompleto ?? "??").Split(' ', StringSplitOptions.RemoveEmptyEntries);
     var ini = string.Concat(partes.Take(2).Select(x => x.Length > 0 ? char.ToUpper(x[0]) : '?'));
     var pmBg = "linear-gradient(135deg, #1A3C34, #2D6A4F)";
+    var subtitulo = !string.IsNullOrWhiteSpace(Model.SubtituloPerfil)
+        ? Model.SubtituloPerfil
+        : Trebol.Web.Helpers.PerfilOradorPresentacion.ConstruirSubtitulo(p);
+    var tagsEspecialidad = Trebol.Web.Helpers.PerfilOradorPresentacion.EspecialidadesVisibles(p);
+    var anosExp = p.AnosExperiencia ?? 0;
+    var seguidoresFmt = p.TotalSeguidos.ToString("N0").Replace(",", " ");
 }
 
 <nav class="breadcrumb mb-4" aria-label="Ruta">
@@ -33,20 +39,14 @@
         }
         <div class="profile-header__main">
             <div class="profile-header__title-row">
-                <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.75rem;margin:0;">@p.NombreCompleto</h1>
-                <span class="badge badge-success">Verificado</span>
+                <h1 class="profile-header__name">@p.NombreCompleto</h1>
+                <span class="badge badge-success">Verificada</span>
             </div>
-            <div class="text-meta" style="margin-bottom:var(--sp-3);">
-                @(p.Especialidades.FirstOrDefault() ?? p.Titulo ?? "Profesional de salud")
-                @if (!string.IsNullOrEmpty(p.Ciudad))
-                {
-                    <span> · 📍 @p.Ciudad</span>
-                }
-            </div>
-            @if (p.Especialidades.Any())
+            <div class="text-meta profile-header__subtitle">@subtitulo</div>
+            @if (tagsEspecialidad.Count >= 2 || (tagsEspecialidad.Any() && !string.IsNullOrWhiteSpace(p.Titulo)))
             {
-                <div class="tag-list" style="margin-bottom:var(--sp-4);">
-                    @foreach (var esp in p.Especialidades.Take(5))
+                <div class="tag-list profile-header__tags">
+                    @foreach (var esp in tagsEspecialidad.Take(5))
                     {
                         <span class="badge badge-primary">@esp</span>
                     }
@@ -54,46 +54,38 @@
             }
             <div class="profile-header__stats">
                 <div>
-                    <div class="profile-header__stat-val" id="seguidores-count">@p.TotalSeguidos</div>
+                    <div class="profile-header__stat-val" id="seguidores-count">@seguidoresFmt</div>
                     <div class="text-meta">Seguidores</div>
                 </div>
                 <div>
                     <div class="profile-header__stat-val">@Model.Resumen.TotalSalas</div>
                     <div class="text-meta">Salas creadas</div>
                 </div>
-                @if (p.AnosExperiencia.HasValue && p.AnosExperiencia > 0)
-                {
-                    <div>
-                        <div class="profile-header__stat-val">@p.AnosExperiencia</div>
-                        <div class="text-meta">Años de experiencia</div>
-                    </div>
-                }
-                else if (p.Calificacion.HasValue)
-                {
-                    <div>
-                        <div class="profile-header__stat-val">@p.Calificacion.Value.ToString("F1")</div>
-                        <div class="text-meta">Calificación</div>
-                    </div>
-                }
+                <div>
+                    <div class="profile-header__stat-val">@anosExp</div>
+                    <div class="text-meta">Años de experiencia</div>
+                </div>
             </div>
         </div>
         <div class="profile-header__actions">
-            @if (User.IsInRole("Usuario"))
+            @if (Model.PuedeSeguir)
             {
                 <button type="button"
-                        class="btn btn-primary btn-sm btn-seguir @(Model.EsSeguido ? "btn-mentor-active" : "")"
+                        class="btn btn-primary btn-seguir @(Model.EsSeguido ? "btn-mentor-active" : "")"
+                        id="follow-btn"
                         data-id="@p.ProfesionalId"
+                        aria-label="Seguir a @p.NombreCompleto"
                         aria-pressed="@(Model.EsSeguido ? "true" : "false")">
                     @(Model.EsSeguido ? "Siguiendo" : "+ Seguir")
                 </button>
             }
-            <button type="button" class="btn btn-secondary btn-sm"
+            <button type="button" class="btn btn-secondary"
                     data-pm-name="@p.NombreCompleto"
                     data-pm-avatar="@ini"
                     data-pm-bg="@pmBg"
                     data-pm-profesional-id="@p.ProfesionalId"
                     aria-label="Enviar mensaje a @p.NombreCompleto">
-                Enviar mensaje
+                💬 Mensaje
             </button>
         </div>
     </div>

@@ -10,6 +10,10 @@ public class PerfilOradorPublicoVm
     public ProfesionalDto Perfil { get; set; } = new();
     public PerfilProfesionalResumenDto Resumen { get; set; } = new();
     public bool EsSeguido { get; set; }
+    public bool PuedeSeguir { get; set; }
+    public string SubtituloPerfil { get; set; } = string.Empty;
+    public string TextoComoTrabajo { get; set; } = string.Empty;
+    public IReadOnlyList<string> LineasExperiencia { get; set; } = [];
     public IReadOnlyList<ProfesionalEstudioDto> Estudios { get; set; } = [];
     public IReadOnlyList<SalaDto> Salas { get; set; } = [];
     public IReadOnlyList<ComentarioPerfilDto> Comentarios { get; set; } = [];

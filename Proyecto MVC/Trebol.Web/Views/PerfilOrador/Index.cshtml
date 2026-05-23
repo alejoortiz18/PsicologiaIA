@@ -2,77 +2,82 @@
 @{
     Layout = "~/Views/PerfilOrador/_PerfilOradorLayout.cshtml";
     var p = Model.Perfil;
+    var comoTrabajo = !string.IsNullOrWhiteSpace(Model.TextoComoTrabajo)
+        ? Model.TextoComoTrabajo
+        : Trebol.Web.Helpers.PerfilOradorPresentacion.ConstruirComoTrabajo(p);
+    var lineasExp = Model.LineasExperiencia.Any()
+        ? Model.LineasExperiencia
+        : Trebol.Web.Helpers.PerfilOradorPresentacion.ConstruirLineasExperiencia(p, Model.Estudios);
 }
 
-<div id="tab-cuenta" class="card" style="padding:var(--sp-8);">
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--sp-8);max-width:840px;">
-        <div>
-            <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Sobre mí</h3>
-            @if (!string.IsNullOrWhiteSpace(p.Descripcion))
-            {
-                <p style="color:var(--color-text-secondary);line-height:1.8;font-size:0.9375rem;margin:0;">@p.Descripcion</p>
-            }
-            else
-            {
-                <p class="text-meta" style="margin:0;">Este profesional aún no ha completado su descripción.</p>
-            }
-        </div>
-        <div>
-            <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Cómo trabajo</h3>
-            @if (!string.IsNullOrWhiteSpace(p.Titulo))
-            {
-                <p style="color:var(--color-text-secondary);line-height:1.8;font-size:0.9375rem;margin:0;">@p.Titulo</p>
-            }
-            else
-            {
-                <p class="text-meta" style="margin:0;">Sin información adicional.</p>
-            }
-        </div>
-        @if (p.Idiomas.Any())
-        {
+<div id="tab-cuenta">
+    <div class="perfil-orador-panel">
+        <div class="perfil-orador-cuenta-grid">
             <div>
-                <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Idiomas</h3>
-                <div class="tag-list">
-                    @foreach (var idioma in p.Idiomas)
-                    {
-                        <span class="badge badge-muted">@idioma</span>
-                    }
-                </div>
+                <h3>Sobre mí</h3>
+                @if (!string.IsNullOrWhiteSpace(p.Descripcion))
+                {
+                    <p>@p.Descripcion</p>
+                }
+                else
+                {
+                    <p class="text-meta">Este profesional aún no ha completado su descripción.</p>
+                }
             </div>
-        }
-        @if (p.AnosExperiencia.HasValue && p.AnosExperiencia > 0)
-        {
             <div>
-                <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Experiencia</h3>
-                <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--sp-2);font-size:0.875rem;color:var(--color-text-secondary);margin:0;padding:0;">
-                    <li>📍 @p.AnosExperiencia años de experiencia profesional</li>
+                <h3>Cómo trabajo</h3>
+                <p>@comoTrabajo</p>
+            </div>
+            <div>
+                <h3>Idiomas</h3>
+                @if (p.Idiomas.Any())
+                {
+                    <div class="tag-list">
+                        @foreach (var idioma in p.Idiomas)
+                        {
+                            <span class="badge badge-muted">@idioma</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-meta">Sin idiomas registrados.</p>
+                }
+            </div>
+            <div>
+                <h3>Experiencia</h3>
+                <ul class="perfil-orador-exp-list">
+                    @foreach (var linea in lineasExp)
+                    {
+                        <li>@linea</li>
+                    }
                 </ul>
             </div>
-        }
-        @if (Model.Estudios.Any())
-        {
-            <div style="grid-column:1/-1;">
-                <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Formación académica</h3>
-                <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
-                    @foreach (var est in Model.Estudios)
-                    {
-                        <div style="padding:var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-md);">
-                            <div style="font-weight:600;font-size:0.9rem;">@est.Titulo</div>
-                            <div class="text-meta">
-                                @est.Universidad
-                                @if (est.AnoEgreso.HasValue)
-                                {
-                                    <span> · @est.AnoEgreso</span>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(est.Nivel))
-                                {
-                                    <span> · @est.Nivel</span>
-                                }
+            <div class="perfil-orador-cuenta-grid__full">
+                <h3>Formación académica</h3>
+                @if (Model.Estudios.Any())
+                {
+                    <div class="perfil-orador-estudios">
+                        @foreach (var est in Model.Estudios)
+                        {
+                            <div class="perfil-orador-estudio">
+                                <div class="perfil-orador-estudio__titulo">@est.Titulo</div>
+                                <div class="text-meta">
+                                    @est.Universidad
+                                    @if (est.AnoEgreso.HasValue)
+                                    {
+                                        <span> · @est.AnoEgreso</span>
+                                    }
+                                </div>
                             </div>
-                        </div>
-                    }
-                </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-meta">Sin formación académica registrada.</p>
+                }
             </div>
-        }
+        </div>
     </div>
 </div>

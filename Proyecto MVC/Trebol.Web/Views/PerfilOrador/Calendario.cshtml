@@ -4,41 +4,68 @@
     var p = Model.Perfil;
     var cultura = new System.Globalization.CultureInfo("es-CO");
     var tarifaTxt = p.TarifaCita.HasValue ? p.TarifaCita.Value.ToString("C0", cultura) : "consultar tarifa";
+    var nombresDia = new Dictionary<byte, string>
+    {
+        [0] = "Dom", [1] = "Lun", [2] = "Mar", [3] = "Mié", [4] = "Jue", [5] = "Vie", [6] = "Sáb"
+    };
+    var horarios = Model.Disponibilidad.Where(h => h.Estado).OrderBy(h => h.DiaSemana).ToList();
+    var partesHorario = horarios.Select(h =>
+        $"{nombresDia.GetValueOrDefault(h.DiaSemana, "?")} {h.HoraInicio:HH:mm}–{h.HoraFin:HH:mm}");
+    var resumenHorario = partesHorario.Any()
+        ? string.Join(" · ", partesHorario)
+        : "según disponibilidad del profesional";
 }
 
-<link rel="stylesheet" href="~/css/perfil-orador-calendario.css" asp-append-version="true" />
+@section PerfilStyles {
+    <link rel="stylesheet" href="~/css/perfil-orador-calendario.css" asp-append-version="true" />
+}
 
-<div id="info-banner" style="background:var(--color-accent-pale);border:1px solid var(--color-accent-light);border-radius:var(--radius-lg);padding:var(--sp-4) var(--sp-5);margin-bottom:var(--sp-5);display:flex;gap:var(--sp-3);align-items:flex-start;">
-    <span style="font-size:1.2rem;flex-shrink:0;" aria-hidden="true">📋</span>
-    <div style="font-size:.875rem;color:var(--color-primary);line-height:1.6;">
-        <strong>Agenda una cita privada con @p.NombreCompleto</strong><br />
-        Selecciona un horario libre en el calendario. Los bloques morados están ocupados; los espacios disponibles permiten agendar.<br />
-        Tarifa referencia: <strong>@tarifaTxt</strong> por sesión.
+<div id="tab-calendario">
+    <div class="perfil-orador-info-banner" id="info-banner">
+        <span style="font-size:1.2rem;flex-shrink:0;" aria-hidden="true">📋</span>
+        <div class="perfil-orador-info-banner__text">
+            <strong>Agenda una cita privada con @p.NombreCompleto</strong><br />
+            Selecciona un horario libre en el calendario. Los bloques morados están ocupados; los espacios en blanco son libres — haz clic para agendar.<br />
+            Horario: <strong>@resumenHorario</strong> · Sesiones de 1 hora · Tarifa referencia: <strong>@tarifaTxt</strong>.
+        </div>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" style="flex-shrink:0;" onclick="document.getElementById('info-banner')?.remove()" aria-label="Cerrar">✕</button>
     </div>
-    <button type="button" class="btn btn-ghost btn-icon btn-sm" style="flex-shrink:0;" onclick="document.getElementById('info-banner')?.remove()" aria-label="Cerrar">✕</button>
-</div>
 
-<div style="background:var(--color-surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);overflow:hidden;">
-    <div class="tcal-toolbar">
-        <button type="button" class="btn btn-ghost btn-sm" id="tcal-hoy">Hoy</button>
-        <div class="tcal-nav-group">
-            <button type="button" class="tcal-nav-btn" id="tcal-prev" aria-label="Anterior">‹</button>
-            <button type="button" class="tcal-nav-btn" id="tcal-next" aria-label="Siguiente">›</button>
+    <div class="perfil-orador-calendar-wrap">
+        <div class="tcal-toolbar">
+            <button type="button" class="btn btn-ghost btn-sm" id="tcal-hoy">Hoy</button>
+            <div class="tcal-nav-group">
+                <button type="button" class="tcal-nav-btn" id="tcal-prev" aria-label="Anterior">‹</button>
+                <button type="button" class="tcal-nav-btn" id="tcal-next" aria-label="Siguiente">›</button>
+            </div>
+            <div class="tcal-nav-title" id="tcal-nav-title">Cargando…</div>
+            <div style="flex:1;"></div>
+            <div class="tcal-view-pills" role="group" aria-label="Vista del calendario">
+                <button type="button" class="tcal-vpill" data-view="mensual" aria-pressed="false">Mes</button>
+                <button type="button" class="tcal-vpill active" data-view="semanal" aria-pressed="true">Semana</button>
+                <button type="button" class="tcal-vpill" data-view="diario" aria-pressed="false">Día</button>
+            </div>
         </div>
-        <div class="tcal-nav-title" id="tcal-nav-title">Cargando…</div>
-        <div style="flex:1;"></div>
-        <div class="tcal-view-pills" role="group" aria-label="Vista del calendario">
-            <button type="button" class="tcal-vpill" data-view="mensual">Mes</button>
-            <button type="button" class="tcal-vpill active" data-view="semanal" aria-pressed="true">Semana</button>
+        <div class="tcal-legend" aria-label="Leyenda">
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--free"></div>
+                Disponible — clic para agendar
+            </div>
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--busy"></div>
+                Ocupado
+            </div>
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--mine"></div>
+                Mi cita reservada
+            </div>
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--off"></div>
+                No disponible
+            </div>
         </div>
+        <div id="tcal-content" role="region" aria-live="polite" aria-label="Calendario de disponibilidad"></div>
     </div>
-    <div class="tcal-legend" aria-label="Leyenda">
-        <div class="tcal-legend-item"><div class="tcal-lswatch tcal-lswatch--free"></div>Disponible</div>
-        <div class="tcal-legend-item"><div class="tcal-lswatch tcal-lswatch--busy"></div>Ocupado</div>
-        <div class="tcal-legend-item"><div class="tcal-lswatch tcal-lswatch--mine"></div>Mi cita</div>
-        <div class="tcal-legend-item"><div class="tcal-lswatch tcal-lswatch--off"></div>No disponible</div>
-    </div>
-    <div id="tcal-content" role="region" aria-live="polite" aria-label="Calendario de disponibilidad"></div>
 </div>
 
 @section PerfilScripts {

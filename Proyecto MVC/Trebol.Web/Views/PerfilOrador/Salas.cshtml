@@ -4,59 +4,61 @@
     var r = Model.Resumen;
 }
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);margin-bottom:var(--sp-6);">
-    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
-        <div style="font-size:1.75rem;font-weight:700;color:var(--color-primary);">@r.TotalSalas</div>
-        <div class="text-meta">Salas totales</div>
+<div id="tab-salas">
+    <div class="perfil-orador-stats">
+        <div class="perfil-orador-stat">
+            <div class="perfil-orador-stat__val">@r.TotalSalas</div>
+            <div class="text-meta">Salas totales</div>
+        </div>
+        <div class="perfil-orador-stat">
+            <div class="perfil-orador-stat__val perfil-orador-stat__val--accent">@r.SalasAbiertas</div>
+            <div class="text-meta">Abiertas</div>
+        </div>
+        <div class="perfil-orador-stat">
+            <div class="perfil-orador-stat__val perfil-orador-stat__val--muted">@r.SalasCerradas</div>
+            <div class="text-meta">Finalizadas</div>
+        </div>
+        <div class="perfil-orador-stat">
+            <div class="perfil-orador-stat__val perfil-orador-stat__val--warn">@r.SalasProximas</div>
+            <div class="text-meta">Próximas</div>
+        </div>
     </div>
-    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
-        <div style="font-size:1.75rem;font-weight:700;color:var(--color-accent);">@r.SalasAbiertas</div>
-        <div class="text-meta">Abiertas</div>
-    </div>
-    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
-        <div style="font-size:1.75rem;font-weight:700;color:var(--color-text-secondary);">@r.SalasCerradas</div>
-        <div class="text-meta">Finalizadas</div>
-    </div>
-    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
-        <div style="font-size:1.75rem;font-weight:700;color:#E67E22;">@r.SalasProximas</div>
-        <div class="text-meta">Próximas</div>
-    </div>
-</div>
 
-<div style="display:flex;gap:var(--sp-3);align-items:center;margin-bottom:var(--sp-5);flex-wrap:wrap;">
-    <div style="flex:1;min-width:200px;position:relative;">
-        <span style="position:absolute;left:var(--sp-3);top:50%;transform:translateY(-50%);opacity:.5;" aria-hidden="true">🔍</span>
-        <input type="search" id="search-salas" class="form-control" placeholder="Buscar sala…" style="padding-left:2.4rem;" aria-label="Buscar sala" />
+    <div class="perfil-orador-toolbar">
+        <div class="perfil-orador-toolbar__search">
+            <span class="perfil-orador-toolbar__search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="search-salas" class="form-control" placeholder="Buscar sala…" aria-label="Buscar sala" />
+        </div>
+        <select class="form-control" id="filter-estado" style="width:180px;" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option value="abierta">Abierta</option>
+            <option value="proxima">Próxima</option>
+            <option value="finalizada">Finalizada</option>
+        </select>
     </div>
-    <select class="form-control" id="filter-estado" style="width:180px;" aria-label="Filtrar por estado">
-        <option value="">Todos los estados</option>
-        <option value="abierta">Abierta</option>
-        <option value="proxima">Próxima</option>
-        <option value="finalizada">Finalizada</option>
-    </select>
-</div>
 
-@if (!Model.Salas.Any())
-{
-    @await Html.PartialAsync("_EmptyStateRegistros", null, new ViewDataDictionary(ViewData)
+    @if (!Model.Salas.Any())
     {
-        { "EmptyTitulo", "No hay salas publicadas" },
-        { "EmptyTexto", "Este profesional aún no tiene salas activas en la plataforma." }
-    })
-}
-else
-{
-    <div class="rooms-grid" id="salas-grid">
-        @foreach (var sala in Model.Salas)
+        @await Html.PartialAsync("_EmptyStateRegistros", null, new ViewDataDictionary(ViewData)
         {
-            @await Html.PartialAsync("_PerfilOradorSalaCard", sala)
-        }
-    </div>
-    <div id="salas-empty" style="display:none;text-align:center;padding:var(--sp-16);color:var(--color-text-secondary);">
-        <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎪</div>
-        <p style="font-size:1rem;">No se encontraron salas con ese filtro.</p>
-    </div>
-}
+            { "EmptyTitulo", "No hay salas publicadas" },
+            { "EmptyTexto", "Este profesional aún no tiene salas activas en la plataforma." }
+        })
+    }
+    else
+    {
+        <div class="rooms-grid" id="salas-grid">
+            @foreach (var sala in Model.Salas)
+            {
+                @await Html.PartialAsync("_PerfilOradorSalaCard", sala)
+            }
+        </div>
+        <div id="salas-empty" class="perfil-orador-salas-empty" style="display:none;">
+            <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎪</div>
+            <p>No se encontraron salas con ese filtro.</p>
+        </div>
+    }
+</div>
 
 @section PerfilScripts {
     <script src="~/js/perfil-orador.js" asp-append-version="true"></script>

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.PerfilOrador;
+using Trebol.Web.Helpers;
 
 namespace Trebol.Web.Controllers;
 
@@ -24,6 +25,7 @@ public class PerfilOradorController(
         => MostrarAsync(id, "cuenta", async vm =>
         {
             vm.Estudios = await profesionalRepo.ObtenerEstudiosAsync(id, HttpContext.RequestAborted);
+            PerfilOradorPresentacion.EnriquecerTabCuenta(vm, User.IsInRole("Usuario"));
             return View("Index", vm);
         });
 
@@ -100,8 +102,18 @@ public class PerfilOradorController(
     private async Task<IActionResult> MostrarAsync(
         int id, string tab, Func<PerfilOradorPublicoVm, Task<IActionResult>> render)
     {
+        if (User.IsInRole("Profesional"))
+        {
+            var miId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (id == miId)
+                return RedirectToAction("Index", "PerfilProfesional");
+        }
+
         var vm = await ConstruirVmAsync(id, tab);
         if (vm is null) return NotFound();
+
+        ViewData["EsPerfilPublico"] = true;
+        ViewData["Title"]           = "Perfil del orador";
         return await render(vm);
     }
 
@@ -131,6 +143,8 @@ public class PerfilOradorController(
             Perfil          = perfil,
             Resumen         = resumen,
             EsSeguido       = esSeguido,
+            PuedeSeguir     = User.IsInRole("Usuario"),
+            SubtituloPerfil = PerfilOradorPresentacion.ConstruirSubtitulo(perfil),
             UsuarioActualId = uid
         };
     }

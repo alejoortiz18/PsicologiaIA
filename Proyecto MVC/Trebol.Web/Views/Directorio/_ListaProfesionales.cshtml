@@ -117,7 +117,7 @@ else
 
                         <div>
 
-                            <div class="prof-card__name">@p.NombreCompleto</div>
+                            <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@p.ProfesionalId" class="prof-card__name prof-card__name-link">@p.NombreCompleto</a>
 
                             <div class="prof-card__specialty">@espPrincipal</div>
 

@@ -69,6 +69,10 @@
         <!-- Topbar -->
         <header class="topbar" role="banner">
             <button class="btn btn-ghost btn-icon" id="sidebar-toggle" aria-label="Abrir menú" style="display:none;">☰</button>
+            @if (ViewData["EsPerfilPublico"] as bool? == true)
+            {
+                <button type="button" class="btn btn-ghost btn-sm perfil-orador-back" onclick="history.back()" aria-label="Volver">← Volver</button>
+            }
             <span class="topbar__title">@(ViewData["Title"] ?? "Trébol")</span>
             <div class="topbar__spacer"></div>
             <div class="topbar__actions">
