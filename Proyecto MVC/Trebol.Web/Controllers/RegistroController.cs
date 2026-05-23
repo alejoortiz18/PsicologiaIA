@@ -199,6 +199,7 @@ public class RegistroController(
             Correo          = vm.Correo,
             NumeroDocumento = vm.NumeroDocumento,
             NumeroCedula    = vm.NumeroRegistro,
+            EspecialidadId  = vm.EspecialidadId,
             Especialidad    = vm.EspecialidadId.ToString(),
             RutaPdfCedula   = string.Empty,
             Token           = token,

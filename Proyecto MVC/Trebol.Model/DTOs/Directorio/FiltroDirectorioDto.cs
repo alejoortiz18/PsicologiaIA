@@ -10,5 +10,5 @@ public class FiltroDirectorioDto
     public int?    IdiomaId       { get; set; }
     public bool    SoloPsicologos { get; set; }
     public int     Pagina         { get; set; } = 1;
-    public int     TamanioPagina  { get; set; } = 12;
+    public int     TamanioPagina  { get; set; } = 10;
 }

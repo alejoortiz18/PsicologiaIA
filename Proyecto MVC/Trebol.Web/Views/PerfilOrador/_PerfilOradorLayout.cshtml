@@ -1,0 +1,16 @@
+@model Trebol.Model.DTOs.PerfilOrador.PerfilOradorPublicoVm
+@{
+    ViewData["Title"] = Model.Perfil.NombreCompleto;
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+@await Html.PartialAsync("_PerfilOradorEncabezado", Model)
+@await Html.PartialAsync("_PerfilOradorTabs", Model)
+
+@RenderBody()
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    @await Html.PartialAsync("~/Views/Directorio/_DirectorioScripts.cshtml")
+    @await RenderSectionAsync("PerfilScripts", required: false)
+}

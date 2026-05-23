@@ -15,5 +15,6 @@ public class SalaDto
     public string?   ImagenUrl     { get; set; }
     public int       Capacidad     { get; set; }
     public DateTime? FechaInicio   { get; set; }
+    public decimal   Precio        { get; set; }
     public int       TotalInscritos { get; set; }
 }

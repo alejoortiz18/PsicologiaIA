@@ -6,6 +6,7 @@ public class RegistroProfesionalDto
     public string Correo              { get; set; } = string.Empty;
     public string NumeroDocumento     { get; set; } = string.Empty;
     public string NumeroCedula        { get; set; } = string.Empty;  // Tarjeta profesional COLPSIC
+    public int    EspecialidadId      { get; set; }
     public string Especialidad        { get; set; } = string.Empty;
     public string? Celular            { get; set; }
     public int?   CiudadId            { get; set; }

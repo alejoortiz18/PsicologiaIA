@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Trebol.Constants.Pagination;
 using Trebol.Domain.Interfaces;
+using Trebol.Model.DTOs.Common;
 using Trebol.Model.DTOs.Directorio;
 
 namespace Trebol.Web.Controllers;
@@ -11,23 +13,18 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
 {
     private int IdentidadId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-    // GET /Directorio/Especialistas
-    public async Task<IActionResult> Especialistas([FromQuery] FiltroDirectorioDto filtro)
-    {
-        var lista = await directorioRepo.ObtenerEspecialistasAsync(filtro, IdentidadId);
-        ViewBag.Filtro = filtro;
-        return View(lista);
-    }
+    // GET /Directorio/Medicos
+    public async Task<IActionResult> Medicos([FromQuery] FiltroDirectorioDto filtro)
+        => await VistaDirectorioAsync("Medicos", filtro, directorioRepo.ObtenerMedicosAsync);
+
+    // Redirección legacy
+    public IActionResult Especialistas([FromQuery] FiltroDirectorioDto filtro)
+        => RedirectToAction(nameof(Medicos), filtro);
 
     // GET /Directorio/Psicologos
     public async Task<IActionResult> Psicologos([FromQuery] FiltroDirectorioDto filtro)
-    {
-        var lista = await directorioRepo.ObtenerPsicologosAsync(filtro, IdentidadId);
-        ViewBag.Filtro = filtro;
-        return View(lista);
-    }
+        => await VistaDirectorioAsync("Psicologos", filtro, directorioRepo.ObtenerPsicologosAsync);
 
-    // GET /Directorio/Mentores
     [Authorize(Roles = "Profesional")]
     public async Task<IActionResult> Mentores()
     {
@@ -35,7 +32,6 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
         return View(lista);
     }
 
-    // GET /Directorio/MisColegas
     [Authorize(Roles = "Profesional")]
     public async Task<IActionResult> MisColegas()
     {
@@ -43,7 +39,6 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
         return View(lista);
     }
 
-    // POST /Directorio/ToggleSeguir
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleSeguir(int profesionalId)
@@ -52,7 +47,6 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
         return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
     }
 
-    // POST /Directorio/ToggleColega
     [Authorize(Roles = "Profesional")]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -60,5 +54,34 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
     {
         var resultado = await directorioRepo.ToggleColegaAsync(IdentidadId, colegaId);
         return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
+    }
+
+    private async Task<IActionResult> VistaDirectorioAsync(
+        string action,
+        FiltroDirectorioDto filtro,
+        Func<FiltroDirectorioDto, int, CancellationToken, Task<DirectorioPaginadoDto>> obtener)
+    {
+        filtro = NormalizarFiltro(filtro);
+        var resultado = await obtener(filtro, IdentidadId, HttpContext.RequestAborted);
+
+        ViewBag.Filtro = filtro;
+        ViewBag.Paginacion = new PaginacionVm
+        {
+            Controller      = "Directorio",
+            Action          = action,
+            PaginaActual    = filtro.Pagina,
+            TamanoPagina    = filtro.TamanioPagina,
+            TotalRegistros  = resultado.TotalRegistros
+        };
+
+        return View(action, resultado.Items);
+    }
+
+    private static FiltroDirectorioDto NormalizarFiltro(FiltroDirectorioDto filtro)
+    {
+        if (filtro.Pagina < 1) filtro.Pagina = 1;
+        if (!PaginacionConstant.OpcionesDirectorio.Contains(filtro.TamanioPagina))
+            filtro.TamanioPagina = PaginacionConstant.TamanioDefectoDirectorio;
+        return filtro;
     }
 }

@@ -1,7 +1,7 @@
 @model Trebol.Model.DTOs.Directorio.FiltroDirectorioDto
 @{
-    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "Especialistas";
-    var placeholder = ViewData["FiltroPlaceholder"] as string ?? "Buscar por nombre o especialidad…";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "Medicos";
+    var placeholder = ViewData["FiltroPlaceholder"] as string ?? "Buscar por nombre o especialidad...";
 }
 
 <form method="get" asp-action="@action" class="prof-filter-bar" role="search">
@@ -12,6 +12,7 @@
                aria-label="Buscar profesionales" />
     </div>
     <input type="hidden" name="Pagina" value="1" />
+    <input type="hidden" name="TamanioPagina" value="@(Model?.TamanioPagina ?? 10)" />
     <select name="Ciudad" id="filter-ciudad" aria-label="Filtrar por ciudad">
         <option value="">Todas las ciudades</option>
         @{

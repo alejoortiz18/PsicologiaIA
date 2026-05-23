@@ -13,42 +13,49 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
     private IDbConnection CrearConexion()
         => new SqlConnection(configuration.GetConnectionString("TrebolDB"));
 
-    public async Task<IReadOnlyList<ProfesionalDirectorioDto>> ObtenerEspecialistasAsync(
+    public Task<DirectorioPaginadoDto> ObtenerMedicosAsync(
         FiltroDirectorioDto filtro, int usuarioId, CancellationToken ct = default)
-    {
-        using var conn = CrearConexion();
-        var result = await conn.QueryAsync<ProfesionalDirectorioDto>(
-            "sp_ObtenerDirectorio",
-            new
-            {
-                TipoBusqueda = "Todos",
-                Especialidad = filtro.Especialidad,
-                Ciudad       = filtro.Ciudad,
-                UsuarioId    = usuarioId,
-                Pagina       = filtro.Pagina,
-                TamanoPagina = filtro.TamanioPagina
-            },
-            commandType: CommandType.StoredProcedure);
-        return result.AsList();
-    }
+        => ObtenerPaginadoAsync("Medicos", filtro, usuarioId, ct);
 
-    public async Task<IReadOnlyList<ProfesionalDirectorioDto>> ObtenerPsicologosAsync(
+    public Task<DirectorioPaginadoDto> ObtenerPsicologosAsync(
         FiltroDirectorioDto filtro, int usuarioId, CancellationToken ct = default)
+        => ObtenerPaginadoAsync("Psicologos", filtro, usuarioId, ct);
+
+    private async Task<DirectorioPaginadoDto> ObtenerPaginadoAsync(
+        string tipoBusqueda, FiltroDirectorioDto filtro, int usuarioId, CancellationToken ct)
     {
         using var conn = CrearConexion();
-        var result = await conn.QueryAsync<ProfesionalDirectorioDto>(
+        var param = new
+        {
+            TipoBusqueda = tipoBusqueda,
+            Especialidad = filtro.Especialidad,
+            Ciudad       = filtro.Ciudad,
+            UsuarioId    = usuarioId,
+            Pagina       = filtro.Pagina,
+            TamanoPagina = filtro.TamanioPagina
+        };
+
+        var filas = await conn.QueryAsync<ProfesionalDirectorioRow>(
             "sp_ObtenerDirectorio",
+            param,
+            commandType: CommandType.StoredProcedure);
+
+        var total = await conn.QueryFirstOrDefaultAsync<int>(
+            "sp_ContarDirectorio",
             new
             {
-                TipoBusqueda = "Psicologos",
-                Especialidad = filtro.Especialidad,
-                Ciudad       = filtro.Ciudad,
-                UsuarioId    = usuarioId,
-                Pagina       = filtro.Pagina,
-                TamanoPagina = filtro.TamanioPagina
+                param.TipoBusqueda,
+                param.Especialidad,
+                param.Ciudad,
+                param.UsuarioId
             },
             commandType: CommandType.StoredProcedure);
-        return result.AsList();
+
+        return new DirectorioPaginadoDto
+        {
+            Items = filas.Select(Map).ToList(),
+            TotalRegistros = total
+        };
     }
 
     public async Task<IReadOnlyList<ProfesionalDirectorioDto>> ObtenerMisMentoresAsync(
@@ -66,11 +73,11 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
         int profesionalId, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
-        var result = await conn.QueryAsync<ProfesionalDirectorioDto>(
+        var filas = await conn.QueryAsync<ProfesionalDirectorioRow>(
             "sp_ObtenerMisColegas",
             new { ProfesionalId = profesionalId },
             commandType: CommandType.StoredProcedure);
-        return result.AsList();
+        return filas.Select(Map).ToList();
     }
 
     public async Task<ResultadoOperacion> ToggleSeguirAsync(
@@ -101,5 +108,40 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
             : ResultadoOperacion.Fail(result?.Mensaje ?? "Error.");
     }
 
+    private static ProfesionalDirectorioDto Map(ProfesionalDirectorioRow row) => new()
+    {
+        ProfesionalId  = row.ProfesionalId,
+        NombreCompleto = row.NombreCompleto,
+        FotoUrl        = row.FotoUrl,
+        Titulo         = row.Titulo,
+        Ciudad         = row.Ciudad,
+        Calificacion   = row.Calificacion,
+        TotalSeguidos  = row.TotalSeguidos,
+        EsSeguido      = row.EsSeguido,
+        SobreMi          = row.SobreMi,
+        TipoProfesional  = row.TipoProfesional,
+        Especialidades   = ParseEspecialidades(row.EspecialidadesTexto)
+    };
+
+    private static List<string> ParseEspecialidades(string? texto)
+        => string.IsNullOrWhiteSpace(texto)
+            ? []
+            : texto.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
+
     private sealed class SpResult { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; }
+
+    private sealed class ProfesionalDirectorioRow
+    {
+        public int      ProfesionalId  { get; init; }
+        public string   NombreCompleto { get; init; } = "";
+        public string?  FotoUrl        { get; init; }
+        public string?  Titulo         { get; init; }
+        public string?  SobreMi        { get; init; }
+        public string?  TipoProfesional { get; init; }
+        public string?  Ciudad         { get; init; }
+        public double?  Calificacion   { get; init; }
+        public int      TotalSeguidos  { get; init; }
+        public bool     EsSeguido      { get; init; }
+        public string?  EspecialidadesTexto { get; init; }
+    }
 }

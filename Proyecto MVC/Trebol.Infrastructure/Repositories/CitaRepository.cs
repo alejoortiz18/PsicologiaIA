@@ -168,6 +168,22 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
             : ResultadoOperacion.Fail(result?.Mensaje ?? "Error al cancelar.");
     }
 
+    public async Task<IReadOnlyList<CitaSlotPublicoDto>> ObtenerSlotsPublicosAsync(
+        int profesionalId, DateTime desde, DateTime hasta, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<CitaSlotPublicoDto>(
+            @"SELECT c.FechaHora,
+                     DATEDIFF(MINUTE, c.FechaHora, c.FechaHoraFin) AS DuracionMinutos,
+                     c.UsuarioId
+              FROM   Cita c
+              WHERE  c.ProfesionalId = @ProfesionalId
+                AND  c.FechaHora >= @Desde AND c.FechaHora < @Hasta
+                AND  c.Estado IN (N'Programada', N'Movida')",
+            new { ProfesionalId = profesionalId, Desde = desde, Hasta = hasta });
+        return result.AsList();
+    }
+
     private sealed class SpResult { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; }
     private sealed class SpResultId { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; public int Id { get; init; } }
 }

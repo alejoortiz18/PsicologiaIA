@@ -805,7 +805,7 @@ var GlobalPM = (function () {
       '  <div class="gpm-body">' +
       '    <label class="gpm-lbl" for="global-pm-modal-body">Mensaje</label>' +
       '    <textarea id="global-pm-modal-body" class="gpm-ta" rows="5"' +
-      '      placeholder="Escribe tu mensaje\u2026" maxlength="500"' +
+      '      placeholder="Escribe tu mensaje..." maxlength="500"' +
       '      oninput="GlobalPM.updateCount()"></textarea>' +
       '    <div class="gpm-cnt" id="global-pm-modal-cnt"><span id="global-pm-modal-cnt-n">0</span>/500</div>' +
       '    <div class="gpm-priv">' +

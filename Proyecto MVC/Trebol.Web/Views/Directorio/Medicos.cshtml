@@ -2,18 +2,18 @@
 @using Trebol.Model.DTOs.Directorio
 @using Trebol.Model.DTOs.Common
 @{
-    ViewData["Title"] = "Psicólogos";
+    ViewData["Title"] = "Médicos";
     Layout = "~/Views/Shared/_LayoutInterno.cshtml";
     var items = Model.ToList();
     var filtro = ViewBag.Filtro as FiltroDirectorioDto ?? new FiltroDirectorioDto();
     var pag = ViewBag.Paginacion as PaginacionVm ?? new PaginacionVm();
     var esPro = User.IsInRole("Profesional");
 
-    ViewData["DirectorioTitulo"] = "Psicólogos";
-    ViewData["DirectorioSubtitulo"] = "Psicólogos y profesionales de salud mental certificados.";
-    ViewData["DirectorioPaginaActual"] = "Psicólogos";
-    ViewData["Stat1Icon"] = "🧠";
-    ViewData["Stat1Label"] = "Psicólogos";
+    ViewData["DirectorioTitulo"] = "Médicos";
+    ViewData["DirectorioSubtitulo"] = "Médicos verificados en la plataforma Trébol.";
+    ViewData["DirectorioPaginaActual"] = "Médicos";
+    ViewData["Stat1Icon"] = "🩺";
+    ViewData["Stat1Label"] = "Médicos";
     ViewData["Stat1Value"] = pag.TotalRegistros.ToString();
     ViewData["Stat2Icon"] = "⭐";
     ViewData["Stat2Label"] = "Con calificación";
@@ -23,7 +23,7 @@
     ViewData["Stat3Value"] = esPro
         ? items.Count(p => !string.IsNullOrEmpty(p.Ciudad)).ToString()
         : items.Count(p => p.EsSeguido).ToString();
-    ViewData["FiltroPlaceholder"] = "Buscar por nombre, especialidad u ocupación...";
+    ViewData["FiltroPlaceholder"] = "Buscar por nombre o especialidad...";
     ViewBag.Ciudades = items.Where(p => !string.IsNullOrWhiteSpace(p.Ciudad))
         .Select(p => p.Ciudad!).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(c => c);
 }

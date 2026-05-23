@@ -1,30 +1,142 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Trebol.Domain.Interfaces;
-using Trebol.Model.DTOs.Sala;
+using Trebol.Model.DTOs.PerfilOrador;
 
 namespace Trebol.Web.Controllers;
 
-[Authorize(Roles = "Profesional")]
+[Authorize(Roles = "Usuario,Profesional")]
 public class PerfilOradorController(
     ISalaRepository salaRepo,
-    IDirectorioRepository directorioRepo) : Controller
+    IProfesionalRepository profesionalRepo,
+    IDirectorioRepository directorioRepo,
+    ICalendarioRepository calendarioRepo,
+    ICitaRepository citaRepo) : Controller
 {
-    // GET /PerfilOrador/Index/5  — Vista pública del orador (sala)
-    [AllowAnonymous]
-    public async Task<IActionResult> Index(int id)
+    private static readonly JsonSerializerOptions JsonCamel = new()
     {
-        var salas = await salaRepo.ObtenerPorProfesionalAsync(id);
-        ViewBag.ProfesionalId = id;
-        return View(salas);
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    public Task<IActionResult> Index(int id)
+        => MostrarAsync(id, "cuenta", async vm =>
+        {
+            vm.Estudios = await profesionalRepo.ObtenerEstudiosAsync(id, HttpContext.RequestAborted);
+            return View("Index", vm);
+        });
+
+    public Task<IActionResult> Salas(int id)
+        => MostrarAsync(id, "salas", async vm =>
+        {
+            vm.Salas = await salaRepo.ObtenerPorProfesionalAsync(id, HttpContext.RequestAborted);
+            return View("Salas", vm);
+        });
+
+    public Task<IActionResult> Comentarios(int id)
+        => MostrarAsync(id, "comentarios", async vm =>
+        {
+            var uid = UsuarioActualId();
+            vm.Comentarios = await profesionalRepo.ObtenerComentariosPublicosAsync(id, uid, HttpContext.RequestAborted);
+            vm.ResumenComentarios = await profesionalRepo.ObtenerResumenComentariosAsync(id, HttpContext.RequestAborted);
+            vm.PuedeComentar = User.IsInRole("Usuario");
+            return View("Comentarios", vm);
+        });
+
+    public Task<IActionResult> Calendario(int id)
+        => MostrarAsync(id, "calendario", async vm =>
+        {
+            vm.Disponibilidad = await calendarioRepo.ObtenerDisponibilidadAsync(id, HttpContext.RequestAborted);
+            vm.Bloqueos = await calendarioRepo.ObtenerBloqueosAsync(id, HttpContext.RequestAborted);
+            var desde = DateTime.Today.AddMonths(-1);
+            var hasta = DateTime.Today.AddMonths(3);
+            var slots = await citaRepo.ObtenerSlotsPublicosAsync(id, desde, hasta, HttpContext.RequestAborted);
+            ViewBag.CitasSlotsJson = JsonSerializer.Serialize(slots, JsonCamel);
+            ViewBag.BloqueosJson = JsonSerializer.Serialize(
+                vm.Bloqueos.Select(b => new { inicio = b.FechaHoraInicio, fin = b.FechaHoraFin }), JsonCamel);
+            ViewBag.DisponibilidadJson = JsonSerializer.Serialize(
+                vm.Disponibilidad.Where(h => h.Estado).Select(h => new
+                {
+                    dia = h.DiaSemana,
+                    inicio = h.HoraInicio.ToString("HH:mm"),
+                    fin = h.HoraFin.ToString("HH:mm")
+                }), JsonCamel);
+            ViewBag.UsuarioActualId = UsuarioActualId();
+            return View("Calendario", vm);
+        });
+
+    [Authorize(Roles = "Usuario")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PublicarComentario(int id, byte puntuacion, string contenido)
+    {
+        var profesional = await profesionalRepo.ObtenerPorIdAsync(id, HttpContext.RequestAborted);
+        if (profesional is null
+            || !string.Equals(profesional.Estado, "ACTIVO", StringComparison.OrdinalIgnoreCase))
+            return NotFound();
+
+        var dto = new CrearComentarioPerfilDto
+        {
+            ProfesionalId = id,
+            UsuarioId     = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
+            Puntuacion    = puntuacion,
+            Contenido     = contenido?.Trim() ?? ""
+        };
+
+        var resultado = await profesionalRepo.CrearComentarioPublicoAsync(dto, HttpContext.RequestAborted);
+        TempData[resultado.Exito ? "Mensaje" : "Error"] = resultado.Mensaje;
+        return RedirectToAction(nameof(Comentarios), new { id });
     }
 
-    // GET /PerfilOrador/MisSalas
+    [Authorize(Roles = "Profesional")]
     public async Task<IActionResult> MisSalas()
     {
         var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var salas         = await salaRepo.ObtenerPorProfesionalAsync(profesionalId);
         return View(salas);
     }
+
+    private async Task<IActionResult> MostrarAsync(
+        int id, string tab, Func<PerfilOradorPublicoVm, Task<IActionResult>> render)
+    {
+        var vm = await ConstruirVmAsync(id, tab);
+        if (vm is null) return NotFound();
+        return await render(vm);
+    }
+
+    private async Task<PerfilOradorPublicoVm?> ConstruirVmAsync(int id, string tab)
+    {
+        var profesional = await profesionalRepo.ObtenerPorIdAsync(id, HttpContext.RequestAborted);
+        if (profesional is null
+            || !string.Equals(profesional.Estado, "ACTIVO", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var perfil  = await profesionalRepo.ObtenerDtoAsync(id, HttpContext.RequestAborted);
+        if (perfil is null) return null;
+
+        var resumen = await profesionalRepo.ObtenerResumenPerfilAsync(id, HttpContext.RequestAborted);
+        var uid     = UsuarioActualId();
+
+        var esSeguido = false;
+        if (User.IsInRole("Usuario") && uid.HasValue)
+        {
+            var mentores = await directorioRepo.ObtenerMisMentoresAsync(uid.Value, HttpContext.RequestAborted);
+            esSeguido = mentores.Any(m => m.ProfesionalId == id);
+        }
+
+        return new PerfilOradorPublicoVm
+        {
+            TabActivo       = tab,
+            Perfil          = perfil,
+            Resumen         = resumen,
+            EsSeguido       = esSeguido,
+            UsuarioActualId = uid
+        };
+    }
+
+    private int? UsuarioActualId()
+        => User.IsInRole("Usuario")
+            ? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+            : null;
 }

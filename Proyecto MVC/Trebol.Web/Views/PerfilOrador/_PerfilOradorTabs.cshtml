@@ -1,0 +1,36 @@
+@model Trebol.Model.DTOs.PerfilOrador.PerfilOradorPublicoVm
+@{
+    var id = Model.Perfil.ProfesionalId;
+    var tab = Model.TabActivo;
+    string Clase(string t) => tab == t ? "prof-tab-link active" : "prof-tab-link";
+    string Aria(string t) => tab == t ? "page" : null!;
+}
+
+<nav class="prof-tabs-bar mb-6" aria-label="Secciones del perfil">
+    <ul class="prof-tabs-bar__list" role="list">
+        <li>
+            <a asp-action="Index" asp-route-id="@id" class="@Clase("cuenta")" aria-current="@Aria("cuenta")">
+                <span class="tab-icon">👤</span> Cuenta
+            </a>
+        </li>
+        <li>
+            <a asp-action="Salas" asp-route-id="@id" class="@Clase("salas")" aria-current="@Aria("salas")">
+                <span class="tab-icon">🎪</span> Salas creadas
+                @if (Model.Resumen.TotalSalas > 0)
+                {
+                    <span class="tab-badge">@Model.Resumen.TotalSalas</span>
+                }
+            </a>
+        </li>
+        <li>
+            <a asp-action="Comentarios" asp-route-id="@id" class="@Clase("comentarios")" aria-current="@Aria("comentarios")">
+                <span class="tab-icon">💬</span> Comentarios
+            </a>
+        </li>
+        <li>
+            <a asp-action="Calendario" asp-route-id="@id" class="@Clase("calendario")" aria-current="@Aria("calendario")">
+                <span class="tab-icon">🗓</span> Calendario
+            </a>
+        </li>
+    </ul>
+</nav>

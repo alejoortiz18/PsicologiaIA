@@ -1,0 +1,60 @@
+@model Trebol.Model.DTOs.Sala.SalaDto
+@using Trebol.Model.Enums
+@{
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var ahora = DateTime.Now;
+    var esProxima = Model.FechaInicio.HasValue && Model.FechaInicio > ahora;
+    var esFinalizada = Model.Estado == EstadoSala.Cerrada || (Model.FechaInicio.HasValue && Model.FechaInicio < ahora && Model.Estado != EstadoSala.Abierta);
+    var filtro = esFinalizada ? "finalizada" : esProxima ? "proxima" : "abierta";
+    var gradients = new[]
+    {
+        "linear-gradient(135deg,#1A3C34,#2D6A4F)",
+        "linear-gradient(135deg,#2D6A4F,#52B788)",
+        "linear-gradient(135deg,#4a4a6a,#6b6b9b)",
+        "linear-gradient(135deg,#1a3a5c,#2d6a8f)"
+    };
+    var bannerBg = gradients[Model.SalaId % gradients.Length];
+    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", cultura);
+    var tituloBanner = Model.Titulo.Length > 28 ? Model.Titulo[..28] + "…" : Model.Titulo;
+}
+
+<article class="room-card perf-orador-sala" data-estado="@filtro" data-nombre="@Model.Titulo.ToLowerInvariant()" aria-label="Sala: @Model.Titulo">
+    <div class="room-card__banner" style="background:@bannerBg;">
+        <div class="room-card__banner-text">@tituloBanner</div>
+    </div>
+    <div class="room-card__body">
+        <div class="room-card__speaker">
+            @if (Model.Estado == EstadoSala.Abierta && !esProxima)
+            {
+                <span class="badge badge-success" style="font-size:.7rem;">🔴 Abierta</span>
+            }
+            else if (esProxima)
+            {
+                <span class="badge badge-warning" style="font-size:.7rem;">🟡 Próxima</span>
+            }
+            else
+            {
+                <span class="badge badge-muted" style="font-size:.7rem;">⚫ Finalizada</span>
+            }
+        </div>
+        @if (Model.FechaInicio.HasValue)
+        {
+            <div class="room-card__speaker">📅 @Model.FechaInicio.Value.ToString("d MMM yyyy", cultura) · @Model.FechaInicio.Value.ToString("h:mm tt", cultura)</div>
+        }
+        <div class="room-card__meta">
+            <span class="room-card__meta-item">👥 @Model.TotalInscritos/@Model.Capacidad</span>
+            <span class="room-card__meta-item">@precioTxt</span>
+        </div>
+    </div>
+    <div class="room-card__footer">
+        <a asp-controller="Salas" asp-action="Detalle" asp-route-id="@Model.SalaId" class="btn btn-secondary btn-sm">Detalle</a>
+        @if (esFinalizada)
+        {
+            <button type="button" class="btn btn-primary btn-sm" disabled style="opacity:.45;cursor:not-allowed;">Finalizada</button>
+        }
+        else
+        {
+            <a asp-controller="Salas" asp-action="Detalle" asp-route-id="@Model.SalaId" class="btn btn-primary btn-sm">@(esProxima ? "Registrarse" : "Ver sala")</a>
+        }
+    </div>
+</article>

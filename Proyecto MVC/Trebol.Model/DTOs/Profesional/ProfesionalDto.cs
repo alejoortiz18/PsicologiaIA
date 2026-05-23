@@ -13,6 +13,7 @@ public class ProfesionalDto
     public double?  Calificacion    { get; set; }
     public int      TotalSeguidos   { get; set; }
     public string   Estado          { get; set; } = string.Empty;
+    public int?    AnosExperiencia { get; set; }
     public List<string> Especialidades { get; set; } = [];
     public List<string> Idiomas        { get; set; } = [];
 }

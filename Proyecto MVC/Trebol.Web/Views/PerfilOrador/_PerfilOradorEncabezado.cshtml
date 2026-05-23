@@ -1,0 +1,100 @@
+@model Trebol.Model.DTOs.PerfilOrador.PerfilOradorPublicoVm
+@{
+    var p = Model.Perfil;
+    var partes = (p.NombreCompleto ?? "??").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var ini = string.Concat(partes.Take(2).Select(x => x.Length > 0 ? char.ToUpper(x[0]) : '?'));
+    var pmBg = "linear-gradient(135deg, #1A3C34, #2D6A4F)";
+}
+
+<nav class="breadcrumb mb-4" aria-label="Ruta">
+    @if (User.IsInRole("Usuario"))
+    {
+        <a asp-controller="HomeUsuario" asp-action="Index">Inicio</a>
+    }
+    else
+    {
+        <a asp-controller="HomeProfesional" asp-action="Index">Inicio</a>
+    }
+    <span class="breadcrumb__sep" aria-hidden="true">›</span>
+    <a asp-controller="Directorio" asp-action="Medicos">Profesionales</a>
+    <span class="breadcrumb__sep" aria-hidden="true">›</span>
+    <span>@p.NombreCompleto</span>
+</nav>
+
+<section class="profile-header" aria-label="Información del profesional">
+    <div class="profile-header__inner">
+        @if (!string.IsNullOrEmpty(p.FotoUrl))
+        {
+            <img src="@p.FotoUrl" class="avatar avatar-2xl" style="object-fit:cover;border-radius:50%;" alt="" />
+        }
+        else
+        {
+            <div class="avatar avatar-2xl" style="background:var(--color-primary);">@ini</div>
+        }
+        <div class="profile-header__main">
+            <div class="profile-header__title-row">
+                <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.75rem;margin:0;">@p.NombreCompleto</h1>
+                <span class="badge badge-success">Verificado</span>
+            </div>
+            <div class="text-meta" style="margin-bottom:var(--sp-3);">
+                @(p.Especialidades.FirstOrDefault() ?? p.Titulo ?? "Profesional de salud")
+                @if (!string.IsNullOrEmpty(p.Ciudad))
+                {
+                    <span> · 📍 @p.Ciudad</span>
+                }
+            </div>
+            @if (p.Especialidades.Any())
+            {
+                <div class="tag-list" style="margin-bottom:var(--sp-4);">
+                    @foreach (var esp in p.Especialidades.Take(5))
+                    {
+                        <span class="badge badge-primary">@esp</span>
+                    }
+                </div>
+            }
+            <div class="profile-header__stats">
+                <div>
+                    <div class="profile-header__stat-val" id="seguidores-count">@p.TotalSeguidos</div>
+                    <div class="text-meta">Seguidores</div>
+                </div>
+                <div>
+                    <div class="profile-header__stat-val">@Model.Resumen.TotalSalas</div>
+                    <div class="text-meta">Salas creadas</div>
+                </div>
+                @if (p.AnosExperiencia.HasValue && p.AnosExperiencia > 0)
+                {
+                    <div>
+                        <div class="profile-header__stat-val">@p.AnosExperiencia</div>
+                        <div class="text-meta">Años de experiencia</div>
+                    </div>
+                }
+                else if (p.Calificacion.HasValue)
+                {
+                    <div>
+                        <div class="profile-header__stat-val">@p.Calificacion.Value.ToString("F1")</div>
+                        <div class="text-meta">Calificación</div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="profile-header__actions">
+            @if (User.IsInRole("Usuario"))
+            {
+                <button type="button"
+                        class="btn btn-primary btn-sm btn-seguir @(Model.EsSeguido ? "btn-mentor-active" : "")"
+                        data-id="@p.ProfesionalId"
+                        aria-pressed="@(Model.EsSeguido ? "true" : "false")">
+                    @(Model.EsSeguido ? "Siguiendo" : "+ Seguir")
+                </button>
+            }
+            <button type="button" class="btn btn-secondary btn-sm"
+                    data-pm-name="@p.NombreCompleto"
+                    data-pm-avatar="@ini"
+                    data-pm-bg="@pmBg"
+                    data-pm-profesional-id="@p.ProfesionalId"
+                    aria-label="Enviar mensaje a @p.NombreCompleto">
+                Enviar mensaje
+            </button>
+        </div>
+    </div>
+</section>

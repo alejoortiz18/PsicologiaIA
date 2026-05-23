@@ -1,0 +1,107 @@
+@model Trebol.Model.DTOs.PerfilOrador.PerfilOradorPublicoVm
+@using Trebol.Model.DTOs.PerfilOrador
+@{
+    Layout = "~/Views/PerfilOrador/_PerfilOradorLayout.cshtml";
+    var res = Model.ResumenComentarios;
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    string Estrellas(byte? n)
+    {
+        if (!n.HasValue) return "";
+        return new string('★', n.Value) + new string('☆', 5 - n.Value);
+    }
+}
+
+@if (TempData["Mensaje"] is string ok)
+{
+    <div class="alert alert-success mb-4" role="status">@ok</div>
+}
+@if (TempData["Error"] is string err)
+{
+    <div class="alert alert-danger mb-4" role="alert">@err</div>
+}
+
+@if (res.Total > 0)
+{
+    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6);margin-bottom:var(--sp-6);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);display:flex;gap:var(--sp-8);align-items:center;flex-wrap:wrap;">
+        <div style="text-align:center;min-width:120px;">
+            <div style="font-size:3rem;font-weight:700;color:var(--color-primary);line-height:1;">@res.Promedio.ToString("F1", cultura)</div>
+            <div style="font-size:1.25rem;color:#F4C430;margin:.25rem 0;">★★★★★</div>
+            <div class="text-meta">de 5 · @res.Total opiniones</div>
+        </div>
+        <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:var(--sp-2);">
+            @for (byte s = 5; s >= 1; s--)
+            {
+                var pct = res.Porcentaje(s);
+                <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                    <span style="font-size:.85rem;color:var(--color-text-secondary);width:20px;">@(s)★</span>
+                    <div style="flex:1;height:8px;background:var(--color-border-light);border-radius:4px;overflow:hidden;">
+                        <div style="width:@(pct)%;height:100%;background:var(--color-accent);border-radius:4px;"></div>
+                    </div>
+                    <span style="font-size:.8rem;color:var(--color-text-secondary);width:30px;">@pct%</span>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);max-width:720px;">
+    @if (!Model.Comentarios.Any())
+    {
+        <p class="text-meta" style="margin:0;">Aún no hay comentarios. Sé el primero en compartir tu experiencia.</p>
+    }
+    else
+    {
+        <div class="comments-feed" role="list" aria-label="Comentarios sobre @Model.Perfil.NombreCompleto">
+            @foreach (var c in Model.Comentarios)
+            {
+                <div class="comment @(c.EsPropio ? "comment--own" : "comment--other")" role="listitem"@(c.EsPropio ? Html.Raw(" aria-label=\"Tu comentario\"") : null)>
+                    @if (!c.EsPropio)
+                    {
+                        <div class="comment__avatar">@c.Iniciales</div>
+                    }
+                    <div class="comment__body">
+                        <div class="comment__bubble @(c.EsPropio ? "comment__bubble--own" : "")">
+                            @if (c.Puntuacion.HasValue)
+                            {
+                                <div style="font-size:.75rem;color:#F4C430;margin-bottom:4px;">@Estrellas(c.Puntuacion)</div>
+                            }
+                            <p>@c.Contenido</p>
+                        </div>
+                        <div class="comment__meta" style="@(c.EsPropio ? "text-align:right;" : "")">
+                            @c.Fecha.ToString("d MMM yyyy · h:mm tt", cultura)
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.PuedeComentar)
+    {
+        <div style="margin-top:var(--sp-6);border-top:1px solid var(--color-border-light);padding-top:var(--sp-5);">
+            <form asp-action="PublicarComentario" asp-route-id="@Model.Perfil.ProfesionalId" method="post">
+                @Html.AntiForgeryToken()
+                <div style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);">
+                    <label class="form-label" style="margin:0;">Tu calificación:</label>
+                    <div id="star-rating" style="display:flex;gap:4px;cursor:pointer;" aria-label="Calificar" role="group">
+                        @for (byte i = 1; i <= 5; i++)
+                        {
+                            <span class="star" data-val="@i" style="font-size:1.5rem;color:#ccc;" aria-label="@i estrellas" tabindex="0">★</span>
+                        }
+                    </div>
+                    <input type="hidden" name="puntuacion" id="puntuacion-input" value="5" />
+                </div>
+                <label for="nuevo-comentario" class="form-label">Escribir un comentario</label>
+                <div style="display:flex;gap:var(--sp-3);align-items:flex-end;flex-wrap:wrap;">
+                    <textarea id="nuevo-comentario" name="contenido" class="form-control" rows="3" required maxlength="2000"
+                              placeholder="Comparte tu experiencia…" aria-label="Escribe tu comentario" style="flex:1;min-width:220px;resize:vertical;"></textarea>
+                    <button type="submit" class="btn btn-primary" aria-label="Enviar comentario">Enviar</button>
+                </div>
+            </form>
+        </div>
+    }
+</div>
+
+@section PerfilScripts {
+    <script src="~/js/perfil-orador.js" asp-append-version="true"></script>
+}

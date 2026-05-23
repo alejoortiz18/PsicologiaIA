@@ -30,8 +30,8 @@
             <span class="nav-toggle">▾</span>
         </div>
         <div id="submenu-pros" class="nav-submenu @(ctrl is "Directorio" ? "is-open" : "")">
-            <a asp-controller="Directorio" asp-action="Especialistas"
-               class="nav-item @(Is("Directorio","Especialistas") ? "active" : "")">Especialistas</a>
+            <a asp-controller="Directorio" asp-action="Medicos"
+               class="nav-item @(Is("Directorio","Medicos") || Is("Directorio","Especialistas") ? "active" : "")">Médicos</a>
             <a asp-controller="Directorio" asp-action="Psicologos"
                class="nav-item @(Is("Directorio","Psicologos") ? "active" : "")">Psicólogos</a>
             <a asp-controller="Directorio" asp-action="MisMentores"
@@ -80,8 +80,8 @@ else if (rol == "Profesional")
             <span class="nav-toggle" aria-hidden="true">▾</span>
         </div>
         <div id="submenu-colegas" class="nav-submenu @(ctrl is "Directorio" ? "is-open" : "")">
-            <a asp-controller="Directorio" asp-action="Especialistas"
-               class="nav-item @(Is("Directorio","Especialistas") ? "active" : "")">Especialistas</a>
+            <a asp-controller="Directorio" asp-action="Medicos"
+               class="nav-item @(Is("Directorio","Medicos") || Is("Directorio","Especialistas") ? "active" : "")">Médicos</a>
             <a asp-controller="Directorio" asp-action="Psicologos"
                class="nav-item @(Is("Directorio","Psicologos") ? "active" : "")">Psicólogos</a>
             <a asp-controller="Directorio" asp-action="MisColegas"

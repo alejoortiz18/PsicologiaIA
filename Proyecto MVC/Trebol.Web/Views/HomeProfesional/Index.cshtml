@@ -302,7 +302,7 @@
         <h2 id="otros-eventos-heading" style="font-family:var(--font-display);font-size:1.15rem;color:var(--color-primary);">
             🌐 Eventos de colegas
         </h2>
-        <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Ver todos</a>
+        <a asp-controller="Directorio" asp-action="Medicos" class="btn btn-ghost btn-sm">Ver todos</a>
     </div>
 
     @{
@@ -358,7 +358,7 @@
         }
         <div style="padding:var(--sp-4) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-3);">
             <span style="font-size:.8rem;color:var(--color-text-muted);">@(colegas.Count) evento(s) de colegas</span>
-            <a asp-controller="Directorio" asp-action="Especialistas" class="btn btn-ghost btn-sm">Ver directorio →</a>
+            <a asp-controller="Directorio" asp-action="Medicos" class="btn btn-ghost btn-sm">Ver directorio →</a>
         </div>
     </div>
 </section>

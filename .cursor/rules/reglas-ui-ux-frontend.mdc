@@ -1,0 +1,20 @@
+---
+description: Reglas UI/UX frontend Trebol (es-CO, UTF-8, paginación, modales, accesibilidad)
+alwaysApply: true
+---
+
+# Reglas UI/UX — Trebol (obligatorio)
+
+Fuente de verdad: `Documentos/Requerimientos/reglas-ui-ux-frontend.md`
+
+Antes de entregar cualquier cambio de frontend (vistas `.cshtml`, `wwwroot`, constantes de mensajes, correos, pruebas Playwright):
+
+1. **Idioma:** español Colombia (`es-CO`); tildes y ñ correctas; archivos en **UTF-8**.
+2. **Prohibido mojibake:** no `Ã`, `Â`, `â€`, `ï¿½` en UI, API, BD ni seeds.
+3. **Paginación de listas/tablas:** por defecto **10**; opciones **10 | 25 | 50**; texto *"Mostrando X–Y de Z registros"*; selector *"Registros por página:"*.
+4. **Estado vacío:** *"No se encontraron registros"*; ícono ilustrativo (no depender solo de emoji).
+5. **Mensajes:** modales del sistema; no `alert()` / `confirm()` nativos.
+6. **Feedback:** toda acción async con estado visible (cargando, éxito, error).
+7. **Verificación:** buscar patrones corruptos en archivos tocados y revisar la pantalla en navegador.
+
+Si hay conflicto entre una petición puntual y este documento, **priorizar el documento** salvo acuerdo explícito del producto.

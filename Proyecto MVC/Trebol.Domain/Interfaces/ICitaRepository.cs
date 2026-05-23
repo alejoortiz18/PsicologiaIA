@@ -19,4 +19,6 @@ public interface ICitaRepository
     Task<SalaCitaProfesionalDto?>    ObtenerParaSalaProfesionalAsync(int citaId, int profesionalId, CancellationToken ct = default);
     Task<ResultadoOperacion>         FinalizarAsync(int citaId, int profesionalId, CancellationToken ct = default);
     Task<ResultadoOperacion>         CancelarAsync(int citaId, int solicitanteId, CancellationToken ct = default);
+    Task<IReadOnlyList<CitaSlotPublicoDto>> ObtenerSlotsPublicosAsync(
+        int profesionalId, DateTime desde, DateTime hasta, CancellationToken ct = default);
 }

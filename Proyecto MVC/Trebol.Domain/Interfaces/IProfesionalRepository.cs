@@ -1,5 +1,6 @@
 using Trebol.Model.DTOs.Auth;
 using Trebol.Model.DTOs.Dashboard;
+using Trebol.Model.DTOs.PerfilOrador;
 using Trebol.Model.DTOs.Profesional;
 using Trebol.Model.Entities.TrebolEntities;
 using Trebol.Model.Models;
@@ -21,6 +22,9 @@ public interface IProfesionalRepository
     Task<IReadOnlyList<string>> ObtenerEspecialidadesAsync(int profesionalId, CancellationToken ct = default);
     Task<IReadOnlyList<string>> ObtenerIdiomasAsync(int profesionalId, CancellationToken ct = default);
     Task<PerfilProfesionalResumenDto> ObtenerResumenPerfilAsync(int profesionalId, CancellationToken ct = default);
+    Task<IReadOnlyList<ComentarioPerfilDto>> ObtenerComentariosPublicosAsync(int profesionalId, int? usuarioActualId, CancellationToken ct = default);
+    Task<ResumenComentariosPerfilDto> ObtenerResumenComentariosAsync(int profesionalId, CancellationToken ct = default);
+    Task<ResultadoOperacion> CrearComentarioPublicoAsync(CrearComentarioPerfilDto dto, CancellationToken ct = default);
     Task<ResultadoOperacion>      AprobarAsync(int profesionalId, bool aprobado, string? motivoRechazo = null, CancellationToken ct = default);
     Task<ResultadoOperacion>      ReenviarDocumentosAsync(int profesionalId, CancellationToken ct = default);
 }

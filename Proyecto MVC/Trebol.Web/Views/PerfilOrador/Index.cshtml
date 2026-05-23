@@ -1,46 +1,78 @@
-@model IEnumerable<Trebol.Model.DTOs.Sala.SalaDto>
+@model Trebol.Model.DTOs.PerfilOrador.PerfilOradorPublicoVm
 @{
-    ViewData["Title"] = "Perfil de Orador";
-    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
-    var profesionalId = ViewBag.ProfesionalId as int? ?? 0;
+    Layout = "~/Views/PerfilOrador/_PerfilOradorLayout.cshtml";
+    var p = Model.Perfil;
 }
 
-<h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:var(--sp-6);">🎤 Salas del profesional</h1>
-
-@if (!Model.Any())
-{
-    <div class="card" style="padding:var(--sp-12);text-align:center;">
-        <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎬</div>
-        <div style="font-weight:600;color:var(--color-text-primary);">Este profesional no tiene salas activas</div>
-    </div>
-}
-else
-{
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--sp-5);">
-        @foreach (var sala in Model)
+<div id="tab-cuenta" class="card" style="padding:var(--sp-8);">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--sp-8);max-width:840px;">
+        <div>
+            <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Sobre mí</h3>
+            @if (!string.IsNullOrWhiteSpace(p.Descripcion))
+            {
+                <p style="color:var(--color-text-secondary);line-height:1.8;font-size:0.9375rem;margin:0;">@p.Descripcion</p>
+            }
+            else
+            {
+                <p class="text-meta" style="margin:0;">Este profesional aún no ha completado su descripción.</p>
+            }
+        </div>
+        <div>
+            <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Cómo trabajo</h3>
+            @if (!string.IsNullOrWhiteSpace(p.Titulo))
+            {
+                <p style="color:var(--color-text-secondary);line-height:1.8;font-size:0.9375rem;margin:0;">@p.Titulo</p>
+            }
+            else
+            {
+                <p class="text-meta" style="margin:0;">Sin información adicional.</p>
+            }
+        </div>
+        @if (p.Idiomas.Any())
         {
-            <div class="card" style="overflow:hidden;">
-                @if (!string.IsNullOrEmpty(sala.ImagenUrl))
-                {
-                    <img src="@sala.ImagenUrl" style="width:100%;height:160px;object-fit:cover;" alt="sala" />
-                }
-                else
-                {
-                    <div style="height:90px;background:linear-gradient(135deg,var(--color-primary),var(--color-primary-light));display:flex;align-items:center;justify-content:center;font-size:2.5rem;">🎬</div>
-                }
-                <div style="padding:var(--sp-5);">
-                    <div style="font-weight:700;color:var(--color-text-primary);margin-bottom:6px;">@sala.Titulo</div>
-                    <div style="font-size:.8rem;color:var(--color-text-muted);margin-bottom:var(--sp-3);">@sala.Descripcion</div>
-                    <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-4);">
-                        <span class="badge badge-primary">@sala.Tipo</span>
-                        <span class="badge @(sala.Estado.ToString() == "Abierta" ? "badge-success" : "badge-muted")">@sala.Estado</span>
-                    </div>
-                    <div style="display:flex;align-items:center;justify-content:space-between;">
-                        <span style="font-size:.8rem;color:var(--color-text-muted);">👥 @sala.TotalInscritos / @sala.Capacidad</span>
-                        <a asp-controller="Salas" asp-action="Detalle" asp-route-id="@sala.SalaId" class="btn btn-primary btn-sm">Ver sala</a>
-                    </div>
+            <div>
+                <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Idiomas</h3>
+                <div class="tag-list">
+                    @foreach (var idioma in p.Idiomas)
+                    {
+                        <span class="badge badge-muted">@idioma</span>
+                    }
+                </div>
+            </div>
+        }
+        @if (p.AnosExperiencia.HasValue && p.AnosExperiencia > 0)
+        {
+            <div>
+                <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Experiencia</h3>
+                <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--sp-2);font-size:0.875rem;color:var(--color-text-secondary);margin:0;padding:0;">
+                    <li>📍 @p.AnosExperiencia años de experiencia profesional</li>
+                </ul>
+            </div>
+        }
+        @if (Model.Estudios.Any())
+        {
+            <div style="grid-column:1/-1;">
+                <h3 style="color:var(--color-primary);font-size:1rem;font-weight:700;margin-bottom:var(--sp-3);">Formación académica</h3>
+                <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+                    @foreach (var est in Model.Estudios)
+                    {
+                        <div style="padding:var(--sp-4);background:var(--color-surface-alt);border-radius:var(--radius-md);">
+                            <div style="font-weight:600;font-size:0.9rem;">@est.Titulo</div>
+                            <div class="text-meta">
+                                @est.Universidad
+                                @if (est.AnoEgreso.HasValue)
+                                {
+                                    <span> · @est.AnoEgreso</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(est.Nivel))
+                                {
+                                    <span> · @est.Nivel</span>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         }
     </div>
-}
+</div>

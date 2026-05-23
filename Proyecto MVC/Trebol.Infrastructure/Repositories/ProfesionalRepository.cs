@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Auth;
 using Trebol.Model.DTOs.Dashboard;
+using Trebol.Model.DTOs.PerfilOrador;
 using Trebol.Model.DTOs.Profesional;
 using Trebol.Model.Entities.TrebolEntities;
 using Trebol.Model.Models;
@@ -34,6 +35,7 @@ public class ProfesionalRepository(AppDbContext context, IConfiguration configur
                 UrlDocumentoIdentidad   = dto.RutaPdfCedula,
                 UrlTarjetaProfesional   = dto.RutaPdfTarjeta,
                 dto.CiudadId,
+                dto.EspecialidadId,
                 dto.Token,
                 dto.Expiracion
             },
@@ -82,22 +84,32 @@ public class ProfesionalRepository(AppDbContext context, IConfiguration configur
 
     public async Task<ProfesionalDto?> ObtenerDtoAsync(int profesionalId, CancellationToken ct = default)
     {
-        var p = await context.Profesionales
-                             .AsNoTracking()
-                             .FirstOrDefaultAsync(x => x.ProfesionalId == profesionalId, ct);
-        if (p is null) return null;
+        using var conn = CrearConexion();
+        var perfil = await conn.QueryFirstOrDefaultAsync<ProfesionalDto>(
+            @"SELECT p.ProfesionalId,
+                     p.NombreCompleto,
+                     p.Correo,
+                     p.FotoPerfil AS FotoUrl,
+                     p.Ocupacion AS Titulo,
+                     p.SobreMi AS Descripcion,
+                     p.AnosExperiencia,
+                     p.ValorPorHora AS TarifaCita,
+                     p.Estado,
+                     ci.Nombre AS Ciudad,
+                     (SELECT AVG(CAST(cp.Puntuacion AS FLOAT))
+                      FROM   ComentarioProfesional cp
+                      WHERE  cp.ProfesionalId = p.ProfesionalId AND cp.Estado = 1) AS Calificacion,
+                     (SELECT COUNT(*) FROM Seguidor s WHERE s.ProfesionalId = p.ProfesionalId) AS TotalSeguidos
+              FROM   Profesional p
+              LEFT JOIN Ciudad ci ON ci.CiudadId = p.CiudadId
+              WHERE  p.ProfesionalId = @ProfesionalId",
+            new { ProfesionalId = profesionalId });
 
-        return new ProfesionalDto
-        {
-            ProfesionalId  = p.ProfesionalId,
-            NombreCompleto = p.NombreCompleto,
-            Correo         = p.Correo,
-            FotoUrl        = p.FotoPerfil,
-            Titulo         = p.Ocupacion,
-            Descripcion    = p.SobreMi,
-            TarifaCita     = p.ValorPorHora,
-            Estado         = p.Estado
-        };
+        if (perfil is null) return null;
+
+        perfil.Especialidades = (await ObtenerEspecialidadesAsync(profesionalId, ct)).ToList();
+        perfil.Idiomas        = (await ObtenerIdiomasAsync(profesionalId, ct)).ToList();
+        return perfil;
     }
 
     public async Task<ResultadoOperacion> ActualizarAsync(
@@ -201,6 +213,72 @@ public class ProfesionalRepository(AppDbContext context, IConfiguration configur
                 (SELECT COUNT(DISTINCT UsuarioId) FROM Cita WHERE ProfesionalId = @ProfesionalId) AS TotalPacientes",
             new { ProfesionalId = profesionalId });
         return resumen ?? new PerfilProfesionalResumenDto();
+    }
+
+    public async Task<IReadOnlyList<ComentarioPerfilDto>> ObtenerComentariosPublicosAsync(
+        int profesionalId, int? usuarioActualId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var rows = await conn.QueryAsync<ComentarioPerfilDto>(
+            @"SELECT cp.ComentarioId,
+                     cp.UsuarioId,
+                     u.NombreCompleto AS NombreUsuario,
+                     cp.Texto AS Contenido,
+                     cp.Puntuacion,
+                     cp.FechaCreacion AS Fecha,
+                     CASE WHEN @UsuarioActualId IS NOT NULL AND cp.UsuarioId = @UsuarioActualId THEN 1 ELSE 0 END AS EsPropio
+              FROM   ComentarioProfesional cp
+              JOIN   Usuario u ON u.UsuarioId = cp.UsuarioId
+              WHERE  cp.ProfesionalId = @ProfesionalId AND cp.Estado = 1
+              ORDER  BY cp.FechaCreacion DESC",
+            new { ProfesionalId = profesionalId, UsuarioActualId = usuarioActualId });
+
+        foreach (var c in rows)
+            c.Iniciales = InicialesDe(c.NombreUsuario);
+
+        return rows.AsList();
+    }
+
+    public async Task<ResumenComentariosPerfilDto> ObtenerResumenComentariosAsync(
+        int profesionalId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var resumen = await conn.QueryFirstOrDefaultAsync<ResumenComentariosPerfilDto>(
+            @"SELECT ISNULL(AVG(CAST(Puntuacion AS FLOAT)), 0) AS Promedio,
+                     COUNT(*) AS Total,
+                     SUM(CASE WHEN Puntuacion = 5 THEN 1 ELSE 0 END) AS Estrellas5,
+                     SUM(CASE WHEN Puntuacion = 4 THEN 1 ELSE 0 END) AS Estrellas4,
+                     SUM(CASE WHEN Puntuacion = 3 THEN 1 ELSE 0 END) AS Estrellas3,
+                     SUM(CASE WHEN Puntuacion = 2 THEN 1 ELSE 0 END) AS Estrellas2,
+                     SUM(CASE WHEN Puntuacion = 1 THEN 1 ELSE 0 END) AS Estrellas1
+              FROM   ComentarioProfesional
+              WHERE  ProfesionalId = @ProfesionalId AND Estado = 1 AND Puntuacion IS NOT NULL",
+            new { ProfesionalId = profesionalId });
+
+        return resumen ?? new ResumenComentariosPerfilDto();
+    }
+
+    public async Task<ResultadoOperacion> CrearComentarioPublicoAsync(
+        CrearComentarioPerfilDto dto, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Contenido))
+            return ResultadoOperacion.Fail("Escribe un comentario antes de enviar.");
+        if (dto.Puntuacion is < 1 or > 5)
+            return ResultadoOperacion.Fail("Selecciona una calificación de 1 a 5 estrellas.");
+
+        using var conn = CrearConexion();
+        await conn.ExecuteAsync(
+            @"INSERT INTO ComentarioProfesional (ProfesionalId, UsuarioId, Texto, Puntuacion, Estado)
+              VALUES (@ProfesionalId, @UsuarioId, @Contenido, @Puntuacion, 1)",
+            new { dto.ProfesionalId, dto.UsuarioId, dto.Contenido, dto.Puntuacion });
+
+        return ResultadoOperacion.Ok("Comentario publicado.");
+    }
+
+    private static string InicialesDe(string nombre)
+    {
+        var partes = (nombre ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(partes.Take(2).Select(p => p.Length > 0 ? char.ToUpperInvariant(p[0]) : '?'));
     }
 
     public async Task<ResultadoOperacion> AprobarAsync(

@@ -10,5 +10,7 @@ public class ProfesionalDirectorioDto
     public double? Calificacion   { get; set; }
     public int     TotalSeguidos  { get; set; }
     public bool    EsSeguido      { get; set; }
+    public string? SobreMi        { get; set; }
+    public string? TipoProfesional { get; set; }
     public List<string> Especialidades { get; set; } = [];
 }
