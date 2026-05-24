@@ -19,4 +19,14 @@ public class ConfiguracionRepository(AppDbContext context) : IConfiguracionRepos
         var configs = await context.Configuraciones.AsNoTracking().ToListAsync(ct);
         return configs.ToDictionary(c => c.Clave, c => c.Valor);
     }
+
+    public async Task GuardarValorAsync(string clave, string valor, string? descripcion = null, CancellationToken ct = default)
+    {
+        var config = await context.Configuraciones.FirstOrDefaultAsync(c => c.Clave == clave, ct);
+        if (config is null)
+            context.Configuraciones.Add(new Configuracion { Clave = clave, Valor = valor });
+        else
+            config.Valor = valor;
+        await context.SaveChangesAsync(ct);
+    }
 }

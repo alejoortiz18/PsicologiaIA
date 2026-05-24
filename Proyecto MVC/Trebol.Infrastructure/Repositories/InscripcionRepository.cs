@@ -3,6 +3,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Trebol.Domain.Interfaces;
+using Trebol.Model.DTOs.Inscripcion;
 using Trebol.Model.DTOs.Pago;
 using Trebol.Model.Models;
 
@@ -53,6 +54,16 @@ public class InscripcionRepository(IConfiguration configuration) : IInscripcionR
                    OR (@ProfesionalInscriptorId IS NOT NULL AND i.ProfesionalInscriptorId = @ProfesionalInscriptorId)
                 )",
             new { InscripcionId = inscripcionId, UsuarioId = usuarioId, ProfesionalInscriptorId = profesionalInscriptorId });
+    }
+
+    public async Task<InscripcionConfirmacionDto?> ObtenerConfirmacionAsync(
+        int inscripcionId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.QueryFirstOrDefaultAsync<InscripcionConfirmacionDto>(
+            "sp_ObtenerInscripcionConfirmacion",
+            new { InscripcionId = inscripcionId },
+            commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> EstaInscritoAsync(

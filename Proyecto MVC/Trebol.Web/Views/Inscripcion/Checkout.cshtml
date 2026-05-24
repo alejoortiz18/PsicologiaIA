@@ -106,10 +106,20 @@
             </div>
             @if (Model.RequierePago)
             {
-                <div class="session-info-row">
-                    <span class="session-info-label">Tarifa plataforma</span>
-                    <span class="session-info-value">@Fmt(Model.TarifaPlataforma)</span>
-                </div>
+                @if (esCita)
+                {
+                    <div class="session-info-row">
+                        <span class="session-info-label">IVA (@Model.PorcentajeIva.ToString("0.##", cultura)%)</span>
+                        <span class="session-info-value">@Fmt(Model.MontoIva)</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="session-info-row">
+                        <span class="session-info-label">Tarifa plataforma</span>
+                        <span class="session-info-value">@Fmt(Model.TarifaPlataforma)</span>
+                    </div>
+                }
             }
             <div class="checkout-total">
                 <span>Total</span>
@@ -207,7 +217,14 @@
                 <div class="mt-6" style="display:flex;flex-direction:column;gap:var(--sp-3);">
                     @if (esCita)
                     {
-                        <a asp-controller="Citas" asp-action="Index" class="btn btn-primary">Ver mis citas</a>
+                        @if (User.IsInRole("Profesional"))
+                        {
+                            <a asp-controller="PerfilProfesional" asp-action="Citas" class="btn btn-primary">Ver mis citas</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Citas" asp-action="Index" class="btn btn-primary">Ver mis citas</a>
+                        }
                     }
                     else
                     {

@@ -73,7 +73,8 @@
         window.perfilOradorCal = {
             profesionalId: @p.ProfesionalId,
             usuarioId: @(ViewBag.UsuarioActualId?.ToString() ?? "null"),
-            puedeAgendar: @(User.IsInRole("Usuario") ? "true" : "false"),
+            miProfesionalId: @(ViewBag.MiProfesionalId?.ToString() ?? "null"),
+            puedeAgendar: @((User.IsInRole("Usuario") || User.IsInRole("Profesional")) ? "true" : "false"),
             nuevaCitaUrl: '@Url.Action("Confirmar", "PagoCita", new { profesionalId = p.ProfesionalId })',
             disponibilidad: @Html.Raw(ViewBag.DisponibilidadJson ?? "[]"),
             bloqueos: @Html.Raw(ViewBag.BloqueosJson ?? "[]"),

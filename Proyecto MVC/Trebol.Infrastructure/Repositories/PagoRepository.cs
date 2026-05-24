@@ -13,12 +13,21 @@ public class PagoRepository(IConfiguration configuration) : IPagoRepository
         => new SqlConnection(configuration.GetConnectionString("TrebolDB"));
 
     public async Task<PagoProcesadoDto> PagarCitaAsync(
-        int citaId, int usuarioId, string metodoPago, CancellationToken ct = default)
+        int citaId, int? usuarioId, int? profesionalClienteId, string metodoPago,
+        decimal montoTotal, decimal montoIva, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
         var result = await conn.QueryFirstOrDefaultAsync<SpPagoResult>(
             "sp_PagarCita",
-            new { CitaId = citaId, UsuarioId = usuarioId, MetodoPago = metodoPago },
+            new
+            {
+                CitaId = citaId,
+                UsuarioId = usuarioId,
+                ProfesionalClienteId = profesionalClienteId,
+                MetodoPago = metodoPago,
+                MontoTotal = montoTotal,
+                MontoIva = montoIva
+            },
             commandType: CommandType.StoredProcedure);
 
         return Map(result);

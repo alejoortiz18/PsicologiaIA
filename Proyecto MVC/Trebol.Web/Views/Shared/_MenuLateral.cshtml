@@ -112,6 +112,10 @@ else if (rol == "Admin")
            class="nav-item @(Is("Admin","BandejaNotificaciones") ? "active" : "")">
             <span class="nav-item__icon">🔔</span> Bandeja
         </a>
+        <a asp-controller="Admin" asp-action="Configuracion"
+           class="nav-item @(Is("Admin","Configuracion") ? "active" : "")">
+            <span class="nav-item__icon">⚙️</span> Configuración
+        </a>
     </div>
 }
 

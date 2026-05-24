@@ -15,7 +15,8 @@ public class InscripcionController(
     IInscripcionRepository inscripcionRepo,
     ISalaRepository salaRepo,
     IPagoRepository pagoRepo,
-    IPagoSimuladoService pagoSimulado) : Controller
+    IPagoSimuladoService pagoSimulado,
+    IInscripcionNotificacionService inscripcionNotificacion) : Controller
 {
     private static readonly CultureInfo EsCo = new("es-CO");
 
@@ -58,6 +59,7 @@ public class InscripcionController(
         var ins = resultado.Datos;
         if (ins.Precio <= 0 || ins.EstadoInscripcion is "Confirmada")
         {
+            inscripcionNotificacion.EnviarConfirmacionEnSegundoPlano(ins.InscripcionId);
             TempData["Mensaje"] = resultado.Mensaje;
             return RedirectToAction(nameof(Resultado), new { id = ins.InscripcionId, exito = true });
         }
@@ -108,6 +110,9 @@ public class InscripcionController(
         var pago = await pagoRepo.PagarInscripcionAsync(id, tarjeta.MetodoPago, HttpContext.RequestAborted);
         if (!pago.Exito && pago.Codigo == "SinCupos")
             return RedirectToAction(nameof(Resultado), new { id, exito = false, sinCupos = true });
+
+        if (pago.Exito)
+            inscripcionNotificacion.EnviarConfirmacionEnSegundoPlano(id, tarjeta.MetodoPago);
 
         return RedirectToAction(nameof(Resultado), new { id, exito = pago.Exito });
     }

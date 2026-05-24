@@ -39,6 +39,47 @@ public class SalasController(
         return RedirectToAction("Index");
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Editar(int id)
+    {
+        var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var sala = await salaRepo.ObtenerParaEdicionAsync(id, profesionalId);
+        if (sala is null)
+        {
+            TempData["Error"] = SalaConstant.SalaNoEncontrada;
+            return RedirectToAction(nameof(Index));
+        }
+
+        var vm = new EditarSalaDto
+        {
+            SalaId         = sala.SalaId,
+            ProfesionalId  = profesionalId,
+            Titulo         = sala.Titulo,
+            Descripcion    = sala.Descripcion,
+            Tipo           = sala.Tipo,
+            Capacidad      = sala.Capacidad,
+            FechaInicio    = sala.FechaInicio,
+            Precio         = sala.Precio
+        };
+        return View(vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Editar(EditarSalaDto dto)
+    {
+        if (!ModelState.IsValid) return View(dto);
+        dto.ProfesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var resultado = await salaRepo.ActualizarAsync(dto);
+        if (!resultado.Exito)
+        {
+            ModelState.AddModelError(string.Empty, resultado.Mensaje);
+            return View(dto);
+        }
+        TempData["Mensaje"] = SalaConstant.SalaActualizada;
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Cerrar(int salaId)

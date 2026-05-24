@@ -25,7 +25,8 @@ public interface ISalaRepository
     Task<SalaDto?>               ObtenerDetalleAsync(int salaId, CancellationToken ct = default);
     Task<SalaConferenciaProfesionalDto?> ObtenerConferenciaProfesionalAsync(int salaId, int profesionalId, CancellationToken ct = default);
     Task<ResultadoOperacion<int>> CrearAsync(CrearSalaDto dto, CancellationToken ct = default);
-    Task<ResultadoOperacion>     ActualizarAsync(SalaDto dto, CancellationToken ct = default);
+    Task<SalaDto?>              ObtenerParaEdicionAsync(int salaId, int profesionalId, CancellationToken ct = default);
+    Task<ResultadoOperacion>     ActualizarAsync(EditarSalaDto dto, CancellationToken ct = default);
     Task<ResultadoOperacion>     EliminarAsync(int salaId, int profesionalId, CancellationToken ct = default);
     Task<ResultadoOperacion>     CerrarAsync(int salaId, int profesionalId, CancellationToken ct = default);
 }

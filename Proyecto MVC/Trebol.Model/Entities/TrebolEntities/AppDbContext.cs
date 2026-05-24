@@ -80,6 +80,7 @@ public partial class AppDbContext : DbContext
         modelBuilder.Entity<Categoria>().ToTable("Categoria");
         modelBuilder.Entity<Idioma>().ToTable("Idioma");
         modelBuilder.Entity<Configuracion>().ToTable("Configuracion");
+        modelBuilder.Entity<Configuracion>().HasKey(e => e.ConfigId);
         modelBuilder.Entity<Usuario>().ToTable("Usuario");
         modelBuilder.Entity<Profesional>().ToTable("Profesional");
         modelBuilder.Entity<Administrador>().ToTable("Administrador");

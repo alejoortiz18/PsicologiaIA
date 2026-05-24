@@ -3,6 +3,7 @@ using Trebol.Helpers.AccessDependency;
 using Trebol.Infrastructure.AccessDependency;
 using Trebol.Web.AutoMapper;
 using Trebol.Web.Services;
+using Trebol.Web.Services.Facturacion;
 
 namespace Trebol.Web.DependencyContainer;
 
@@ -63,6 +64,9 @@ public static class DependencyContainer
         services.AddSignalR();
 
         services.AddScoped<IPagoSimuladoService, PagoSimuladoService>();
+        services.AddScoped<ICitaPrecioService, CitaPrecioService>();
+        services.AddScoped<IInscripcionNotificacionService, InscripcionNotificacionService>();
+        services.AddScoped<IFacturaInscripcionGenerator, FacturaInscripcionGenerator>();
 
         // ── Prevenir caché de páginas protegidas (Back button tras logout) ─
         services.AddControllersWithViews(options =>

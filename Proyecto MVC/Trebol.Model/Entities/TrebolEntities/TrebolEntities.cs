@@ -19,7 +19,12 @@ public class Ciudad        { public int CiudadId { get; set; } public int PaisId
 public class Especialidad  { public int EspecialidadId { get; set; } public string Nombre { get; set; } = string.Empty; }
 public class Categoria     { public int CategoriaId { get; set; } public string Nombre { get; set; } = string.Empty; }
 public class Idioma        { public int IdiomaId { get; set; } public string Nombre { get; set; } = string.Empty; }
-public class Configuracion { public int ConfiguracionId { get; set; } public string Clave { get; set; } = string.Empty; public string Valor { get; set; } = string.Empty; }
+public class Configuracion
+{
+    public int ConfigId { get; set; }
+    public string Clave { get; set; } = string.Empty;
+    public string Valor { get; set; } = string.Empty;
+}
 
 // ── Actores ───────────────────────────────────────────────────
 public class Usuario

@@ -26,7 +26,13 @@ public class CheckoutVm
 
     public decimal Subtotal { get; set; }
     public decimal TarifaPlataforma { get; set; } = 5000m;
-    public decimal Total => Subtotal + (RequierePago ? TarifaPlataforma : 0);
+    public decimal PorcentajeIva { get; set; }
+    public decimal MontoIva => Tipo == "cita" && Subtotal > 0
+        ? Math.Round(Subtotal * PorcentajeIva / 100m, 0, MidpointRounding.AwayFromZero)
+        : 0m;
+    public decimal Total => Subtotal + (RequierePago
+        ? (Tipo == "cita" ? MontoIva : TarifaPlataforma)
+        : 0m);
     public bool RequierePago => Subtotal > 0;
 
     public string? CodigoInscripcion { get; set; }

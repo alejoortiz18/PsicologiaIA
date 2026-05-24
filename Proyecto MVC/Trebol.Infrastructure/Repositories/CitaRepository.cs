@@ -24,10 +24,12 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
             new
             {
                 dto.UsuarioId,
+                dto.ProfesionalClienteId,
                 dto.ProfesionalId,
                 dto.FechaHora,
                 FechaHoraFin = fechaFin,
-                Tipo         = dto.Tipo.ToString()
+                Tipo         = dto.Tipo.ToString(),
+                dto.Notas
             },
             commandType: CommandType.StoredProcedure);
 
@@ -92,25 +94,35 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
     }
 
     public async Task<CitaListaDto?> ObtenerDetalleAsync(int citaId, CancellationToken ct = default)
+        => await ObtenerDetalleParaClienteAsync(citaId, null, null, ct);
+
+    public async Task<CitaListaDto?> ObtenerDetalleParaClienteAsync(
+        int citaId, int? usuarioId, int? profesionalClienteId, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
         return await conn.QueryFirstOrDefaultAsync<CitaListaDto>(
             @"SELECT c.CitaId,
                      c.UsuarioId,
+                     c.ProfesionalClienteId,
                      p.NombreCompleto AS NombreProfesional,
                      ISNULL(p.FotoPerfil,'') AS FotoProfesional,
-                     u.Alias AS AliasUsuario,
+                     COALESCE(u.Alias, pr.NombreCompleto, N'Cliente') AS AliasUsuario,
                      c.FechaHora,
                      DATEDIFF(MINUTE, c.FechaHora, c.FechaHoraFin) AS DuracionMinutos,
                      c.Tipo,
                      c.Estado,
-                     ISNULL(pc.Monto, ISNULL(p.ValorPorHora, 0)) AS Monto
+                     ISNULL(p.ValorPorHora, 0) AS Monto
               FROM   Cita c
               JOIN   Profesional p ON p.ProfesionalId = c.ProfesionalId
-              JOIN   Usuario u ON u.UsuarioId = c.UsuarioId
-              LEFT JOIN PagoCita pc ON pc.CitaId = c.CitaId AND pc.Estado = 'Aprobado'
-              WHERE  c.CitaId = @CitaId",
-            new { CitaId = citaId });
+              LEFT JOIN Usuario u ON u.UsuarioId = c.UsuarioId
+              LEFT JOIN Profesional pr ON pr.ProfesionalId = c.ProfesionalClienteId
+              WHERE  c.CitaId = @CitaId
+                AND (
+                      (@UsuarioId IS NULL AND @ProfesionalClienteId IS NULL)
+                   OR (@UsuarioId IS NOT NULL AND c.UsuarioId = @UsuarioId)
+                   OR (@ProfesionalClienteId IS NOT NULL AND c.ProfesionalClienteId = @ProfesionalClienteId)
+                )",
+            new { CitaId = citaId, UsuarioId = usuarioId, ProfesionalClienteId = profesionalClienteId });
     }
 
     public async Task<SalaCitaProfesionalDto?> ObtenerParaSalaProfesionalAsync(
@@ -176,7 +188,8 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
         var result = await conn.QueryAsync<CitaSlotPublicoDto>(
             @"SELECT c.FechaHora,
                      DATEDIFF(MINUTE, c.FechaHora, c.FechaHoraFin) AS DuracionMinutos,
-                     c.UsuarioId
+                     c.UsuarioId,
+                     c.ProfesionalClienteId
               FROM   Cita c
               WHERE  c.ProfesionalId = @ProfesionalId
                 AND  c.FechaHora >= @Desde AND c.FechaHora < @Hasta

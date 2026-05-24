@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,32 +6,36 @@ using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Cita;
 using Trebol.Model.DTOs.Pago;
 using Trebol.Model.Enums;
+using Trebol.Web.Helpers;
 using Trebol.Web.Services;
 
 namespace Trebol.Web.Controllers;
 
-[Authorize(Roles = "Usuario")]
+[Authorize(Roles = "Usuario,Profesional")]
 public class PagoCitaController(
     ICitaRepository citaRepo,
     IProfesionalRepository profesionalRepo,
     IPagoRepository pagoRepo,
-    IPagoSimuladoService pagoSimulado) : Controller
+    IPagoSimuladoService pagoSimulado,
+    ICitaPrecioService citaPrecio) : Controller
 {
-    private static readonly CultureInfo EsCo = new("es-CO");
-    private const decimal TarifaPlataformaDefault = 5000m;
-
-    // GET /PagoCita/Confirmar?profesionalId=5&fechaHora=...
     [HttpGet]
     public async Task<IActionResult> Confirmar(int profesionalId, DateTime? fechaHora, int duracionMinutos = 60)
     {
+        var cliente = CitaCliente.From(User);
+        if (cliente.ProfesionalClienteId == profesionalId)
+        {
+            TempData["Error"] = "No puedes agendar una cita contigo mismo.";
+            return RedirectToAction("Calendario", "PerfilOrador", new { id = profesionalId });
+        }
+
         var perfil = await profesionalRepo.ObtenerDtoAsync(profesionalId, HttpContext.RequestAborted);
         if (perfil is null) return NotFound();
 
         var tarifaHora = perfil.TarifaCita ?? 0m;
-        var subtotal = tarifaHora * (duracionMinutos / 60m);
-        if (duracionMinutos == 90) subtotal = tarifaHora * 1.5m;
-
+        var precio = await citaPrecio.CalcularAsync(tarifaHora, duracionMinutos, HttpContext.RequestAborted);
         var inicio = fechaHora ?? DateTime.Now.AddDays(1).Date.AddHours(9);
+
         var vm = new CheckoutVm
         {
             Tipo              = "cita",
@@ -41,11 +44,11 @@ public class PagoCitaController(
             Titulo            = "Cita privada",
             Subtitulo         = perfil.NombreCompleto,
             NombreProfesional = perfil.NombreCompleto,
-            FechaHoraCita      = inicio,
-            FechaHoraFinCita   = inicio.AddMinutes(duracionMinutos),
+            FechaHoraCita     = inicio,
+            FechaHoraFinCita  = inicio.AddMinutes(duracionMinutos),
             DuracionMinutos   = duracionMinutos,
-            Subtotal          = subtotal,
-            TarifaPlataforma  = subtotal > 0 ? TarifaPlataformaDefault : 0m
+            Subtotal          = precio.Subtotal,
+            PorcentajeIva     = precio.PorcentajeIva
         };
 
         ViewBag.TipoCita = TipoCita.Asesoria;
@@ -53,22 +56,29 @@ public class PagoCitaController(
         return View("~/Views/Inscripcion/Checkout.cshtml", vm);
     }
 
-    // POST /PagoCita/Confirmar
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Confirmar(int profesionalId, DateTime fechaHora, int duracionMinutos, TipoCita tipo, string? notas)
     {
+        var cliente = CitaCliente.From(User);
+        if (cliente.ProfesionalClienteId == profesionalId)
+        {
+            TempData["Error"] = "No puedes agendar una cita contigo mismo.";
+            return RedirectToAction(nameof(Confirmar), new { profesionalId, fechaHora, duracionMinutos });
+        }
+
         var perfil = await profesionalRepo.ObtenerDtoAsync(profesionalId, HttpContext.RequestAborted);
         if (perfil is null) return NotFound();
 
         var dto = new CrearCitaDto
         {
-            UsuarioId         = UsuarioId(),
-            ProfesionalId     = profesionalId,
-            FechaHora          = fechaHora,
-            DuracionMinutos   = duracionMinutos,
-            Tipo              = tipo,
-            Notas             = notas
+            UsuarioId            = cliente.UsuarioId,
+            ProfesionalClienteId = cliente.ProfesionalClienteId,
+            ProfesionalId        = profesionalId,
+            FechaHora            = fechaHora,
+            DuracionMinutos      = duracionMinutos,
+            Tipo                 = tipo,
+            Notas                = notas
         };
 
         var agendar = await citaRepo.AgendarAsync(dto, HttpContext.RequestAborted);
@@ -79,29 +89,29 @@ public class PagoCitaController(
         }
 
         var tarifaHora = perfil.TarifaCita ?? 0m;
-        var subtotal = tarifaHora * (duracionMinutos / 60m);
-        if (duracionMinutos == 90) subtotal = tarifaHora * 1.5m;
-
-        if (subtotal <= 0)
+        var precio = await citaPrecio.CalcularAsync(tarifaHora, duracionMinutos, HttpContext.RequestAborted);
+        if (precio.Subtotal <= 0)
         {
-            await pagoRepo.PagarCitaAsync(agendar.Datos, UsuarioId(), "EntradaLibre", HttpContext.RequestAborted);
+            await pagoRepo.PagarCitaAsync(
+                agendar.Datos, cliente.UsuarioId, cliente.ProfesionalClienteId,
+                "TarjetaCredito", 0, 0, HttpContext.RequestAborted);
             return RedirectToAction(nameof(Resultado), new { id = agendar.Datos, exito = true });
         }
 
         return RedirectToAction(nameof(Pago), new { id = agendar.Datos });
     }
 
-    // GET /PagoCita/Pago/3
     [HttpGet]
     public async Task<IActionResult> Pago(int id)
     {
-        var citaId = id;
-        var cita = await citaRepo.ObtenerDetalleAsync(citaId, HttpContext.RequestAborted);
-        if (cita is null || cita.UsuarioId != UsuarioId()) return NotFound();
+        var cliente = CitaCliente.From(User);
+        var cita = await citaRepo.ObtenerDetalleParaClienteAsync(
+            id, cliente.UsuarioId, cliente.ProfesionalClienteId, HttpContext.RequestAborted);
+        if (cita is null) return NotFound();
 
-        var vm = MapCita(cita);
-        vm.CitaId = citaId;
-        vm.ReferenciaId = citaId;
+        var vm = await MapCitaAsync(cita);
+        vm.CitaId = id;
+        vm.ReferenciaId = id;
         vm.MetodoPago = TempData["MetodoPago"] as string ?? vm.MetodoPago;
         ViewBag.PasoInicial = 2;
         ViewBag.TarjetaPrueba = TarjetaPruebaViewBag();
@@ -112,35 +122,58 @@ public class PagoCitaController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ProcesarPago(int id, TarjetaPagoDto tarjeta)
     {
-        var citaId = id;
+        var cliente = CitaCliente.From(User);
+        var cita = await citaRepo.ObtenerDetalleParaClienteAsync(
+            id, cliente.UsuarioId, cliente.ProfesionalClienteId, HttpContext.RequestAborted);
+        if (cita is null) return NotFound();
+
         var validacion = pagoSimulado.ValidarPago(tarjeta);
         if (!validacion.Exito)
         {
             TempData["Error"] = validacion.Mensaje;
             TempData["MetodoPago"] = tarjeta.MetodoPago;
-            return RedirectToAction(nameof(Pago), new { id = citaId });
+            return RedirectToAction(nameof(Pago), new { id });
         }
 
-        var pago = await pagoRepo.PagarCitaAsync(citaId, UsuarioId(), tarjeta.MetodoPago, HttpContext.RequestAborted);
-        return RedirectToAction(nameof(Resultado), new { id = citaId, exito = pago.Exito });
+        var vm = await MapCitaAsync(cita);
+        var pago = await pagoRepo.PagarCitaAsync(
+            id, cliente.UsuarioId, cliente.ProfesionalClienteId,
+            tarjeta.MetodoPago, vm.Total, vm.MontoIva, HttpContext.RequestAborted);
+        return RedirectToAction(nameof(Resultado), new { id, exito = pago.Exito });
     }
 
     [HttpGet]
     public async Task<IActionResult> Resultado(int id, bool exito)
     {
-        var citaId = id;
-        var cita = await citaRepo.ObtenerDetalleAsync(citaId, HttpContext.RequestAborted);
-        if (cita is null || cita.UsuarioId != UsuarioId()) return NotFound();
+        var cliente = CitaCliente.From(User);
+        var cita = await citaRepo.ObtenerDetalleParaClienteAsync(
+            id, cliente.UsuarioId, cliente.ProfesionalClienteId, HttpContext.RequestAborted);
+        if (cita is null) return NotFound();
 
-        var vm = MapCita(cita);
-        vm.CitaId = citaId;
+        var vm = await MapCitaAsync(cita);
+        vm.CitaId = id;
         ViewBag.PasoInicial = 3;
         ViewBag.Exito = exito;
         ViewBag.MensajeResultado = exito ? "¡Cita confirmada y pagada!" : "No se pudo completar el pago.";
         return View("~/Views/Inscripcion/Checkout.cshtml", vm);
     }
 
-    private int UsuarioId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private async Task<CheckoutVm> MapCitaAsync(CitaListaDto cita)
+    {
+        var precio = await citaPrecio.CalcularAsync(cita.Monto, cita.DuracionMinutos, HttpContext.RequestAborted);
+        return new CheckoutVm
+        {
+            Tipo              = "cita",
+            Titulo            = "Cita privada",
+            Subtitulo         = cita.NombreProfesional,
+            NombreProfesional = cita.NombreProfesional,
+            FechaHoraCita     = cita.FechaHora,
+            FechaHoraFinCita  = cita.FechaHora.AddMinutes(cita.DuracionMinutos),
+            DuracionMinutos   = cita.DuracionMinutos,
+            Subtotal          = precio.Subtotal,
+            PorcentajeIva     = precio.PorcentajeIva
+        };
+    }
 
     private static object TarjetaPruebaViewBag() => new
     {
@@ -149,21 +182,4 @@ public class PagoCitaController(
         cvv = TarjetaPruebaConstant.CvvValido,
         nombre = TarjetaPruebaConstant.NombreValido
     };
-
-    private static CheckoutVm MapCita(CitaListaDto cita)
-    {
-        var subtotal = cita.Monto > 0 ? cita.Monto : 0;
-        return new CheckoutVm
-        {
-            Tipo              = "cita",
-            Titulo            = "Cita privada",
-            Subtitulo         = cita.NombreProfesional,
-            NombreProfesional = cita.NombreProfesional,
-            FechaHoraCita      = cita.FechaHora,
-            FechaHoraFinCita   = cita.FechaHora.AddMinutes(cita.DuracionMinutos),
-            DuracionMinutos   = cita.DuracionMinutos,
-            Subtotal          = subtotal,
-            TarifaPlataforma  = subtotal > 0 ? TarifaPlataformaDefault : 0m
-        };
-    }
 }

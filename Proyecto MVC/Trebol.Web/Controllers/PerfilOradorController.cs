@@ -95,6 +95,9 @@ public class PerfilOradorController(
                     fin = h.HoraFin.ToString("HH:mm")
                 }), JsonCamel);
             ViewBag.UsuarioActualId = UsuarioActualId();
+            ViewBag.MiProfesionalId = User.IsInRole("Profesional")
+                ? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+                : (int?)null;
             return View("Calendario", vm);
         });
 

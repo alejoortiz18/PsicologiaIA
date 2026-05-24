@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Trebol.Constants.Configuracion;
 using Trebol.Constants.Messages;
 using Trebol.Domain.Interfaces;
+using Trebol.Domain.Interfaces.Catalogos;
 using Trebol.Helpers.Email;
 using Microsoft.Extensions.Configuration;
 using Trebol.Web.Helpers;
@@ -13,6 +15,7 @@ namespace Trebol.Web.Controllers;
 public class AdminController(
     INotificacionRepository notificacionRepo,
     IProfesionalRepository  profesionalRepo,
+    IConfiguracionRepository configRepo,
     IEmailHelper            emailHelper,
     IConfiguration          config) : Controller
 {
@@ -20,6 +23,36 @@ public class AdminController(
     {
         var notificaciones = await notificacionRepo.ObtenerPendientesAdminAsync();
         return View(notificaciones);
+    }
+
+    public async Task<IActionResult> Configuracion()
+    {
+        var ivaTxt = await configRepo.ObtenerValorAsync(ConfiguracionClavesConstant.PorcentajeIvaCita, HttpContext.RequestAborted);
+        if (!decimal.TryParse(ivaTxt, System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out var iva))
+            iva = ConfiguracionClavesConstant.PorcentajeIvaCitaDefault;
+
+        ViewBag.PorcentajeIva = iva;
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GuardarIva(decimal porcentajeIva)
+    {
+        if (porcentajeIva < 0 || porcentajeIva > 100)
+        {
+            TempData["Error"] = "El porcentaje de IVA debe estar entre 0 y 100.";
+            return RedirectToAction(nameof(Configuracion));
+        }
+
+        await configRepo.GuardarValorAsync(
+            ConfiguracionClavesConstant.PorcentajeIvaCita,
+            porcentajeIva.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ct: HttpContext.RequestAborted);
+
+        TempData["Mensaje"] = "Porcentaje de IVA actualizado correctamente.";
+        return RedirectToAction(nameof(Configuracion));
     }
 
     // POST /Admin/MarcarLeida

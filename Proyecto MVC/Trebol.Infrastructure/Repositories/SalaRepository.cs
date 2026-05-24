@@ -7,6 +7,7 @@ using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Dashboard;
 using Trebol.Model.DTOs.Publico;
 using Trebol.Model.DTOs.Sala;
+using Trebol.Model.Enums;
 using Trebol.Model.Entities.TrebolEntities;
 using Trebol.Model.Models;
 
@@ -233,18 +234,35 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
             : ResultadoOperacion<int>.Fail(result?.Mensaje ?? "Error al crear sala.");
     }
 
-    public async Task<ResultadoOperacion> ActualizarAsync(SalaDto dto, CancellationToken ct = default)
+    public async Task<SalaDto?> ObtenerParaEdicionAsync(
+        int salaId, int profesionalId, CancellationToken ct = default)
     {
-        var sala = await context.Salas
-                                .FirstOrDefaultAsync(s => s.SalaId == dto.SalaId, ct);
-        if (sala is null) return ResultadoOperacion.Fail("Sala no encontrada.");
+        var salas = await ObtenerPorProfesionalAsync(profesionalId, ct);
+        var sala = salas.FirstOrDefault(s => s.SalaId == salaId && s.Estado == EstadoSala.Abierta);
+        return sala;
+    }
 
-        sala.Nombre    = dto.Titulo ?? sala.Nombre;
-        sala.Descripcion = dto.Descripcion;
-        sala.CupoMaximo  = dto.Capacidad;
+    public async Task<ResultadoOperacion> ActualizarAsync(EditarSalaDto dto, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryFirstOrDefaultAsync<SpResult>(
+            "sp_ActualizarSala",
+            new
+            {
+                dto.SalaId,
+                dto.ProfesionalId,
+                Nombre = dto.Titulo,
+                dto.Descripcion,
+                Tipo = dto.Tipo.ToString(),
+                CupoMaximo = dto.Capacidad,
+                dto.FechaInicio,
+                Precio = dto.Precio ?? 0m
+            },
+            commandType: CommandType.StoredProcedure);
 
-        await context.SaveChangesAsync(ct);
-        return ResultadoOperacion.Ok();
+        return result?.Exito == true
+            ? ResultadoOperacion.Ok(result.Mensaje)
+            : ResultadoOperacion.Fail(result?.Mensaje ?? "Error al actualizar la sala.");
     }
 
     public async Task<ResultadoOperacion> EliminarAsync(int salaId, int profesionalId, CancellationToken ct = default)

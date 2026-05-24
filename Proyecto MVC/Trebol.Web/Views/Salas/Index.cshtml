@@ -45,6 +45,7 @@ else
                             <a asp-action="Detalle" asp-route-id="@sala.SalaId" class="btn btn-ghost btn-sm">Ver</a>
                             @if (sala.Estado.ToString() == "Abierta")
                             {
+                                <a asp-action="Editar" asp-route-id="@sala.SalaId" class="btn btn-primary btn-sm">Editar</a>
                                 <button class="btn btn-secondary btn-sm" onclick="cerrarSala(@sala.SalaId)">Cerrar</button>
                             }
                         </div>

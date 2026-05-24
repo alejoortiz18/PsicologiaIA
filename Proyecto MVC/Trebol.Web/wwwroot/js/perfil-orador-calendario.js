@@ -39,7 +39,8 @@
     const dur = c.duracionMinutos || 60;
     for (let i = 0; i < dur / 60; i++) {
       booked[key].push(h + i);
-      if (cfg.usuarioId && c.usuarioId === cfg.usuarioId) {
+      if ((cfg.usuarioId && c.usuarioId === cfg.usuarioId) ||
+          (cfg.miProfesionalId && c.profesionalClienteId === cfg.miProfesionalId)) {
         mySlots.add(`${key}|${h + i}`);
       }
     }
@@ -126,7 +127,13 @@
   function goToBooking(y, m, d, h) {
     if (!cfg.puedeAgendar) {
       if (typeof showToast === 'function') {
-        showToast({ title: 'Solo los usuarios pueden agendar citas', type: 'info' });
+        showToast({ title: 'Debes iniciar sesión para agendar citas', type: 'info' });
+      }
+      return;
+    }
+    if (cfg.miProfesionalId && cfg.miProfesionalId === cfg.profesionalId) {
+      if (typeof showToast === 'function') {
+        showToast({ title: 'No puedes agendar una cita contigo mismo', type: 'info' });
       }
       return;
     }

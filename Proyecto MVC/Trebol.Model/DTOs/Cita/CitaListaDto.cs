@@ -4,7 +4,8 @@ namespace Trebol.Model.DTOs.Cita;
 
 public class CitaListaDto
 {
-    public int        UsuarioId      { get; set; }
+    public int?       UsuarioId             { get; set; }
+    public int?       ProfesionalClienteId  { get; set; }
     public int        CitaId         { get; set; }
     public string     NombreProfesional { get; set; } = string.Empty;
     public string     FotoProfesional   { get; set; } = string.Empty;

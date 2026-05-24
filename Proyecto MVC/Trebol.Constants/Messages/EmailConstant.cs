@@ -48,8 +48,21 @@ public static class EmailConstant
     #region CONFIRMACIÓN DE INSCRIPCIÓN
     public const string AsuntoConfirmacionInscripcion = "Inscripción confirmada en Trébol";
     public const string CuerpoConfirmacionInscripcion = @"
-        <p>Hola {nombre},</p>
-        <p>Tu inscripción al evento <strong>{evento}</strong> fue confirmada.</p>
-        <p>Atentamente,<br/><strong>Equipo Trébol</strong></p>";
+        <div style=""font-family:Segoe UI,Arial,sans-serif;max-width:560px;color:#333;"">
+        <p>Hola <strong>{nombre}</strong>,</p>
+        <p>Tu inscripción al evento <strong>{evento}</strong> quedó confirmada.</p>
+        <table style=""width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;"">
+          <tr><td style=""padding:6px 0;color:#666;"">Nombre</td><td style=""padding:6px 0;""><strong>{nombre}</strong></td></tr>
+          <tr><td style=""padding:6px 0;color:#666;"">N° documento</td><td style=""padding:6px 0;""><strong>{documento}</strong></td></tr>
+          <tr><td style=""padding:6px 0;color:#666;"">Código de inscripción</td><td style=""padding:6px 0;""><strong>{codigo}</strong></td></tr>
+          <tr><td style=""padding:6px 0;color:#666;"">Orador</td><td style=""padding:6px 0;"">{orador}</td></tr>
+          <tr><td style=""padding:6px 0;color:#666;"">Fecha del evento</td><td style=""padding:6px 0;"">{fecha}</td></tr>
+          <tr><td style=""padding:6px 0;color:#666;"">Total</td><td style=""padding:6px 0;""><strong>{precio}</strong></td></tr>
+          <tr><td style=""padding:6px 0;color:#666;"">Comprobante</td><td style=""padding:6px 0;"">{factura}</td></tr>
+        </table>
+        <ul style=""padding-left:20px;font-size:14px;"">{metodoPago}</ul>
+        <p>Adjuntamos el comprobante en PDF a nombre de <strong>{nombre}</strong>.</p>
+        <p style=""margin-top:24px;"">Atentamente,<br/><strong>Equipo Trébol</strong></p>
+        </div>";
     #endregion
 }
