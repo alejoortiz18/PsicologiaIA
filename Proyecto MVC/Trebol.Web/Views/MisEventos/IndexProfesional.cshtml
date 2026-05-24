@@ -1,0 +1,266 @@
+@model Trebol.Model.DTOs.Sala.MisEventosProfesionalVm
+@using Trebol.Model.Enums
+@{
+    ViewData["Title"] = "Mis eventos";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var mesLabel = DateTime.Today.ToString("MMMM yyyy", cultura);
+    var salasOrdenadas = Model.Salas
+        .OrderByDescending(s => s.FechaInicio.HasValue && s.FechaInicio.Value.Date == DateTime.Today)
+        .ThenByDescending(s => s.FechaInicio ?? DateTime.MinValue)
+        .ToList();
+
+    string FmtPrecio(decimal p) => p <= 0 ? "Entrada libre" : p.ToString("C0", cultura);
+    string FmtFecha(DateTime? d) => d.HasValue ? d.Value.ToString("d MMM yyyy · h:mm tt", cultura) : "—";
+    string FmtFechaCorta(DateTime? d) => d.HasValue ? d.Value.ToString("d MMM yyyy · h:mm tt", cultura) : "—";
+    string FmtHoraHoy(DateTime? inicio)
+    {
+        if (!inicio.HasValue) return "Hoy";
+        var fin = inicio.Value.AddHours(2);
+        return $"Hoy · {inicio.Value:h:mm tt} – {fin:h:mm tt}";
+    }
+    string EstadoLabel(EstadoSala e) => e == EstadoSala.Abierta ? "Abierta" : "Cerrada";
+    string EstadoBadge(EstadoSala e) => e == EstadoSala.Abierta ? "badge-success" : "badge-muted";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/mis-eventos-profesional.css" asp-append-version="true" />
+}
+
+<div class="stats-grid mb-6" role="region" aria-label="Resumen de eventos">
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">🎪</div>
+        <div>
+            <div class="stat-card__label">Total salas</div>
+            <div class="stat-card__value">@Model.TotalSalas</div>
+            <div class="stat-card__sub">Historial completo</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">✅</div>
+        <div>
+            <div class="stat-card__label">Salas abiertas</div>
+            <div class="stat-card__value">@Model.SalasAbiertas</div>
+            <div class="stat-card__sub">Activas actualmente</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">👥</div>
+        <div>
+            <div class="stat-card__label">Total inscritos</div>
+            <div class="stat-card__value">@Model.TotalInscritos.ToString("N0", cultura)</div>
+            <div class="stat-card__sub">En todas las salas</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">💰</div>
+        <div>
+            <div class="stat-card__label">Ingresos (mes)</div>
+            <div class="stat-card__value">@Model.IngresosMes.ToString("C0", cultura)</div>
+            <div class="stat-card__sub">@System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(mesLabel)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Eventos de hoy -->
+<section class="me-hoy-section" aria-labelledby="me-hoy-heading">
+    <h2 id="me-hoy-heading" class="me-hoy-section__title">📅 Eventos de hoy</h2>
+
+    @if (Model.EventosHoy.Any())
+    {
+        var hoy = Model.EventosHoy.First();
+        var puedeIngresar = hoy.Estado == EstadoSala.Abierta;
+
+        <div class="me-hero">
+            <div class="me-hero__inner">
+                <div class="me-hero__body">
+                    <h3 class="me-hero__title">@hoy.Titulo</h3>
+                    <div class="me-hero__meta">
+                        <span>🕕 @FmtHoraHoy(hoy.FechaInicio)</span>
+                        <span>👥 @hoy.TotalInscritos de @hoy.Capacidad inscritos</span>
+                        <span>💰 @FmtPrecio(hoy.Precio)</span>
+                        @if (puedeIngresar)
+                        {
+                            <span class="me-hero__badge">EN VIVO PRONTO</span>
+                        }
+                    </div>
+                </div>
+                <div class="me-hero__actions">
+                    <button type="button" class="btn btn-sm me-hero__btn-ghost btn-me-detalle"
+                        data-sala-id="@hoy.SalaId"
+                        data-titulo="@hoy.Titulo"
+                        data-estado="@EstadoLabel(hoy.Estado)"
+                        data-inscritos="@hoy.TotalInscritos"
+                        data-capacidad="@hoy.Capacidad"
+                        data-precio="@FmtPrecio(hoy.Precio)"
+                        data-fecha="@FmtFechaCorta(hoy.FechaInicio)"
+                        data-descripcion="@(hoy.Descripcion ?? "")"
+                        aria-label="Ver detalle de @hoy.Titulo">Ver detalle</button>
+                    @if (puedeIngresar)
+                    {
+                        <a asp-controller="Salas" asp-action="SalaConferenciaProfesional" asp-route-id="@hoy.SalaId"
+                           class="btn btn-sm me-hero__btn-primary" aria-label="Ingresar al evento @hoy.Titulo">▶ Ingresar al evento</a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (Model.EventosHoy.Count > 1)
+        {
+            <p class="me-hoy-more-note text-meta">+ @(Model.EventosHoy.Count - 1) evento(s) más hoy en la tabla inferior.</p>
+        }
+    }
+    else
+    {
+        <div class="me-hero me-hero--empty" role="status">
+            <div class="me-hero__inner">
+                <p class="me-hero__empty-msg">no tienes eventos hoy</p>
+            </div>
+        </div>
+    }
+</section>
+
+<div class="table-wrapper mis-eventos-page__table" id="mis-eventos-table-wrap">
+    <div class="table-toolbar">
+        <div class="table-search">
+            <span aria-hidden="true">🔍</span>
+            <input type="search" id="me-buscar" placeholder="Buscar sala..." aria-label="Buscar sala">
+        </div>
+        <select class="table-filter-select" id="me-filtro-estado" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option value="Abierta">Abierta</option>
+            <option value="Cerrada">Cerrada</option>
+        </select>
+    </div>
+
+    @if (!salasOrdenadas.Any())
+    {
+        <div class="card" style="padding:var(--sp-12);text-align:center;margin-top:var(--sp-4);">
+            <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎪</div>
+            <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">No tienes salas creadas</div>
+            <div style="color:var(--color-text-muted);font-size:.875rem;margin-bottom:var(--sp-5);">Crea tu primera sala para comenzar a recibir inscritos.</div>
+            <a asp-controller="Salas" asp-action="Nueva" class="btn btn-primary">+ Nueva sala</a>
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x:auto;">
+            <table class="mis-eventos-table" id="mis-eventos-table" aria-label="Lista de mis eventos">
+                <thead>
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Inscritos</th>
+                        <th scope="col">Cupo máx.</th>
+                        <th scope="col">Precio</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var sala in salasOrdenadas)
+                    {
+                        var esHoy = sala.FechaInicio.HasValue && sala.FechaInicio.Value.Date == DateTime.Today;
+                        <tr class="me-fila @(esHoy ? "is-hoy" : "")"
+                            data-estado="@EstadoLabel(sala.Estado)"
+                            data-titulo="@sala.Titulo.ToLowerInvariant()">
+                            <td>
+                                <strong>@sala.Titulo</strong>
+                                @if (esHoy)
+                                {
+                                    <span class="badge badge-success" style="margin-left:6px;font-size:0.65rem;">HOY</span>
+                                }
+                            </td>
+                            <td><span class="badge @EstadoBadge(sala.Estado)">@EstadoLabel(sala.Estado)</span></td>
+                            <td>@sala.TotalInscritos</td>
+                            <td>@sala.Capacidad</td>
+                            <td>@FmtPrecio(sala.Precio)</td>
+                            <td>@FmtFecha(sala.FechaInicio)</td>
+                            <td>
+                                <div class="d-flex gap-2" style="flex-wrap:wrap;">
+                                    @if (esHoy && sala.Estado == EstadoSala.Abierta)
+                                    {
+                                        <a asp-controller="Salas" asp-action="SalaConferenciaProfesional" asp-route-id="@sala.SalaId"
+                                           class="btn btn-primary btn-sm" aria-label="Ingresar al evento @sala.Titulo">▶ Ingresar</a>
+                                    }
+                                    <button type="button" class="btn btn-ghost btn-sm btn-me-detalle"
+                                            data-sala-id="@sala.SalaId"
+                                            data-titulo="@sala.Titulo"
+                                            data-estado="@EstadoLabel(sala.Estado)"
+                                            data-inscritos="@sala.TotalInscritos"
+                                            data-capacidad="@sala.Capacidad"
+                                            data-precio="@FmtPrecio(sala.Precio)"
+                                            data-fecha="@FmtFechaCorta(sala.FechaInicio)"
+                                            data-descripcion="@(sala.Descripcion ?? "")"
+                                            aria-label="Ver detalle de @sala.Titulo">Ver detalle</button>
+                                    @if (sala.Estado == EstadoSala.Abierta)
+                                    {
+                                        <a asp-controller="Salas" asp-action="Editar" asp-route-id="@sala.SalaId"
+                                           class="btn btn-ghost btn-sm" aria-label="Editar @sala.Titulo">Editar</a>
+                                        <button type="button" class="btn btn-danger btn-sm btn-me-cerrar"
+                                                data-sala-id="@sala.SalaId"
+                                                data-titulo="@sala.Titulo"
+                                                aria-label="Cerrar sala @sala.Titulo">Cerrar sala</button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="me-paginacion" style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--sp-4);flex-wrap:wrap;gap:var(--sp-3);">
+            <span class="text-meta" id="me-paginacion-info">Mostrando salas</span>
+            <div class="d-flex items-center gap-4" style="align-items:center;flex-wrap:wrap;">
+                <div class="pagination" id="me-paginacion" role="navigation" aria-label="Paginación de eventos"></div>
+                <div class="pagination-size">
+                    Registros por página:
+                    <select id="me-page-size" aria-label="Registros por página">
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div id="me-detalle-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="me-detalle-title">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="me-detalle-title">Detalle de sala</div>
+                <div class="modal-subtitle" id="me-detalle-subtitle"></div>
+            </div>
+            <button type="button" class="modal-close" id="me-detalle-cerrar" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-6);">
+                <div>
+                    <h4 style="color:var(--color-primary);margin-bottom:var(--sp-3);">Detalles</h4>
+                    <div style="display:flex;flex-direction:column;gap:var(--sp-2);font-size:0.875rem;">
+                        <div class="session-info-row"><span class="session-info-label">📅 Fecha</span><span class="session-info-value" id="me-det-fecha">—</span></div>
+                        <div class="session-info-row"><span class="session-info-label">💰 Precio</span><span class="session-info-value" id="me-det-precio">—</span></div>
+                        <div class="session-info-row"><span class="session-info-label">👥 Inscritos</span><span class="session-info-value" id="me-det-inscritos">—</span></div>
+                        <div class="session-info-row"><span class="session-info-label">Estado</span><span class="session-info-value" id="me-det-estado">—</span></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 style="color:var(--color-primary);margin-bottom:var(--sp-3);">Descripción</h4>
+                    <p id="me-det-descripcion" style="font-size:0.875rem;color:var(--color-text-secondary);margin:0;">—</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="btn btn-ghost btn-sm" id="me-det-ver-completo" style="margin-right:auto;">Ver página completa</a>
+            <button type="button" class="btn btn-secondary" id="me-detalle-cerrar-footer">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    <script src="~/js/mis-eventos-profesional.js" asp-append-version="true"></script>
+}
