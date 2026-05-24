@@ -5,6 +5,6 @@
         .Take(2).Select(p => char.ToUpperInvariant(p[0])));
     if (string.IsNullOrEmpty(iniciales)) iniciales = "U";
 }
-<a asp-controller="Salas" asp-action="Nueva" class="btn btn-primary btn-sm">+ Nueva sala</a>
+<button type="button" class="btn btn-primary btn-sm" data-open-nueva-sala>+ Nueva sala</button>
 @await Html.PartialAsync("_TopbarNotificaciones")
 <div class="avatar avatar-sm topbar__avatar" id="topbar-avatar" title="@nombre">@iniciales</div>

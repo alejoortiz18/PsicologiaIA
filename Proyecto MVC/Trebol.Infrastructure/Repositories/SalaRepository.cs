@@ -225,6 +225,7 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
                 dto.CategoriaId,
                 CupoMaximo  = dto.Capacidad,
                 dto.FechaInicio,
+                dto.DuracionMinutos,
                 Precio      = dto.Precio ?? 0m
             },
             commandType: CommandType.StoredProcedure);

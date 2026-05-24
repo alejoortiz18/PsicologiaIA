@@ -92,7 +92,7 @@
     document.getElementById('me-detalle-title').textContent = titulo;
     document.getElementById('me-detalle-subtitle').textContent =
       `${btn.dataset.estado ?? ''} · ${btn.dataset.inscritos ?? 0} de ${btn.dataset.capacidad ?? 0} inscritos`;
-    document.getElementById('me-det-fecha').textContent = btn.dataset.fecha ?? '—';
+    document.getElementById('me-det-horario').textContent = btn.dataset.horario ?? '—';
     document.getElementById('me-det-precio').textContent = btn.dataset.precio ?? '—';
     document.getElementById('me-det-inscritos').textContent =
       `${btn.dataset.inscritos ?? 0}/${btn.dataset.capacidad ?? 0}`;

@@ -6,7 +6,7 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-6);">
     <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin:0;">🎤 Mis salas como orador</h1>
-    <a asp-controller="Salas" asp-action="Nueva" class="btn btn-primary">+ Nueva sala</a>
+    <button type="button" class="btn btn-primary" data-open-nueva-sala>+ Nueva sala</button>
 </div>
 
 @if (!Model.Any())

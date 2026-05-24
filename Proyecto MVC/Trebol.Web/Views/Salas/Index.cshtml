@@ -6,7 +6,7 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-6);">
     <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin:0;">🎬 Mis salas</h1>
-    <a asp-action="Nueva" class="btn btn-primary">+ Nueva sala</a>
+    <button type="button" class="btn btn-primary" data-open-nueva-sala>+ Nueva sala</button>
 </div>
 
 @if (!Model.Any())
@@ -14,7 +14,7 @@
     <div class="card" style="padding:var(--sp-12);text-align:center;">
         <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎬</div>
         <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">No tienes salas creadas</div>
-        <a asp-action="Nueva" class="btn btn-primary" style="margin-top:var(--sp-4);">Crear sala</a>
+        <button type="button" class="btn btn-primary" data-open-nueva-sala style="margin-top:var(--sp-4);">Crear sala</button>
     </div>
 }
 else

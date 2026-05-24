@@ -158,6 +158,12 @@
 {
     @await Html.PartialAsync("_ModalesEventosUsuario")
 }
+@if (User.IsInRole("Profesional"))
+{
+    @Html.AntiForgeryToken()
+    @await Html.PartialAsync("~/Views/Salas/_ModalNuevaSalaProfesional.cshtml")
+    <script src="~/js/nueva-sala-modal.js" asp-append-version="true"></script>
+}
 @RenderSection("Scripts", required: false)
 </body>
 </html>

@@ -59,6 +59,7 @@ public class Profesional
     public int?     PaisId                    { get; set; }
     public int?     CiudadId                  { get; set; }
     public string?  Ocupacion                 { get; set; }
+    public string?  TipoProfesional           { get; set; }
     public string?  SobreMi                   { get; set; }
     public byte?    AnosExperiencia           { get; set; }
     public string?  FotoPerfil                { get; set; }

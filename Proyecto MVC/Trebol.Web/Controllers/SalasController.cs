@@ -39,6 +39,30 @@ public class SalasController(
         return RedirectToAction("Index");
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CrearAjax([FromForm] CrearSalaDto dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errores = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .SelectMany(x => x.Value!.Errors.Select(e => e.ErrorMessage))
+                .Distinct()
+                .ToList();
+            return Json(new { exito = false, mensaje = errores.FirstOrDefault() ?? "Datos inválidos.", errores });
+        }
+
+        dto.ProfesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var resultado = await salaRepo.CrearAsync(dto);
+        return Json(new
+        {
+            exito = resultado.Exito,
+            mensaje = resultado.Exito ? SalaConstant.SalaCreada : resultado.Mensaje,
+            salaId = resultado.Datos
+        });
+    }
+
     [HttpGet]
     public async Task<IActionResult> Editar(int id)
     {

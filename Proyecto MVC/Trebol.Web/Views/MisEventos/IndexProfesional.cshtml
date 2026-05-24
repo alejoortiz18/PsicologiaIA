@@ -12,12 +12,19 @@
 
     string FmtPrecio(decimal p) => p <= 0 ? "Entrada libre" : p.ToString("C0", cultura);
     string FmtFecha(DateTime? d) => d.HasValue ? d.Value.ToString("d MMM yyyy · h:mm tt", cultura) : "—";
-    string FmtFechaCorta(DateTime? d) => d.HasValue ? d.Value.ToString("d MMM yyyy · h:mm tt", cultura) : "—";
-    string FmtHoraHoy(DateTime? inicio)
+    string FmtHorario(DateTime? inicio, DateTime? fin)
+    {
+        if (!inicio.HasValue) return "—";
+        if (!fin.HasValue) return inicio.Value.ToString("d MMM yyyy · h:mm tt", cultura);
+        if (inicio.Value.Date == fin.Value.Date)
+            return $"{inicio.Value:d MMM yyyy · h:mm tt} – {fin.Value:h:mm tt}";
+        return $"{inicio.Value:d MMM yyyy · h:mm tt} – {fin.Value:d MMM yyyy · h:mm tt}";
+    }
+    string FmtHoraHoy(DateTime? inicio, DateTime? fin)
     {
         if (!inicio.HasValue) return "Hoy";
-        var fin = inicio.Value.AddHours(2);
-        return $"Hoy · {inicio.Value:h:mm tt} – {fin:h:mm tt}";
+        var finH = fin ?? inicio.Value.AddHours(2);
+        return $"Hoy · {inicio.Value:h:mm tt} – {finH:h:mm tt}";
     }
     string EstadoLabel(EstadoSala e) => e == EstadoSala.Abierta ? "Abierta" : "Cerrada";
     string EstadoBadge(EstadoSala e) => e == EstadoSala.Abierta ? "badge-success" : "badge-muted";
@@ -76,7 +83,7 @@
                 <div class="me-hero__body">
                     <h3 class="me-hero__title">@hoy.Titulo</h3>
                     <div class="me-hero__meta">
-                        <span>🕕 @FmtHoraHoy(hoy.FechaInicio)</span>
+                        <span>🕕 @FmtHoraHoy(hoy.FechaInicio, hoy.FechaFin)</span>
                         <span>👥 @hoy.TotalInscritos de @hoy.Capacidad inscritos</span>
                         <span>💰 @FmtPrecio(hoy.Precio)</span>
                         @if (puedeIngresar)
@@ -93,7 +100,7 @@
                         data-inscritos="@hoy.TotalInscritos"
                         data-capacidad="@hoy.Capacidad"
                         data-precio="@FmtPrecio(hoy.Precio)"
-                        data-fecha="@FmtFechaCorta(hoy.FechaInicio)"
+                        data-horario="@FmtHorario(hoy.FechaInicio, hoy.FechaFin)"
                         data-descripcion="@(hoy.Descripcion ?? "")"
                         aria-label="Ver detalle de @hoy.Titulo">Ver detalle</button>
                     @if (puedeIngresar)
@@ -139,7 +146,7 @@
             <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎪</div>
             <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">No tienes salas creadas</div>
             <div style="color:var(--color-text-muted);font-size:.875rem;margin-bottom:var(--sp-5);">Crea tu primera sala para comenzar a recibir inscritos.</div>
-            <a asp-controller="Salas" asp-action="Nueva" class="btn btn-primary">+ Nueva sala</a>
+            <button type="button" class="btn btn-primary" data-open-nueva-sala>+ Nueva sala</button>
         </div>
     }
     else
@@ -190,7 +197,7 @@
                                             data-inscritos="@sala.TotalInscritos"
                                             data-capacidad="@sala.Capacidad"
                                             data-precio="@FmtPrecio(sala.Precio)"
-                                            data-fecha="@FmtFechaCorta(sala.FechaInicio)"
+                                            data-horario="@FmtHorario(sala.FechaInicio, sala.FechaFin)"
                                             data-descripcion="@(sala.Descripcion ?? "")"
                                             aria-label="Ver detalle de @sala.Titulo">Ver detalle</button>
                                     @if (sala.Estado == EstadoSala.Abierta)
@@ -241,7 +248,7 @@
                 <div>
                     <h4 style="color:var(--color-primary);margin-bottom:var(--sp-3);">Detalles</h4>
                     <div style="display:flex;flex-direction:column;gap:var(--sp-2);font-size:0.875rem;">
-                        <div class="session-info-row"><span class="session-info-label">📅 Fecha</span><span class="session-info-value" id="me-det-fecha">—</span></div>
+                        <div class="session-info-row"><span class="session-info-label">🕕 Horario</span><span class="session-info-value" id="me-det-horario">—</span></div>
                         <div class="session-info-row"><span class="session-info-label">💰 Precio</span><span class="session-info-value" id="me-det-precio">—</span></div>
                         <div class="session-info-row"><span class="session-info-label">👥 Inscritos</span><span class="session-info-value" id="me-det-inscritos">—</span></div>
                         <div class="session-info-row"><span class="session-info-label">Estado</span><span class="session-info-value" id="me-det-estado">—</span></div>
