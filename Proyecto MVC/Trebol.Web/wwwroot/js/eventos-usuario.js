@@ -12,15 +12,26 @@
     return `/Inscripcion/Confirmar/${encodeURIComponent(salaId)}`;
   }
 
+  function eventoYaPaso(d) {
+    const ahora = Date.now();
+    const fin = d.fechaFin ? new Date(d.fechaFin).getTime() : null;
+    const inicio = d.fechaInicio ? new Date(d.fechaInicio).getTime() : null;
+    if ((d.estado || '').toLowerCase() === 'cerrada') return true;
+    if (fin !== null && fin < ahora) return true;
+    if (inicio !== null && inicio < ahora) return true;
+    return false;
+  }
+
   function textoRegistro(d, cupos) {
     if (d.esInscrito) return 'Inscrito';
+    if (eventoYaPaso(d)) return 'Ya pasó';
     if (cupos === 0) return 'Sin cupos';
-    return d.precio > 0 ? 'Inscribirse y pagar' : 'Registrarse';
+    return d.precio > 0 ? 'Inscribirse' : 'Registrarse';
   }
 
   function claseRegistro(d, cupos) {
     if (d.esInscrito) return 'btn btn-secondary btn-reg-sala is-inscrito';
-    if (cupos === 0) return 'btn btn-secondary btn-reg-sala';
+    if (eventoYaPaso(d) || cupos === 0) return 'btn btn-secondary btn-reg-sala';
     if (cupos > 0 && cupos <= 10) return 'btn btn-danger btn-reg-sala';
     return 'btn btn-primary btn-reg-sala';
   }
@@ -54,6 +65,7 @@
     if (!btn || btn.getAttribute('aria-disabled') === 'true') return;
     if (btn.disabled) return;
     if (btn.classList.contains('is-inscrito')) return;
+    if ((btn.textContent || '').trim().toLowerCase() === 'ya pasó') return;
 
     const salaId = btn.dataset?.salaId || btn.getAttribute('data-sala-id');
     irAInscripcion(salaId);
@@ -163,11 +175,13 @@
       return;
     }
 
+    const pasado = eventoYaPaso(d);
     regBtn.textContent = textoRegistro(d, cupos);
-    regBtn.className = claseRegistro(d, cupos);
-    regBtn.disabled = cupos === 0;
-    regBtn.removeAttribute('aria-disabled');
-    if (cupos === 0) regBtn.setAttribute('aria-disabled', 'true');
+    regBtn.className = claseRegistro(d, cupos) + ' btn-sm';
+    const bloqueado = cupos === 0 || pasado;
+    regBtn.disabled = bloqueado;
+    if (bloqueado) regBtn.setAttribute('aria-disabled', 'true');
+    else regBtn.removeAttribute('aria-disabled');
   }
 
   function openDetalle(salaId) {

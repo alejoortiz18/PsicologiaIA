@@ -109,6 +109,17 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
         return result.AsList();
     }
 
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosMentoresUsuarioAsync(
+        int usuarioId, int limite = 30, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerEventosMentoresUsuario",
+            new { UsuarioId = usuarioId, Limite = limite },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
     public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerTodosVigentesAsync(
         int usuarioId, CancellationToken ct = default)
     {

@@ -1,20 +1,25 @@
 @model Trebol.Model.DTOs.Publico.EventoPublicoDto
+@using Trebol.Web.Helpers
 @{
     var cultura = new System.Globalization.CultureInfo("es-CO");
-    var esHoy = Model.FechaInicio.HasValue && Model.FechaInicio.Value.Date == DateTime.Today;
-    var enVivo = esHoy && Model.Estado == "Abierta";
-    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", cultura);
     var cuposRestantes = Math.Max(0, Model.Capacidad - Model.TotalInscritos);
+    var vigencia = EventoVigenciaHelper.Evaluar(Model.FechaInicio, Model.FechaFin, Model.Estado, Model.EsInscrito, cuposRestantes);
+    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", cultura);
     var sinCupos = !Model.EsInscrito && cuposRestantes == 0;
-    var esFinalizada = string.Equals(Model.Estado, "Cerrada", StringComparison.OrdinalIgnoreCase);
     var puedeParticipar = User.IsInRole("Usuario") || User.IsInRole("Profesional");
-    var puedeInscribirse = puedeParticipar && !Model.EsInscrito && !sinCupos && !esFinalizada;
+    var puedeInscribirse = puedeParticipar && vigencia.PuedeInscribirse;
     var regText = Model.EsInscrito
         ? "Inscrito"
-        : (sinCupos ? "Sin cupos" : (Model.Precio > 0 ? "Inscribirse y pagar" : "Inscribirse"));
+        : (vigencia.YaPaso ? "Ya pasó"
+            : (sinCupos ? "Sin cupos" : (Model.Precio > 0 ? "Inscribirse" : "Registrarse")));
+    var regAria = Model.EsInscrito
+        ? "Ya inscrito"
+        : (vigencia.YaPaso ? "Evento finalizado"
+            : (sinCupos ? "Sin cupos"
+                : (Model.Precio > 0 ? "Inscribirse y pagar" : "Registrarse en este evento")));
     var regClass = Model.EsInscrito
         ? "btn btn-secondary btn-sm btn-reg-sala is-inscrito"
-        : (sinCupos ? "btn btn-secondary btn-sm btn-reg-sala"
+        : (vigencia.YaPaso || sinCupos ? "btn btn-secondary btn-sm btn-reg-sala"
             : (cuposRestantes <= 10 && cuposRestantes > 0 ? "btn btn-danger btn-sm btn-reg-sala" : "btn btn-primary btn-sm btn-reg-sala"));
 }
 <div class="event-list-item"
@@ -36,9 +41,13 @@
                 <div class="event-list-item__date-label">@Model.FechaInicio.Value.ToString("MMM", cultura)</div>
             </div>
         }
-        @if (enVivo)
+        @if (vigencia.EnVivo)
         {
             <span class="badge badge-success" style="white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
+        }
+        else if (vigencia.YaPaso)
+        {
+            <span class="badge badge-muted" style="white-space:nowrap;">Ya pasó</span>
         }
         <div class="event-list-item__actions">
             <button type="button" class="btn btn-secondary btn-sm btn-ver-sala" data-sala-id="@Model.SalaId" aria-label="Ver detalle de @Model.Titulo">
@@ -47,7 +56,7 @@
             @if (puedeParticipar)
             {
                 <button type="button" class="@regClass" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo"
-                        @(puedeInscribirse ? null : "disabled") aria-label="@regText">
+                        @(puedeInscribirse ? null : "disabled") aria-label="@regAria">
                     @regText
                 </button>
             }

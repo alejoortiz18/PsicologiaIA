@@ -26,7 +26,7 @@ public class HomeUsuarioController(
         var salasHoy      = await salaRepo.ObtenerHoyPublicasAsync(4, usuarioId);
         var totalSalas    = await salaRepo.ContarPublicasAsync();
         var destacadas    = await salaRepo.ObtenerPublicasPaginadasAsync(pagina, TamanoPaginaSalas, usuarioId: usuarioId);
-        var eventosColegas = await salaRepo.ObtenerSemanaUsuarioAsync(usuarioId);
+        var eventosMentores = await salaRepo.ObtenerEventosMentoresUsuarioAsync(usuarioId);
 
         var vm = new HomeUsuarioIndexViewModel
         {
@@ -35,7 +35,7 @@ public class HomeUsuarioController(
             Inscripciones = inscripciones,
             SalasHoy      = salasHoy,
             SalasDestacadas = destacadas,
-            EventosColegas  = eventosColegas,
+            EventosMentores = eventosMentores,
             Paginacion = new PaginacionVm
             {
                 Controller      = "HomeUsuario",

@@ -14,6 +14,7 @@ public interface ISalaRepository
     Task<int> ContarPublicasAsync(int? categoriaId = null, CancellationToken ct = default);
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerInscritosUsuarioAsync(int usuarioId, CancellationToken ct = default);
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerSemanaUsuarioAsync(int usuarioId, CancellationToken ct = default);
+    Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosMentoresUsuarioAsync(int usuarioId, int limite = 30, CancellationToken ct = default);
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerTodosVigentesAsync(int usuarioId, CancellationToken ct = default);
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosPorProfesionalUsuarioAsync(int profesionalId, int usuarioId, CancellationToken ct = default);
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerEventosPorProfesionalParticipanteAsync(

@@ -7,6 +7,7 @@ using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Pago;
 using Trebol.Web.Helpers;
 using Trebol.Web.Services;
+using static Trebol.Web.Helpers.EventoVigenciaHelper;
 
 namespace Trebol.Web.Controllers;
 
@@ -40,6 +41,12 @@ public class InscripcionController(
             return RedirigirTrasInscripcion();
         }
 
+        if (!PermiteInscripcion(sala.FechaInicio, sala.FechaFin, sala.Estado))
+        {
+            TempData["Error"] = "Este evento ya finalizó. No es posible inscribirse.";
+            return RedirigirTrasInscripcion();
+        }
+
         return View("Checkout", MapSala(sala));
     }
 
@@ -48,6 +55,14 @@ public class InscripcionController(
     public async Task<IActionResult> ConfirmarInscripcion(int id)
     {
         var participante = InscripcionParticipante.From(User);
+        var salaPrevio = await salaRepo.ObtenerDetalleInscripcionAsync(
+            id, participante.UsuarioId, participante.ProfesionalInscriptorId, HttpContext.RequestAborted);
+        if (salaPrevio is not null && !PermiteInscripcion(salaPrevio.FechaInicio, salaPrevio.FechaFin, salaPrevio.Estado))
+        {
+            TempData["Error"] = "Este evento ya finalizó. No es posible inscribirse.";
+            return RedirigirTrasInscripcion();
+        }
+
         var resultado = await inscripcionRepo.InscribirAsync(
             id, participante.UsuarioId, participante.ProfesionalInscriptorId, HttpContext.RequestAborted);
         if (!resultado.Exito || resultado.Datos is null)

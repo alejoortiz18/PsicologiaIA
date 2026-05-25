@@ -35,7 +35,7 @@ public class HomeUsuarioIndexViewModel
     public IReadOnlyList<InscripcionHomeItemDto> Inscripciones { get; set; } = [];
     public IReadOnlyList<EventoPublicoDto> SalasHoy { get; set; } = [];
     public IReadOnlyList<EventoPublicoDto> SalasDestacadas { get; set; } = [];
-    public IReadOnlyList<EventoPublicoDto> EventosColegas { get; set; } = [];
+    public IReadOnlyList<EventoPublicoDto> EventosMentores { get; set; } = [];
     public PaginacionVm Paginacion { get; set; } = new();
 }
 

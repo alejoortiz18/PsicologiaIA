@@ -59,8 +59,7 @@ public class RegistroController(
         }
 
         var token      = tokenHelper.GenerarToken();
-        var expiracion = DateTime.UtcNow.AddHours(1);
-        var baseUrl    = config["App:BaseUrl"] ?? "https://localhost:7072";
+        var expiracion = DateTime.Now.AddHours(1);
 
         var dto = new RegistroUsuarioDto
         {
@@ -84,7 +83,16 @@ public class RegistroController(
             return View(vm);
         }
 
-        var enlaceConfirmacion = $"{baseUrl}/Registro/ConfirmarEmailUsuario?token={Uri.EscapeDataString(token)}";
+        var enlaceConfirmacion = EnlaceConfirmarEmailUsuario(token);
+        if (string.IsNullOrEmpty(enlaceConfirmacion))
+        {
+            ModelState.AddModelError(string.Empty, "No se pudo generar el enlace de confirmación. Intenta de nuevo.");
+            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
+            if (vm.PaisId.HasValue)
+                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
+            return View(vm);
+        }
+
         var mensajeUsuario = $"Recibimos tu solicitud de registro como usuario en <strong style=\"color:#1A3C34;\">Trébol</strong>. " +
                              "Para continuar, haz clic en el botón y crea tu contraseña.";
         try
@@ -165,8 +173,7 @@ public class RegistroController(
 
         if (datosUsuario is not null)
         {
-            var baseUrl = config["App:BaseUrl"] ?? "https://localhost:7072";
-            var enlaceLogin = $"{baseUrl}/Login";
+            var enlaceLogin = EnlaceLogin();
             try
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
@@ -439,7 +446,34 @@ public class RegistroController(
         return RedirectToAction("EsperaAprobacion");
     }
 
-    // ═ Email helpers ═
+    // ═ Enlaces correo — solo flujo usuario ═
+
+    /// <summary>URL absoluta del formulario de confirmación (mismo host/puerto con el que se registró).</summary>
+    private string? EnlaceConfirmarEmailUsuario(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return null;
+
+        var enlace = Url.Action(
+            nameof(ConfirmarEmailUsuario),
+            "Registro",
+            new { token },
+            Request.Scheme,
+            Request.Host.Value);
+
+        if (!string.IsNullOrEmpty(enlace)) return enlace;
+
+        var baseUrl = (config["App:BaseUrl"] ?? $"{Request.Scheme}://{Request.Host.Value}").TrimEnd('/');
+        return $"{baseUrl}/Registro/ConfirmarEmailUsuario?token={Uri.EscapeDataString(token)}";
+    }
+
+    private string EnlaceLogin()
+    {
+        var enlace = Url.Action("Index", "Login", null, Request.Scheme, Request.Host.Value);
+        if (!string.IsNullOrEmpty(enlace)) return enlace;
+
+        var baseUrl = (config["App:BaseUrl"] ?? $"{Request.Scheme}://{Request.Host.Value}").TrimEnd('/');
+        return $"{baseUrl}/Login";
+    }
 
     private async Task CargarUbicacionRegistroAsync(int? paisId, CancellationToken ct)
     {

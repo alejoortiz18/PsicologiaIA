@@ -44,13 +44,14 @@ BEGIN
     OUTER APPLY (
         SELECT TOP 1 e.FechaInicio, e.FechaFin, e.Nombre
         FROM   Evento e
-        WHERE  e.SalaId = s.SalaId AND e.Estado = N'Abierto' AND e.FechaFin >= GETDATE()
+        WHERE  e.SalaId = s.SalaId AND e.Estado = N'Abierto'
+          AND  CAST(e.FechaInicio AS DATE) = CAST(GETDATE() AS DATE)
         ORDER  BY e.FechaInicio ASC
     ) ev
     WHERE  s.Estado = N'Abierta' AND s.Tipo = N'Publica'
       AND  ev.FechaInicio IS NOT NULL
-      AND  CAST(ev.FechaInicio AS DATE) = CAST(GETDATE() AS DATE)
-    ORDER  BY ev.FechaInicio ASC;
+    ORDER  BY CASE WHEN ev.FechaFin < GETDATE() OR ev.FechaInicio < GETDATE() THEN 1 ELSE 0 END,
+             ev.FechaInicio ASC;
 END
 GO
 
