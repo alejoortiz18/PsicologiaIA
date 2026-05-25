@@ -176,14 +176,160 @@ public class ProfesionalRepository(AppDbContext context, IConfiguration configur
     public async Task<IReadOnlyList<string>> ObtenerIdiomasAsync(
         int profesionalId, CancellationToken ct = default)
     {
+        var detalle = await ObtenerIdiomasPerfilAsync(profesionalId, ct);
+        return detalle
+            .Select(i => string.IsNullOrWhiteSpace(i.Nivel)
+                ? i.Nombre
+                : $"{i.Nombre} — {EtiquetaNivelIdioma(i.Nivel)}")
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<ProfesionalIdiomaPerfilDto>> ObtenerIdiomasPerfilAsync(
+        int profesionalId, CancellationToken ct = default)
+    {
         using var conn = CrearConexion();
-        var result = await conn.QueryAsync<string>(
-            @"SELECT i.Nombre FROM ProfesionalIdioma pi
+        var result = await conn.QueryAsync<ProfesionalIdiomaPerfilDto>(
+            @"SELECT pi.IdiomaId, i.Nombre, pi.Nivel
+              FROM ProfesionalIdioma pi
               JOIN Idioma i ON i.IdiomaId = pi.IdiomaId
-              WHERE pi.ProfesionalId = @ProfesionalId ORDER BY i.Nombre",
+              WHERE pi.ProfesionalId = @ProfesionalId
+              ORDER BY i.Nombre",
             new { ProfesionalId = profesionalId });
         return result.AsList();
     }
+
+    public async Task<ResultadoOperacion<int>> CrearEstudioAsync(
+        int profesionalId, GuardarEstudioDto dto, CancellationToken ct = default)
+    {
+        if (!EsNivelEstudioValido(dto.Nivel))
+            return ResultadoOperacion<int>.Fail("Tipo de formación no válido.");
+
+        using var conn = CrearConexion();
+        var id = await conn.QuerySingleAsync<int>(
+            @"INSERT INTO ProfesionalEstudio (ProfesionalId, Titulo, Universidad, AnoEgreso, Nivel)
+              OUTPUT INSERTED.EstudioId
+              VALUES (@ProfesionalId, @Titulo, @Universidad, @AnoEgreso, @Nivel)",
+            new
+            {
+                ProfesionalId = profesionalId,
+                dto.Titulo,
+                dto.Universidad,
+                dto.AnoEgreso,
+                dto.Nivel
+            });
+
+        return ResultadoOperacion<int>.Ok(id);
+    }
+
+    public async Task<ResultadoOperacion> ActualizarEstudioAsync(
+        int profesionalId, GuardarEstudioDto dto, CancellationToken ct = default)
+    {
+        if (!dto.EstudioId.HasValue || dto.EstudioId <= 0)
+            return ResultadoOperacion.Fail("Estudio no indicado.");
+        if (!EsNivelEstudioValido(dto.Nivel))
+            return ResultadoOperacion.Fail("Tipo de formación no válido.");
+
+        using var conn = CrearConexion();
+        var filas = await conn.ExecuteAsync(
+            @"UPDATE ProfesionalEstudio
+              SET    Titulo = @Titulo,
+                     Universidad = @Universidad,
+                     AnoEgreso = @AnoEgreso,
+                     Nivel = @Nivel
+              WHERE  EstudioId = @EstudioId AND ProfesionalId = @ProfesionalId",
+            new
+            {
+                dto.EstudioId,
+                ProfesionalId = profesionalId,
+                dto.Titulo,
+                dto.Universidad,
+                dto.AnoEgreso,
+                dto.Nivel
+            });
+
+        return filas > 0
+            ? ResultadoOperacion.Ok()
+            : ResultadoOperacion.Fail("Formación académica no encontrada.");
+    }
+
+    public async Task<ResultadoOperacion> EliminarEstudioAsync(
+        int profesionalId, int estudioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var filas = await conn.ExecuteAsync(
+            @"DELETE FROM ProfesionalEstudio
+              WHERE EstudioId = @EstudioId AND ProfesionalId = @ProfesionalId",
+            new { EstudioId = estudioId, ProfesionalId = profesionalId });
+
+        return filas > 0
+            ? ResultadoOperacion.Ok()
+            : ResultadoOperacion.Fail("Formación académica no encontrada.");
+    }
+
+    public async Task<ResultadoOperacion> GuardarIdiomaAsync(
+        int profesionalId, GuardarIdiomaProfesionalDto dto, CancellationToken ct = default)
+    {
+        if (!EsNivelIdiomaValido(dto.Nivel))
+            return ResultadoOperacion.Fail("Nivel de idioma no válido.");
+
+        using var conn = CrearConexion();
+        var existeIdioma = await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM Idioma WHERE IdiomaId = @IdiomaId",
+            new { dto.IdiomaId });
+        if (existeIdioma == 0)
+            return ResultadoOperacion.Fail("Idioma no válido.");
+
+        var vinculo = await conn.ExecuteScalarAsync<int>(
+            @"SELECT COUNT(*) FROM ProfesionalIdioma
+              WHERE ProfesionalId = @ProfesionalId AND IdiomaId = @IdiomaId",
+            new { ProfesionalId = profesionalId, dto.IdiomaId });
+
+        if (vinculo > 0)
+        {
+            await conn.ExecuteAsync(
+                @"UPDATE ProfesionalIdioma SET Nivel = @Nivel
+                  WHERE ProfesionalId = @ProfesionalId AND IdiomaId = @IdiomaId",
+                new { ProfesionalId = profesionalId, dto.IdiomaId, dto.Nivel });
+        }
+        else
+        {
+            await conn.ExecuteAsync(
+                @"INSERT INTO ProfesionalIdioma (ProfesionalId, IdiomaId, Nivel)
+                  VALUES (@ProfesionalId, @IdiomaId, @Nivel)",
+                new { ProfesionalId = profesionalId, dto.IdiomaId, dto.Nivel });
+        }
+
+        return ResultadoOperacion.Ok();
+    }
+
+    public async Task<ResultadoOperacion> EliminarIdiomaAsync(
+        int profesionalId, int idiomaId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var filas = await conn.ExecuteAsync(
+            @"DELETE FROM ProfesionalIdioma
+              WHERE ProfesionalId = @ProfesionalId AND IdiomaId = @IdiomaId",
+            new { ProfesionalId = profesionalId, IdiomaId = idiomaId });
+
+        return filas > 0
+            ? ResultadoOperacion.Ok()
+            : ResultadoOperacion.Fail("Idioma no encontrado en tu perfil.");
+    }
+
+    private static bool EsNivelEstudioValido(string nivel)
+        => nivel is "Pregrado" or "Posgrado" or "Maestria" or "Doctorado" or "Especializacion";
+
+    private static bool EsNivelIdiomaValido(string nivel)
+        => nivel is "Basico" or "Intermedio" or "Avanzado" or "Nativo";
+
+    private static string EtiquetaNivelIdioma(string nivel) => nivel switch
+    {
+        "Basico"      => "Básico",
+        "Intermedio"  => "Intermedio",
+        "Avanzado"    => "Avanzado",
+        "Nativo"      => "Nativo",
+        _             => nivel
+    };
 
     public async Task<PerfilProfesionalResumenDto> ObtenerResumenPerfilAsync(
         int profesionalId, CancellationToken ct = default)

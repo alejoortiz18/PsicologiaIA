@@ -21,6 +21,12 @@ public interface IProfesionalRepository
     Task<IReadOnlyList<ProfesionalEstudioDto>> ObtenerEstudiosAsync(int profesionalId, CancellationToken ct = default);
     Task<IReadOnlyList<string>> ObtenerEspecialidadesAsync(int profesionalId, CancellationToken ct = default);
     Task<IReadOnlyList<string>> ObtenerIdiomasAsync(int profesionalId, CancellationToken ct = default);
+    Task<IReadOnlyList<ProfesionalIdiomaPerfilDto>> ObtenerIdiomasPerfilAsync(int profesionalId, CancellationToken ct = default);
+    Task<ResultadoOperacion<int>> CrearEstudioAsync(int profesionalId, GuardarEstudioDto dto, CancellationToken ct = default);
+    Task<ResultadoOperacion> ActualizarEstudioAsync(int profesionalId, GuardarEstudioDto dto, CancellationToken ct = default);
+    Task<ResultadoOperacion> EliminarEstudioAsync(int profesionalId, int estudioId, CancellationToken ct = default);
+    Task<ResultadoOperacion> GuardarIdiomaAsync(int profesionalId, GuardarIdiomaProfesionalDto dto, CancellationToken ct = default);
+    Task<ResultadoOperacion> EliminarIdiomaAsync(int profesionalId, int idiomaId, CancellationToken ct = default);
     Task<PerfilProfesionalResumenDto> ObtenerResumenPerfilAsync(int profesionalId, CancellationToken ct = default);
     Task<IReadOnlyList<ComentarioPerfilDto>> ObtenerComentariosPublicosAsync(int profesionalId, int? usuarioActualId, CancellationToken ct = default);
     Task<ResumenComentariosPerfilDto> ObtenerResumenComentariosAsync(int profesionalId, CancellationToken ct = default);

@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Trebol.Constants.Messages;
 using Trebol.Domain.Interfaces;
+using Trebol.Domain.Interfaces.Catalogos;
 using Trebol.Helpers.Email;
 using Trebol.Helpers.Security;
 using Trebol.Helpers.Token;
 using Trebol.Model.DTOs.Profesional;
 using Trebol.Model.DTOs.Usuario;
+using Trebol.Model.Entities.TrebolEntities;
 using Trebol.Web.ViewModels.Auth;
 using Trebol.Web.Helpers;
 
@@ -16,6 +18,7 @@ public class RegistroController(
     IUsuarioRepository     usuarioRepo,
     IProfesionalRepository profesionalRepo,
     ILandingRepository     landingRepo,
+    ICatalogoRepository    catalogoRepo,
     IEmailHelper           emailHelper,
     IPasswordHelper        passwordHelper,
     ITokenHelper           tokenHelper,
@@ -31,14 +34,29 @@ public class RegistroController(
 
     // GET /Registro/RegistroUsuario
     [HttpGet]
-    public IActionResult RegistroUsuario() => View(new RegistroUsuarioViewModel());
+    public async Task<IActionResult> RegistroUsuario(CancellationToken ct)
+    {
+        var vm = new RegistroUsuarioViewModel();
+        await CargarUbicacionRegistroAsync(null, ct);
+        vm.PaisId ??= PaisColombiaId();
+        if (vm.PaisId.HasValue)
+            ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
+        return View(vm);
+    }
 
     // POST /Registro/RegistroUsuario
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RegistroUsuario(RegistroUsuarioViewModel vm)
+    public async Task<IActionResult> RegistroUsuario(RegistroUsuarioViewModel vm, CancellationToken ct)
     {
-        if (!ModelState.IsValid) return View(vm);
+        await ValidarUbicacionAsync(vm.PaisId, vm.CiudadId, ct);
+        if (!ModelState.IsValid)
+        {
+            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
+            if (vm.PaisId.HasValue)
+                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
+            return View(vm);
+        }
 
         var token      = tokenHelper.GenerarToken();
         var expiracion = DateTime.UtcNow.AddHours(1);
@@ -51,6 +69,7 @@ public class RegistroController(
             NumeroDocumento = vm.NumeroDocumento.Trim(),
             Alias           = vm.Alias.Trim(),
             Celular         = vm.Celular.Trim(),
+            CiudadId        = vm.CiudadId,
             Token           = token,
             Expiracion      = expiracion
         };
@@ -59,6 +78,9 @@ public class RegistroController(
         if (!resultado.Exito)
         {
             ModelState.AddModelError(string.Empty, resultado.Mensaje);
+            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
+            if (vm.PaisId.HasValue)
+                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
             return View(vm);
         }
 
@@ -78,6 +100,9 @@ public class RegistroController(
         {
             ModelState.AddModelError(string.Empty,
                 $"No pudimos enviar el correo de confirmación. Por favor, intenta más tarde. Error: {ex.Message}");
+            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
+            if (vm.PaisId.HasValue)
+                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
             return View(vm);
         }
 
@@ -164,23 +189,44 @@ public class RegistroController(
 
     // GET /Registro/RegistroProfesional
     [HttpGet]
-    public IActionResult RegistroProfesional() => View(new RegistroProfesionalViewModel());
+    public async Task<IActionResult> RegistroProfesional(CancellationToken ct)
+    {
+        var vm = new RegistroProfesionalViewModel();
+        await CargarUbicacionRegistroAsync(null, ct);
+        vm.PaisId ??= PaisColombiaId();
+        if (vm.PaisId.HasValue)
+            ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
+        return View(vm);
+    }
 
     // POST /Registro/RegistroProfesional
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RegistroProfesional(RegistroProfesionalViewModel vm)
+    public async Task<IActionResult> RegistroProfesional(RegistroProfesionalViewModel vm, CancellationToken ct)
     {
-        if (!ModelState.IsValid) return View(vm);
+        await ValidarUbicacionAsync(vm.PaisId, vm.CiudadId, ct);
+        if (!ModelState.IsValid)
+        {
+            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
+            if (vm.PaisId.HasValue)
+                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
+            return View(vm);
+        }
 
         if (vm.FotocopiaCedula is null || vm.FotocopiaCedula.Length == 0)
         {
             ModelState.AddModelError("FotocopiaCedula", RegistroConstant.ArchivoPdfRequerido);
+            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
+            if (vm.PaisId.HasValue)
+                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
             return View(vm);
         }
         if (vm.FotocopiaTarjeta is null || vm.FotocopiaTarjeta.Length == 0)
         {
             ModelState.AddModelError("FotocopiaTarjeta", RegistroConstant.ArchivoPdfRequerido);
+            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
+            if (vm.PaisId.HasValue)
+                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
             return View(vm);
         }
 
@@ -202,6 +248,7 @@ public class RegistroController(
             EspecialidadId  = vm.EspecialidadId,
             Especialidad    = vm.EspecialidadId.ToString(),
             RutaPdfCedula   = string.Empty,
+            CiudadId        = vm.CiudadId,
             Token           = token,
             Expiracion      = expiracion
         };
@@ -210,6 +257,9 @@ public class RegistroController(
         if (!resultado.Exito)
         {
             ModelState.AddModelError(string.Empty, resultado.Mensaje);
+            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
+            if (vm.PaisId.HasValue)
+                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
             return View(vm);
         }
 
@@ -254,6 +304,9 @@ public class RegistroController(
         {
             ModelState.AddModelError(string.Empty, 
                 $"No pudimos enviar el correo de confirmación. Por favor, intenta más tarde. Error: {ex.Message}");
+            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
+            if (vm.PaisId.HasValue)
+                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
             return View(vm);
         }
 
@@ -387,6 +440,34 @@ public class RegistroController(
     }
 
     // ═ Email helpers ═
+
+    private async Task CargarUbicacionRegistroAsync(int? paisId, CancellationToken ct)
+    {
+        ViewBag.Paises = await catalogoRepo.ObtenerPaisesAsync(ct);
+        ViewBag.Ciudades = paisId.HasValue
+            ? await catalogoRepo.ObtenerCiudadesAsync(paisId, ct)
+            : Array.Empty<Ciudad>();
+    }
+
+    private int? PaisColombiaId()
+    {
+        var paises = ViewBag.Paises as IReadOnlyList<Pais>;
+        return paises?.FirstOrDefault(p => p.Codigo == "CO")?.PaisId;
+    }
+
+    private async Task ValidarUbicacionAsync(int? paisId, int? ciudadId, CancellationToken ct)
+    {
+        if (paisId is null or <= 0)
+            ModelState.AddModelError("PaisId", "Selecciona un país.");
+        if (ciudadId is null or <= 0)
+            ModelState.AddModelError("CiudadId", "Selecciona una ciudad.");
+        if (paisId is > 0 && ciudadId is > 0)
+        {
+            var ciudades = await catalogoRepo.ObtenerCiudadesAsync(paisId, ct);
+            if (ciudades.All(c => c.CiudadId != ciudadId))
+                ModelState.AddModelError("CiudadId", "La ciudad no corresponde al país seleccionado.");
+        }
+    }
 
     private static string BuildEmailAdminNuevoProfesional(string nombre, string correo, string documento, string tarjeta) => $"""
         <!DOCTYPE html>

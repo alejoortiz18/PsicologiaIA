@@ -28,11 +28,7 @@ public class PerfilProfesionalController(
         var id = ProfesionalId();
         await CargarShellAsync(id, "personal");
         var prof = await profesionalRepo.ObtenerPorIdAsync(id);
-        ViewBag.Paises = await catalogoRepo.ObtenerPaisesAsync();
-        ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(prof?.PaisId);
-        ViewBag.Estudios = await profesionalRepo.ObtenerEstudiosAsync(id);
-        ViewBag.Especialidades = await profesionalRepo.ObtenerEspecialidadesAsync(id);
-        ViewBag.Idiomas = await profesionalRepo.ObtenerIdiomasAsync(id);
+        await CargarDatosIndexAsync(id, prof?.PaisId);
         return View(prof);
     }
 
@@ -105,11 +101,7 @@ public class PerfilProfesionalController(
         if (!ModelState.IsValid)
         {
             await CargarShellAsync(dto.ProfesionalId, "personal");
-            ViewBag.Paises = await catalogoRepo.ObtenerPaisesAsync();
-            ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(dto.PaisId);
-            ViewBag.Estudios = await profesionalRepo.ObtenerEstudiosAsync(dto.ProfesionalId);
-            ViewBag.Especialidades = await profesionalRepo.ObtenerEspecialidadesAsync(dto.ProfesionalId);
-            ViewBag.Idiomas = await profesionalRepo.ObtenerIdiomasAsync(dto.ProfesionalId);
+            await CargarDatosIndexAsync(dto.ProfesionalId, dto.PaisId);
             return View("Index", await profesionalRepo.ObtenerPorIdAsync(dto.ProfesionalId));
         }
 
@@ -123,6 +115,7 @@ public class PerfilProfesionalController(
             {
                 ModelState.AddModelError("foto", ex.Message);
                 await CargarShellAsync(dto.ProfesionalId, "personal");
+                await CargarDatosIndexAsync(dto.ProfesionalId, dto.PaisId);
                 return View("Index", await profesionalRepo.ObtenerPorIdAsync(dto.ProfesionalId));
             }
         }
@@ -132,11 +125,66 @@ public class PerfilProfesionalController(
         {
             ModelState.AddModelError(string.Empty, resultado.Mensaje);
             await CargarShellAsync(dto.ProfesionalId, "personal");
+            await CargarDatosIndexAsync(dto.ProfesionalId, dto.PaisId);
             return View("Index", await profesionalRepo.ObtenerPorIdAsync(dto.ProfesionalId));
         }
 
         TempData["Mensaje"] = PerfilConstant.PerfilActualizado;
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CrearEstudio([FromBody] GuardarEstudioDto dto)
+    {
+        if (!ModelState.IsValid)
+            return Json(new { exito = false, mensaje = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "Datos inválidos." });
+
+        var resultado = await profesionalRepo.CrearEstudioAsync(ProfesionalId(), dto);
+        return Json(new
+        {
+            exito = resultado.Exito,
+            mensaje = resultado.Exito ? PerfilConstant.EstudioGuardado : resultado.Mensaje,
+            estudioId = resultado.Datos
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ActualizarEstudio([FromBody] GuardarEstudioDto dto)
+    {
+        if (!ModelState.IsValid)
+            return Json(new { exito = false, mensaje = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "Datos inválidos." });
+
+        var resultado = await profesionalRepo.ActualizarEstudioAsync(ProfesionalId(), dto);
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Exito ? PerfilConstant.EstudioGuardado : resultado.Mensaje });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EliminarEstudio(int estudioId)
+    {
+        var resultado = await profesionalRepo.EliminarEstudioAsync(ProfesionalId(), estudioId);
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Exito ? PerfilConstant.EstudioEliminado : resultado.Mensaje });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GuardarIdioma([FromBody] GuardarIdiomaProfesionalDto dto)
+    {
+        if (!ModelState.IsValid)
+            return Json(new { exito = false, mensaje = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "Datos inválidos." });
+
+        var resultado = await profesionalRepo.GuardarIdiomaAsync(ProfesionalId(), dto);
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Exito ? PerfilConstant.IdiomaGuardado : resultado.Mensaje });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EliminarIdioma(int idiomaId)
+    {
+        var resultado = await profesionalRepo.EliminarIdiomaAsync(ProfesionalId(), idiomaId);
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Exito ? PerfilConstant.IdiomaEliminado : resultado.Mensaje });
     }
 
     [HttpGet]
@@ -156,6 +204,16 @@ public class PerfilProfesionalController(
         ViewBag.TotalSeguidores = resumen.TotalSeguidores;
         ViewBag.TotalSalas = resumen.TotalSalas;
         ViewBag.CitasProximas = resumen.CitasProximas;
+    }
+
+    private async Task CargarDatosIndexAsync(int profesionalId, int? paisId)
+    {
+        ViewBag.Paises = await catalogoRepo.ObtenerPaisesAsync();
+        ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(paisId);
+        ViewBag.Estudios = await profesionalRepo.ObtenerEstudiosAsync(profesionalId);
+        ViewBag.Especialidades = await profesionalRepo.ObtenerEspecialidadesAsync(profesionalId);
+        ViewBag.IdiomasPerfil = await profesionalRepo.ObtenerIdiomasPerfilAsync(profesionalId);
+        ViewBag.IdiomasCatalogo = await catalogoRepo.ObtenerIdiomasAsync();
     }
 
     private static PaginacionVm Paginar(int total, int pagina)

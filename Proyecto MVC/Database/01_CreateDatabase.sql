@@ -23,10 +23,11 @@ GO
 
 IF OBJECT_ID('Pais', 'U') IS NULL
 CREATE TABLE Pais (
-    PaisId  INT           IDENTITY(1,1) NOT NULL,
-    Nombre  NVARCHAR(100) NOT NULL,
-    Codigo  NVARCHAR(5)   NOT NULL,
-    Estado  BIT           NOT NULL DEFAULT 1,
+    PaisId   INT            IDENTITY(1,1) NOT NULL,
+    Nombre   NVARCHAR(100)  NOT NULL,
+    Codigo   NVARCHAR(5)    NOT NULL,
+    Moneda   NVARCHAR(3)    NOT NULL,
+    Estado   BIT            NOT NULL DEFAULT 1,
     CONSTRAINT PK_Pais       PRIMARY KEY (PaisId),
     CONSTRAINT UQ_Pais_Codigo UNIQUE (Codigo)
 );

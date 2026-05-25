@@ -9,4 +9,8 @@ public static class PerfilConstant
     public const string ComentarioPublicado  = "Tu comentario fue publicado.";
     public const string SeguimientoAgregado  = "Ahora sigues a este profesional.";
     public const string SeguimientoRemovido  = "Dejaste de seguir a este profesional.";
+    public const string EstudioGuardado      = "Formación académica guardada.";
+    public const string EstudioEliminado     = "Formación académica eliminada.";
+    public const string IdiomaGuardado       = "Idioma agregado al perfil.";
+    public const string IdiomaEliminado      = "Idioma eliminado del perfil.";
 }

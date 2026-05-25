@@ -5,6 +5,7 @@
 }
 
 @section Styles {
+<link rel="stylesheet" href="~/css/catalogo-pais-ciudad.css" asp-append-version="true" />
 <style>
 body { background: var(--color-surface); }
 .public-nav, footer { display: none; }
@@ -143,6 +144,10 @@ body { background: var(--color-surface); }
                     </div>
                 </div>
 
+                <partial name="_SelectPaisCiudad" model="new Trebol.Web.ViewModels.Common.SelectPaisCiudadVm { PaisId = Model.PaisId, CiudadId = Model.CiudadId }" />
+                <span asp-validation-for="PaisId" class="form-error"></span>
+                <span asp-validation-for="CiudadId" class="form-error"></span>
+
                 <!-- ── Información profesional ──────────────────────────── -->
                 <div class="form-section">
                     <div class="form-section__title">Información profesional</div>
@@ -231,6 +236,7 @@ body { background: var(--color-surface); }
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/catalogo-pais-ciudad.js" asp-append-version="true"></script>
     <script>
     function fileSelected(input, nameId, wrapperId) {
         var wrapper = document.getElementById(wrapperId);

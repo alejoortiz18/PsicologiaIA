@@ -32,6 +32,12 @@ public class RegistroUsuarioViewModel
     [Required(ErrorMessage = "El alias es obligatorio.")]
     [StringLength(100, MinimumLength = 2, ErrorMessage = "El alias debe tener entre 2 y 100 caracteres.")]
     public string Alias { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Selecciona un país.")]
+    public int? PaisId { get; set; }
+
+    [Required(ErrorMessage = "Selecciona una ciudad.")]
+    public int? CiudadId { get; set; }
 }
 
 public class RegistroProfesionalViewModel
@@ -41,6 +47,10 @@ public class RegistroProfesionalViewModel
     [Required] public string NumeroDocumento { get; set; } = string.Empty;
     [Required] public int EspecialidadId     { get; set; }
     [Required] public string NumeroRegistro  { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Selecciona un país.")]
+    public int? PaisId { get; set; }
+    [Required(ErrorMessage = "Selecciona una ciudad.")]
+    public int? CiudadId { get; set; }
     [Required] public IFormFile? FotocopiaCedula    { get; set; }
     [Required] public IFormFile? FotocopiaTarjeta   { get; set; }
 }

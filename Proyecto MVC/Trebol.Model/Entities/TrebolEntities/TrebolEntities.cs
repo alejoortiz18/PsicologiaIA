@@ -14,7 +14,7 @@
 namespace Trebol.Model.Entities.TrebolEntities;
 
 // ── Catálogos ─────────────────────────────────────────────────
-public class Pais          { public int PaisId { get; set; } public string Nombre { get; set; } = string.Empty; }
+public class Pais          { public int PaisId { get; set; } public string Nombre { get; set; } = string.Empty; public string Codigo { get; set; } = string.Empty; public string Moneda { get; set; } = string.Empty; }
 public class Ciudad        { public int CiudadId { get; set; } public int PaisId { get; set; } public string Nombre { get; set; } = string.Empty; }
 public class Especialidad  { public int EspecialidadId { get; set; } public string Nombre { get; set; } = string.Empty; }
 public class Categoria     { public int CategoriaId { get; set; } public string Nombre { get; set; } = string.Empty; }

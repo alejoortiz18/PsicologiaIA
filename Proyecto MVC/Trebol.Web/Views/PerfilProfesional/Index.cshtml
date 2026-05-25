@@ -8,7 +8,20 @@
     var ciudades = ViewBag.Ciudades as IEnumerable<Trebol.Model.Entities.TrebolEntities.Ciudad> ?? [];
     var estudios = ViewBag.Estudios as IEnumerable<ProfesionalEstudioDto> ?? [];
     var especialidades = ViewBag.Especialidades as IEnumerable<string> ?? [];
-    var idiomas = ViewBag.Idiomas as IEnumerable<string> ?? [];
+    var idiomasPerfil = ViewBag.IdiomasPerfil as IEnumerable<ProfesionalIdiomaPerfilDto> ?? [];
+    var idiomasCatalogo = ViewBag.IdiomasCatalogo as IEnumerable<Trebol.Model.Entities.TrebolEntities.Idioma> ?? [];
+    var idsIdiomasPerfil = idiomasPerfil.Select(i => i.IdiomaId).ToHashSet();
+    string EtiquetaNivelEstudio(string n) => n switch
+    {
+        "Maestria" => "Maestría",
+        "Especializacion" => "Especialización",
+        _ => n
+    };
+    string EtiquetaNivelIdioma(string n) => n switch
+    {
+        "Basico" => "Básico",
+        _ => n
+    };
     var docMask = string.IsNullOrEmpty(Model?.NumeroDocumento) ? "—"
         : Model.NumeroDocumento.Length > 4 ? "•••• " + Model.NumeroDocumento[^4..] : Model.NumeroDocumento;
     var ocupacionMostrar = Model?.Ocupacion;
@@ -26,6 +39,11 @@
         : "";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/perfil-profesional-index.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/catalogo-pais-ciudad.css" asp-append-version="true" />
+}
+
 @await Html.PartialAsync("_PerfilShell", Model)
 
 <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-8);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
@@ -36,25 +54,13 @@
         <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-5);margin-bottom:var(--sp-6);">
-            <div class="form-group">
-                <label class="form-label">País</label>
-                <select name="PaisId" id="pais" class="form-control">
-                    <option value="">Seleccionar...</option>
-                    @foreach (var p in paises)
-                    {
-                        <option value="@p.PaisId" selected="@(Model?.PaisId == p.PaisId)">@p.Nombre</option>
-                    }
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Ciudad</label>
-                <select name="CiudadId" id="ciudad" class="form-control">
-                    <option value="">Seleccionar...</option>
-                    @foreach (var c in ciudades)
-                    {
-                        <option value="@c.CiudadId" selected="@(Model?.CiudadId == c.CiudadId)">@c.Nombre</option>
-                    }
-                </select>
+            @{
+                ViewBag.CiudadesUrl = "/PerfilProfesional/CiudadesPorPais";
+            }
+            <div style="grid-column:1/-1;">
+                <partial name="_SelectPaisCiudad" model="new Trebol.Web.ViewModels.Common.SelectPaisCiudadVm { PaisId = Model?.PaisId, CiudadId = Model?.CiudadId }" />
+                <span asp-validation-for="PaisId" class="form-error"></span>
+                <span asp-validation-for="CiudadId" class="form-error"></span>
             </div>
             <div class="form-group">
                 <label class="form-label">Ocupación</label>
@@ -72,13 +78,6 @@
                 <label class="form-label">Tarifa por hora (COP)</label>
                 <input name="TarifaCita" type="number" min="0" step="1000" class="form-control" value="@tarifaMostrar" />
             </div>
-            @if (idiomas.Any())
-            {
-                <div class="form-group" style="grid-column:1/-1;">
-                    <label class="form-label">Idiomas</label>
-                    <input class="form-control" value="@string.Join(", ", idiomas)" readonly style="background:var(--color-surface-alt);" />
-                </div>
-            }
             @if (especialidades.Any())
             {
                 <div class="form-group" style="grid-column:1/-1;">
@@ -96,22 +95,90 @@
             </div>
         </div>
 
-        @if (estudios.Any())
-        {
-            <div style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-6);margin-bottom:var(--sp-6);">
-                <h3 style="font-size:1rem;color:var(--color-primary);font-weight:700;margin-bottom:var(--sp-4);">📚 Formación académica</h3>
-                <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
-                    @foreach (var est in estudios)
-                    {
-                        <div style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-4);display:grid;grid-template-columns:120px 1fr 1fr;gap:var(--sp-3);align-items:center;">
-                            <span class="badge badge-muted">@est.Nivel</span>
-                            <div><strong>@est.Titulo</strong></div>
-                            <div class="text-meta">@est.Universidad @(est.AnoEgreso.HasValue ? "· " + est.AnoEgreso : "")</div>
-                        </div>
-                    }
-                </div>
+        <div style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-6);margin-bottom:var(--sp-6);">
+            <div class="prof-section-head">
+                <h3>📚 Formación académica</h3>
+                <button type="button" class="btn btn-secondary btn-sm" id="prof-estudio-agregar">+ Agregar</button>
             </div>
-        }
+            <div id="prof-estudios-list" class="prof-estudios-list">
+                @foreach (var est in estudios)
+                {
+                    <div class="prof-estudio-entry" data-estudio-id="@est.EstudioId">
+                        <div class="form-group">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-control" data-field="nivel">
+                                @foreach (var nv in new[] { "Pregrado", "Posgrado", "Maestria", "Doctorado", "Especializacion" })
+                                {
+                                    <option value="@nv" selected="@(est.Nivel == nv)">@EtiquetaNivelEstudio(nv)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Título</label>
+                            <input type="text" class="form-control" data-field="titulo" maxlength="300" value="@est.Titulo" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Institución</label>
+                            <input type="text" class="form-control" data-field="universidad" maxlength="300" value="@est.Universidad" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Año</label>
+                            <input type="number" class="form-control" data-field="ano" min="1950" max="2100"
+                                   value="@(est.AnoEgreso.HasValue ? est.AnoEgreso.Value.ToString() : "")" />
+                        </div>
+                        <div class="prof-estudio-entry__actions">
+                            <button type="button" class="btn btn-secondary btn-sm" data-action="guardar-estudio">Guardar</button>
+                            <button type="button" class="btn btn-ghost btn-sm" data-action="eliminar-estudio"
+                                    style="color:var(--color-danger);" aria-label="Eliminar">🗑</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-6);margin-bottom:var(--sp-6);">
+            <div class="prof-section-head">
+                <h3>🌐 Idiomas que hablas</h3>
+            </div>
+            <div class="prof-idioma-add">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="prof-idioma-select">Idioma</label>
+                    <select id="prof-idioma-select" class="form-control">
+                        <option value="">Seleccionar...</option>
+                        @foreach (var idioma in idiomasCatalogo.Where(i => !idsIdiomasPerfil.Contains(i.IdiomaId)))
+                        {
+                            <option value="@idioma.IdiomaId">@idioma.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="prof-idioma-nivel">Nivel</label>
+                    <select id="prof-idioma-nivel" class="form-control">
+                        <option value="Basico">Básico</option>
+                        <option value="Intermedio" selected>Intermedio</option>
+                        <option value="Avanzado">Avanzado</option>
+                        <option value="Nativo">Nativo</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="prof-idioma-agregar">+ Agregar idioma</button>
+            </div>
+            <div id="prof-idiomas-list" class="prof-idiomas-list">
+                @foreach (var idioma in idiomasPerfil)
+                {
+                    <div class="prof-idioma-item" data-idioma-id="@idioma.IdiomaId">
+                        <span class="prof-idioma-item__text">
+                            <strong>@idioma.Nombre</strong> · @EtiquetaNivelIdioma(idioma.Nivel)
+                        </span>
+                        <button type="button" class="btn btn-ghost btn-sm" data-action="eliminar-idioma"
+                                style="color:var(--color-danger);" aria-label="Eliminar idioma">🗑</button>
+                    </div>
+                }
+            </div>
+            @if (!idiomasPerfil.Any())
+            {
+                <p class="text-meta" id="prof-idiomas-vacio" style="margin:var(--sp-2) 0 0;">Aún no has registrado idiomas.</p>
+            }
+        </div>
 
         <div style="border-top:1px solid var(--color-border-light);padding-top:var(--sp-6);margin-bottom:var(--sp-6);">
             <h3 style="font-size:1rem;color:var(--color-primary);font-weight:700;margin-bottom:var(--sp-4);">🔒 Datos registrales (no editables)</h3>
@@ -143,20 +210,9 @@
 </div>
 
 @section Scripts {
+<script src="~/js/perfil-profesional-formacion.js" asp-append-version="true"></script>
+<script src="~/js/catalogo-pais-ciudad.js" asp-append-version="true"></script>
 <script>
-document.getElementById('pais')?.addEventListener('change', async function() {
-  const paisId = this.value;
-  const sel = document.getElementById('ciudad');
-  if (!paisId) { sel.innerHTML = '<option value="">Seleccionar...</option>'; return; }
-  const res = await fetch('/PerfilProfesional/CiudadesPorPais?paisId=' + encodeURIComponent(paisId));
-  const data = await res.json();
-  sel.innerHTML = '<option value="">Seleccionar...</option>';
-  data.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.ciudadId; opt.textContent = c.nombre;
-    sel.appendChild(opt);
-  });
-});
 document.getElementById('foto-pro')?.addEventListener('change', function() {
   if (!this.files?.length) return;
   const reader = new FileReader();

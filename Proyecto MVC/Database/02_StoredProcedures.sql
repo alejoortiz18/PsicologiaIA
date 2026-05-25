@@ -993,32 +993,51 @@ GO
 
 IF NOT EXISTS (SELECT 1 FROM Pais)
 BEGIN
-    INSERT INTO Pais (Nombre, Codigo) VALUES
-        ('Colombia', 'CO'), ('Venezuela', 'VE'), ('Ecuador', 'EC'), ('Perú', 'PE');
+    INSERT INTO Pais (Nombre, Codigo, Moneda) VALUES
+        (N'Colombia', N'CO', N'COP'), (N'Venezuela', N'VE', N'VES'),
+        (N'Ecuador', N'EC', N'USD'), (N'Perú', N'PE', N'PEN');
 
     INSERT INTO Ciudad (PaisId, Nombre) VALUES
-        (1, 'Bogotá'), (1, 'Medellín'), (1, 'Cali'), (1, 'Barranquilla'),
-        (1, 'Bucaramanga'), (1, 'Manizales'), (1, 'Pereira'), (1, 'Cartagena');
+        (1, N'Bogotá'), (1, N'Medellín'), (1, N'Cali'), (1, N'Barranquilla'),
+        (1, N'Bucaramanga'), (1, N'Manizales'), (1, N'Pereira'), (1, N'Cartagena');
 
     INSERT INTO Especialidad (Nombre) VALUES
-        ('Psicología Clínica'), ('Psicología Infantil'), ('Neuropsicología'),
-        ('Psicología Organizacional'), ('Terapia Cognitivo-Conductual'),
-        ('Salud Mental'), ('Psicoanálisis'), ('Terapia de Pareja'),
-        ('Médico'), ('Psicólogo');
+        (N'Psicología Clínica'), (N'Psicología Infantil'), (N'Neuropsicología'),
+        (N'Psicología Organizacional'), (N'Terapia Cognitivo-Conductual'),
+        (N'Salud Mental'), (N'Psicoanálisis'), (N'Terapia de Pareja'),
+        (N'Médico'), (N'Psicólogo');
 
     INSERT INTO Categoria (Nombre) VALUES
-        ('Bienestar mental'), ('Ansiedad'), ('Depresión'), ('Familia'),
-        ('Trabajo y estrés'), ('Relaciones'), ('Crianza'), ('Mindfulness');
+        (N'Bienestar mental'), (N'Ansiedad'), (N'Depresión'), (N'Familia'),
+        (N'Trabajo y estrés'), (N'Relaciones'), (N'Crianza'), (N'Mindfulness');
 
     INSERT INTO Idioma (Nombre, Codigo) VALUES
-        ('Español','es'), ('Inglés','en'), ('Francés','fr'), ('Portugués','pt');
+        (N'Español',   N'es'),
+        (N'Inglés',    N'en'),
+        (N'Francés',   N'fr'),
+        (N'Portugués', N'pt'),
+        (N'Alemán',    N'de'),
+        (N'Italiano',  N'it'),
+        (N'Mandarín',  N'zh'),
+        (N'Japonés',   N'ja'),
+        (N'Coreano',   N'ko'),
+        (N'Árabe',     N'ar'),
+        (N'Ruso',      N'ru'),
+        (N'Hindi',     N'hi'),
+        (N'Holandés',  N'nl'),
+        (N'Rumano',    N'ro'),
+        (N'Catalán',   N'ca'),
+        (N'Polaco',    N'pl'),
+        (N'Turco',     N'tr'),
+        (N'Hebreo',    N'he'),
+        (N'Ucraniano', N'uk');
 
     INSERT INTO Configuracion (Clave, Valor, Descripcion) VALUES
-        ('TarifaPlataformaCita',   '5000',    'Tarifa fija por cita ($COP)'),
-        ('MaxIntentosSesion',      '5',       'Máximo de intentos de login antes de bloqueo'),
-        ('HorasTokenValidacion',   '1',       'Vigencia token activación usuario (horas)'),
-        ('DiasTokenActivacion',    '1',       'Vigencia token activación profesional (días)'),
-        ('HorasTokenRecuperacion', '1',       'Vigencia token recuperación contraseña (horas)');
+        (N'TarifaPlataformaCita',   N'5000',    N'Tarifa fija por cita ($COP)'),
+        (N'MaxIntentosSesion',      N'5',       N'Máximo de intentos de login antes de bloqueo'),
+        (N'HorasTokenValidacion',   N'1',       N'Vigencia token activación usuario (horas)'),
+        (N'DiasTokenActivacion',    N'1',       N'Vigencia token activación profesional (días)'),
+        (N'HorasTokenRecuperacion', N'1',       N'Vigencia token recuperación contraseña (horas)');
 END
 GO
 

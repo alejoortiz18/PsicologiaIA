@@ -5,6 +5,7 @@
 }
 
 @section Styles {
+<link rel="stylesheet" href="~/css/catalogo-pais-ciudad.css" asp-append-version="true" />
 <style>
 body { background: var(--color-surface); }
 .public-nav, footer { display: none; }
@@ -104,6 +105,10 @@ body { background: var(--color-surface); }
                         <div class="form-hint">Tu alias es el nombre visible en la plataforma cuando activas el anonimato.</div>
                         <span asp-validation-for="Alias" class="form-error"></span>
                     </div>
+
+                    <partial name="_SelectPaisCiudad" model="new Trebol.Web.ViewModels.Common.SelectPaisCiudadVm { PaisId = Model.PaisId, CiudadId = Model.CiudadId }" />
+                    <span asp-validation-for="PaisId" class="form-error"></span>
+                    <span asp-validation-for="CiudadId" class="form-error"></span>
                 </div>
 
                 <div style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-5);margin-bottom:var(--sp-5);border:1px solid var(--color-border-light);">
@@ -136,4 +141,5 @@ body { background: var(--color-surface); }
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/catalogo-pais-ciudad.js" asp-append-version="true"></script>
 }
