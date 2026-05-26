@@ -9,6 +9,7 @@ using Trebol.Model.DTOs.Common;
 using Trebol.Model.DTOs.Profesional;
 using Trebol.Model.Entities.TrebolEntities;
 using Trebol.Model.Enums;
+using Trebol.Web.Helpers;
 
 namespace Trebol.Web.Controllers;
 
@@ -22,6 +23,11 @@ public class PerfilProfesionalController(
     Trebol.Helpers.Archivos.IArchivoHelper archivoHelper) : Controller
 {
     private const int TamanoPagina = 10;
+
+    private static readonly JsonSerializerOptions JsonCamel = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public async Task<IActionResult> Index()
     {
@@ -52,15 +58,25 @@ public class PerfilProfesionalController(
         var id = ProfesionalId();
         await CargarShellAsync(id, "calendario");
         ViewBag.Profesional = await profesionalRepo.ObtenerPorIdAsync(id);
-        ViewBag.Bloqueos = await calendarioRepo.ObtenerBloqueosAsync(id);
-        var citas = await citaRepo.ObtenerPorProfesionalAsync(id, "Todos", 1, 500);
-        ViewBag.CitasCalendario = citas;
+        var bloqueos = await calendarioRepo.ObtenerBloqueosAsync(id);
+        ViewBag.Bloqueos = bloqueos;
+        var desde = DateTime.Today.AddMonths(-1);
+        var hasta = DateTime.Today.AddMonths(3);
+        var slots = CalendarioSlotPresentacion.Formatear(
+            await citaRepo.ObtenerSlotsCalendarioPropietarioAsync(id, desde, hasta, HttpContext.RequestAborted),
+            CalendarioSlotPresentacion.ModoVista.Propietario);
+        ViewBag.CitasSlotsJson = JsonSerializer.Serialize(slots, JsonCamel);
         ViewBag.BloqueosJson = JsonSerializer.Serialize(
-            (await calendarioRepo.ObtenerBloqueosAsync(id))
-            .Select(b => new { inicio = b.FechaHoraInicio.ToString("yyyy-MM-dd"), fin = b.FechaHoraFin.ToString("yyyy-MM-dd") }));
-        ViewBag.CitasJson = JsonSerializer.Serialize(
-            citas.Select(c => c.FechaHora.ToString("yyyy-MM-dd")).Distinct());
+            bloqueos.Select(b => new { inicio = b.FechaHoraInicio, fin = b.FechaHoraFin }), JsonCamel);
         var disponibilidad = await calendarioRepo.ObtenerDisponibilidadAsync(id);
+        ViewBag.DisponibilidadJson = JsonSerializer.Serialize(
+            disponibilidad.Where(h => h.Estado).Select(h => new
+            {
+                dia = h.DiaSemana,
+                inicio = h.HoraInicio.ToString("HH:mm"),
+                fin = h.HoraFin.ToString("HH:mm")
+            }), JsonCamel);
+        ViewBag.EsVistaPropietario = true;
         return View(disponibilidad);
     }
 

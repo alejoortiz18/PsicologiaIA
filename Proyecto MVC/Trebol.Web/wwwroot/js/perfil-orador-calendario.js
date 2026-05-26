@@ -29,20 +29,47 @@
     H_END = 18;
   }
 
-  const booked = {};
-  const mySlots = new Set();
+  const ES_PROPIETARIO = !!cfg.esVistaPropietario;
+  const slotMeta = {};
+  const SLOT_RANK = { owner: 4, mine: 3, public: 2, busy: 1 };
+
+  function escHtml(s) {
+    const el = document.createElement('div');
+    el.textContent = s || '';
+    return el.innerHTML;
+  }
+
+  function slotKind(c) {
+    if (ES_PROPIETARIO) {
+      if (c.tipoSlot === 'EventoPublico') return 'public';
+      return 'owner';
+    }
+    if (c.tipoSlot === 'EventoPublico') return 'public';
+    if (c.esDetalleVisible) return 'mine';
+    return 'busy';
+  }
+
+  function setSlotMeta(key, meta) {
+    const existing = slotMeta[key];
+    if (!existing || SLOT_RANK[meta.kind] > SLOT_RANK[existing.kind]) {
+      slotMeta[key] = meta;
+    }
+  }
+
   (cfg.citas || []).forEach(c => {
     const d = new Date(c.fechaHora);
     const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
-    if (!booked[key]) booked[key] = [];
-    const h = d.getHours();
-    const dur = c.duracionMinutos || 60;
+    const h0 = d.getHours();
+    const durRaw = c.duracionMinutos || 60;
+    const dur = (c.tipoSlot === 'EventoPublico' && durRaw > 480) ? 60 : Math.min(durRaw, 480);
+    const kind = slotKind(c);
+    const meta = {
+      kind,
+      etiqueta: c.etiqueta || (kind === 'busy' ? 'Ocupado' : 'Mi cita'),
+      subtitulo: c.subtitulo || ''
+    };
     for (let i = 0; i < dur / 60; i++) {
-      booked[key].push(h + i);
-      if ((cfg.usuarioId && c.usuarioId === cfg.usuarioId) ||
-          (cfg.miProfesionalId && c.profesionalClienteId === cfg.miProfesionalId)) {
-        mySlots.add(`${key}|${h + i}`);
-      }
+      setSlotMeta(`${key}|${h0 + i}`, meta);
     }
   });
 
@@ -116,12 +143,28 @@
     const date = new Date(y, m, d);
     if (date < TODAY) return 'past';
     if (blockedDays.has(dateKey(y, m, d))) return 'off';
-    const key = dateKey(y, m, d);
-    const hrs = booked[key] || [];
-    if (hrs.includes(h)) {
-      return mySlots.has(`${key}|${h}`) ? 'my-booking' : 'booked';
+    const meta = slotMeta[`${dateKey(y, m, d)}|${h}`];
+    if (meta) {
+      if (meta.kind === 'owner') return 'owner-booking';
+      if (meta.kind === 'mine') return 'my-booking';
+      if (meta.kind === 'public') return 'public-event';
+      return 'booked';
     }
     return 'free';
+  }
+
+  function renderOccupiedBlock(meta, top, height, extraCls) {
+    const cls = extraCls || (meta.kind === 'owner' ? 'tcw-owner-block'
+      : meta.kind === 'mine' ? 'tcw-my-block'
+      : meta.kind === 'public' ? 'tcw-public-block' : 'tcw-occ-block');
+    const icon = meta.kind === 'owner' ? '👤' : meta.kind === 'mine' ? '✓' : meta.kind === 'public' ? '📢' : '🔒';
+    const sub = meta.subtitulo
+      ? `<div class="tcw-b-time">${escHtml(meta.subtitulo)}</div>`
+      : '';
+    const disabled = meta.kind === 'busy' ? ' aria-disabled="true"' : '';
+    return `<div class="${cls}" style="top:${top + 2}px;height:${height - 4}px;"${disabled}>
+      <span class="tcw-b-icon">${icon}</span>
+      <div><div class="tcw-b-title">${escHtml(meta.etiqueta)}</div>${sub}</div></div>`;
   }
 
   function goToBooking(y, m, d, h) {
@@ -131,9 +174,12 @@
       }
       return;
     }
-    if (cfg.miProfesionalId && cfg.miProfesionalId === cfg.profesionalId) {
+    if (ES_PROPIETARIO || (cfg.miProfesionalId && cfg.miProfesionalId === cfg.profesionalId)) {
       if (typeof showToast === 'function') {
-        showToast({ title: 'No puedes agendar una cita contigo mismo', type: 'info' });
+        showToast({
+          title: ES_PROPIETARIO ? 'Gestiona tu agenda desde Horario semanal o Bloqueos' : 'No puedes agendar una cita contigo mismo',
+          type: 'info'
+        });
       }
       return;
     }
@@ -288,12 +334,9 @@
         for (let h = w.from; h < w.to; h++) {
           const st = getSlotStatus(y, m, dd, h);
           const top = (h - H_START) * HOUR_H;
-          if (st === 'booked') {
-            html += `<div class="tcw-occ-block" style="top:${top + 2}px;height:${HOUR_H - 4}px;" aria-disabled="true">
-              <span class="tcw-b-icon">🔒</span><div><div class="tcw-b-title">Ocupado</div><div class="tcw-b-time">${fmtTime(h)}–${fmtTime(h + 1)}</div></div></div>`;
-          } else if (st === 'my-booking') {
-            html += `<div class="tcw-my-block" style="top:${top + 2}px;height:${HOUR_H - 4}px;">
-              <span class="tcw-b-icon">✓</span><div><div class="tcw-b-title">Mi cita</div><div class="tcw-b-time">${fmtTime(h)}–${fmtTime(h + 1)}</div></div></div>`;
+          const meta = slotMeta[`${dateKey(y, m, dd)}|${h}`];
+          if (st === 'booked' || st === 'my-booking' || st === 'public-event' || st === 'owner-booking') {
+            html += renderOccupiedBlock(meta, top, HOUR_H);
           } else if (st === 'free') {
             html += `<div class="tcw-free-slot" style="top:${top}px;height:${HOUR_H}px;" tabindex="0" role="button" data-y="${y}" data-m="${m}" data-d="${dd}" data-h="${h}" aria-label="Disponible ${fmtTime(h)}">
               <div class="tcw-free-hint"><div class="tcw-free-hint-pill">＋ ${fmtTime(h)}</div></div></div>`;
@@ -411,12 +454,21 @@
           <span style="color:var(--color-primary);font-weight:600;">${fmtTime(h)} – ${fmtTime(h + 1)} <span style="font-weight:400;color:var(--color-text-muted);">· Disponible</span></span>
           <span class="tcal-drow-cta">＋ Agendar</span></div>`;
         attrs = `data-y="${y}" data-m="${m}" data-d="${d}" data-h="${h}" tabindex="0" role="button" class="tcal-drow-book"`;
-      } else if (status === 'my-booking') {
-        cellCls += ' my-reserved-cell';
-        inner = `<div class="tcal-drow-evt my-lbl"><span>✓ Mi cita · ${fmtTime(h)} – ${fmtTime(h + 1)}</span></div>`;
-      } else if (status === 'booked') {
-        cellCls += ' booked-cell';
-        inner = `<div class="tcal-drow-evt occ-lbl"><span>🔒 Ocupado · ${fmtTime(h)} – ${fmtTime(h + 1)}</span></div>`;
+      } else if (status === 'owner-booking' || status === 'my-booking' || status === 'public-event' || status === 'booked') {
+        const meta = slotMeta[`${dateKey(y, m, d)}|${h}`] || { kind: 'busy', etiqueta: 'Ocupado', subtitulo: '' };
+        if (status === 'owner-booking') {
+          cellCls += ' owner-booking-cell';
+          inner = `<div class="tcal-drow-evt owner-lbl"><span>👤 ${escHtml(meta.etiqueta)}</span>${meta.subtitulo ? `<span class="tcal-drow-sub">${escHtml(meta.subtitulo)}</span>` : ''}</div>`;
+        } else if (status === 'my-booking') {
+          cellCls += ' my-reserved-cell';
+          inner = `<div class="tcal-drow-evt my-lbl"><span>✓ ${escHtml(meta.etiqueta)}</span>${meta.subtitulo ? `<span class="tcal-drow-sub">${escHtml(meta.subtitulo)}</span>` : ''}</div>`;
+        } else if (status === 'public-event') {
+          cellCls += ' public-event-cell';
+          inner = `<div class="tcal-drow-evt public-lbl"><span>📢 ${escHtml(meta.etiqueta)}</span>${meta.subtitulo ? `<span class="tcal-drow-sub">${escHtml(meta.subtitulo)}</span>` : ''}</div>`;
+        } else {
+          cellCls += ' booked-cell';
+          inner = `<div class="tcal-drow-evt occ-lbl"><span>🔒 ${escHtml(meta.etiqueta)} · ${fmtTime(h)} – ${fmtTime(h + 1)}</span></div>`;
+        }
       } else if (status === 'past') {
         cellCls += ' past';
       } else {

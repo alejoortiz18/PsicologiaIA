@@ -184,17 +184,52 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
     public async Task<IReadOnlyList<CitaSlotPublicoDto>> ObtenerSlotsPublicosAsync(
         int profesionalId, DateTime desde, DateTime hasta, CancellationToken ct = default)
     {
+        var slots = await ObtenerSlotsCalendarioPublicoAsync(
+            profesionalId, desde, hasta, null, null, ct);
+        return slots
+            .Where(s => s.TipoSlot == "CitaPrivada")
+            .Select(s => new CitaSlotPublicoDto
+            {
+                FechaHora = s.FechaHora,
+                DuracionMinutos = s.DuracionMinutos
+            })
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<CalendarioSlotDto>> ObtenerSlotsCalendarioPublicoAsync(
+        int profesionalId,
+        DateTime desde,
+        DateTime hasta,
+        int? viewerUsuarioId = null,
+        int? viewerProfesionalId = null,
+        CancellationToken ct = default)
+    {
         using var conn = CrearConexion();
-        var result = await conn.QueryAsync<CitaSlotPublicoDto>(
-            @"SELECT c.FechaHora,
-                     DATEDIFF(MINUTE, c.FechaHora, c.FechaHoraFin) AS DuracionMinutos,
-                     c.UsuarioId,
-                     c.ProfesionalClienteId
-              FROM   Cita c
-              WHERE  c.ProfesionalId = @ProfesionalId
-                AND  c.FechaHora >= @Desde AND c.FechaHora < @Hasta
-                AND  c.Estado IN (N'Programada', N'Movida')",
-            new { ProfesionalId = profesionalId, Desde = desde, Hasta = hasta });
+        var result = await conn.QueryAsync<CalendarioSlotDto>(
+            "sp_ObtenerSlotsCalendarioPublico",
+            new
+            {
+                ProfesionalId = profesionalId,
+                Desde = desde,
+                Hasta = hasta,
+                ViewerUsuarioId = viewerUsuarioId,
+                ViewerProfesionalId = viewerProfesionalId
+            },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<CalendarioSlotDto>> ObtenerSlotsCalendarioPropietarioAsync(
+        int profesionalId,
+        DateTime desde,
+        DateTime hasta,
+        CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<CalendarioSlotDto>(
+            "sp_ObtenerSlotsCalendarioPropietario",
+            new { ProfesionalId = profesionalId, Desde = desde, Hasta = hasta },
+            commandType: CommandType.StoredProcedure);
         return result.AsList();
     }
 

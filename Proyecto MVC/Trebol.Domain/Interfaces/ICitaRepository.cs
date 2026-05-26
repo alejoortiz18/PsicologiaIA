@@ -23,4 +23,18 @@ public interface ICitaRepository
     Task<ResultadoOperacion>         CancelarAsync(int citaId, int solicitanteId, CancellationToken ct = default);
     Task<IReadOnlyList<CitaSlotPublicoDto>> ObtenerSlotsPublicosAsync(
         int profesionalId, DateTime desde, DateTime hasta, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CalendarioSlotDto>> ObtenerSlotsCalendarioPublicoAsync(
+        int profesionalId,
+        DateTime desde,
+        DateTime hasta,
+        int? viewerUsuarioId = null,
+        int? viewerProfesionalId = null,
+        CancellationToken ct = default);
+
+    Task<IReadOnlyList<CalendarioSlotDto>> ObtenerSlotsCalendarioPropietarioAsync(
+        int profesionalId,
+        DateTime desde,
+        DateTime hasta,
+        CancellationToken ct = default);
 }

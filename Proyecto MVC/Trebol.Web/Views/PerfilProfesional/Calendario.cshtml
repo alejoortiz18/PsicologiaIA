@@ -11,28 +11,54 @@
 
 @await Html.PartialAsync("_PerfilShell", prof)
 
-<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);flex-wrap:wrap;margin-bottom:var(--sp-5);">
-    <div>
-        <h2 id="cal-titulo" style="font-size:1.25rem;font-weight:700;color:var(--color-primary);margin:0;"></h2>
-        <p class="text-meta" style="margin-top:2px;">Gestiona tu disponibilidad. Los días con citas aparecen como ocupados.</p>
-    </div>
-    <div style="display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap;">
-        <div style="display:flex;gap:var(--sp-4);align-items:center;flex-wrap:wrap;font-size:.8125rem;font-weight:500;">
-            <div style="display:flex;align-items:center;gap:var(--sp-2);"><div style="width:14px;height:14px;border-radius:3px;background:#C8E6C9;border:1px solid #A5D6A7;"></div>Disponible</div>
-            <div style="display:flex;align-items:center;gap:var(--sp-2);"><div style="width:14px;height:14px;border-radius:3px;background:#FFE0B2;border:1px solid #FFCC80;"></div>Ocupado</div>
-            <div style="display:flex;align-items:center;gap:var(--sp-2);"><div style="width:14px;height:14px;border-radius:3px;background:#FFCDD2;border:1px solid #EF9A9A;"></div>Bloqueado</div>
-        </div>
-        <div style="display:flex;gap:var(--sp-2);">
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-prev">‹ Anterior</button>
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-next">Siguiente ›</button>
-        </div>
+<link rel="stylesheet" href="~/css/perfil-orador-calendario.css" asp-append-version="true" />
+
+<div class="perfil-orador-info-banner" style="margin-bottom:var(--sp-5);">
+    <span style="font-size:1.2rem;flex-shrink:0;" aria-hidden="true">🗓</span>
+    <div class="perfil-orador-info-banner__text">
+        <strong>Tu agenda</strong><br />
+        Misma vista que ven los usuarios: disponible · cita privada (con nombre y estado) · charla o evento público · no disponible.<br />
+        Los espacios libres reflejan tu horario semanal; usa bloqueos para cerrar fechas puntuales.
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 360px;gap:var(--sp-6);margin-bottom:var(--sp-6);">
-    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);">
-        <div id="calendar-grid" class="calendar-grid" role="grid" aria-label="Calendario de disponibilidad"></div>
+<div class="perfil-orador-calendar-wrap" style="margin-bottom:var(--sp-6);">
+    <div class="tcal-toolbar">
+        <button type="button" class="btn btn-ghost btn-sm" id="tcal-hoy">Hoy</button>
+        <div class="tcal-nav-group">
+            <button type="button" class="tcal-nav-btn" id="tcal-prev" aria-label="Anterior">‹</button>
+            <button type="button" class="tcal-nav-btn" id="tcal-next" aria-label="Siguiente">›</button>
+        </div>
+        <div class="tcal-nav-title" id="tcal-nav-title">Cargando…</div>
+        <div style="flex:1;"></div>
+        <div class="tcal-view-pills" role="group" aria-label="Vista del calendario">
+            <button type="button" class="tcal-vpill" data-view="mensual" aria-pressed="false">Mes</button>
+            <button type="button" class="tcal-vpill active" data-view="semanal" aria-pressed="true">Semana</button>
+            <button type="button" class="tcal-vpill" data-view="diario" aria-pressed="false">Día</button>
+        </div>
     </div>
+    <div class="tcal-legend" aria-label="Leyenda">
+        <div class="tcal-legend-item">
+            <div class="tcal-lswatch tcal-lswatch--free"></div>
+            Disponible
+        </div>
+        <div class="tcal-legend-item">
+            <div class="tcal-lswatch tcal-lswatch--owner"></div>
+            Cita privada (detalle completo)
+        </div>
+        <div class="tcal-legend-item">
+            <div class="tcal-lswatch tcal-lswatch--public"></div>
+            Charla / evento público
+        </div>
+        <div class="tcal-legend-item">
+            <div class="tcal-lswatch tcal-lswatch--off"></div>
+            No disponible
+        </div>
+    </div>
+    <div id="tcal-content" role="region" aria-live="polite" aria-label="Calendario de agenda"></div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--sp-6);margin-bottom:var(--sp-6);max-width:720px;margin-left:auto;">
     <div>
         <div class="card" style="margin-bottom:var(--sp-5);">
             <div style="padding:var(--sp-4) var(--sp-5);background:var(--color-surface-alt);border-bottom:1px solid var(--color-border-light);font-weight:700;font-size:.875rem;">Bloquear horario</div>
@@ -105,66 +131,20 @@
 @section Scripts {
 @Html.AntiForgeryToken()
 <script>
-const CITAS_DIAS = @Html.Raw(ViewBag.CitasJson ?? "[]");
-const BLOQUEOS = @Html.Raw(ViewBag.BloqueosJson ?? "[]");
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-let currentYear, currentMonth;
-
-function initCalendario() {
-  const now = new Date();
-  currentYear = now.getFullYear();
-  currentMonth = now.getMonth();
-  renderCalendar();
-}
-
-function dayState(y, m, d) {
-  const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  for (const b of BLOQUEOS) {
-    const ini = new Date(b.inicio), fin = new Date(b.fin);
-    const cur = new Date(key);
-    if (cur >= ini && cur <= fin) return 'blocked';
-  }
-  if (CITAS_DIAS.includes(key)) return 'busy';
-  return 'available';
-}
-
-function renderCalendar() {
-  document.getElementById('cal-titulo').textContent = `${MESES[currentMonth]} ${currentYear}`;
-  const grid = document.getElementById('calendar-grid');
-  grid.innerHTML = '';
-  ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].forEach(h => {
-    const el = document.createElement('div');
-    el.className = 'cal-header'; el.textContent = h;
-    grid.appendChild(el);
-  });
-  const first = new Date(currentYear, currentMonth, 1).getDay();
-  const offset = first === 0 ? 6 : first - 1;
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const today = new Date();
-  for (let i = 0; i < offset; i++) {
-    const blank = document.createElement('div');
-    blank.className = 'cal-day empty';
-    grid.appendChild(blank);
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const st = dayState(currentYear, currentMonth, d);
-    const cell = document.createElement('div');
-    cell.className = 'cal-day ' + (st === 'blocked' ? 'blocked' : st === 'busy' ? 'busy' : 'available');
-    if (today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === d) cell.classList.add('today');
-    cell.innerHTML = `<span>${d}</span>`;
-    grid.appendChild(cell);
-  }
-}
-
-document.getElementById('btn-prev')?.addEventListener('click', () => {
-  currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-  renderCalendar();
-});
-document.getElementById('btn-next')?.addEventListener('click', () => {
-  currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-  renderCalendar();
-});
-
+window.perfilOradorCal = {
+    profesionalId: @(prof?.ProfesionalId ?? 0),
+    usuarioId: null,
+    miProfesionalId: @(prof?.ProfesionalId ?? 0),
+    esVistaPropietario: true,
+    puedeAgendar: false,
+    nuevaCitaUrl: '',
+    disponibilidad: @Html.Raw(ViewBag.DisponibilidadJson ?? "[]"),
+    bloqueos: @Html.Raw(ViewBag.BloqueosJson ?? "[]"),
+    citas: @Html.Raw(ViewBag.CitasSlotsJson ?? "[]")
+};
+</script>
+<script src="~/js/perfil-orador-calendario.js" asp-append-version="true"></script>
+<script>
 document.querySelectorAll('.horario-row .horario-activo').forEach(cb => {
   cb.addEventListener('change', function() {
     const row = this.closest('.horario-row');
@@ -233,7 +213,5 @@ document.querySelectorAll('.btn-desbloquear').forEach(btn => {
     if (d.exito) setTimeout(() => location.reload(), 800);
   });
 });
-
-initCalendario();
 </script>
 }

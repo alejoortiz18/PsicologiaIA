@@ -111,6 +111,16 @@
   border-left: 3px solid #c2185b;
 }
 
+.tcal-lswatch--public {
+  background: linear-gradient(90deg, #e0f7f4, #b2dfdb);
+  border-left: 3px solid #00796b;
+}
+
+.tcal-lswatch--owner {
+  background: linear-gradient(90deg, #e3f2fd, #bbdefb);
+  border-left: 3px solid #1565c0;
+}
+
 .tcal-lswatch--off {
   background: repeating-linear-gradient(135deg, #f7f8f9 0, #f7f8f9 6px, #f0f1f2 6px, #f0f1f2 12px);
 }
@@ -505,6 +515,80 @@
   color: #880e4f;
   z-index: 2;
   overflow: hidden;
+}
+
+.tcw-owner-block {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-left: 3px solid #1565c0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #0d47a1;
+  cursor: default;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.tcw-public-block {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #e8f5f3, #c8ebe6);
+  border-left: 3px solid #00796b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #004d40;
+  cursor: default;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.tcw-my-block .tcw-b-title,
+.tcw-owner-block .tcw-b-title,
+.tcw-public-block .tcw-b-title {
+  white-space: normal;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.owner-booking-cell {
+  background: #e3f2fd;
+}
+
+.tcal-drow-evt.owner-lbl {
+  color: #0d47a1;
+  font-weight: 600;
+}
+
+.tcal-drow-sub {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.public-event-cell {
+  background: #e8f5f3;
+}
+
+.tcal-drow-evt.public-lbl {
+  color: #004d40;
+  font-weight: 600;
 }
 
 .tcw-b-icon {

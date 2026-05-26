@@ -132,7 +132,14 @@
                                     <td style="color:var(--color-text-secondary);white-space:nowrap;">@cita.FechaHora.ToString("h:mm tt", cultura)</td>
                                     <td><span class="badge @BadgeCita(cita.Estado)" style="white-space:nowrap;">@EtiquetaCita(cita.Estado)</span></td>
                                     <td>
-                                        <a asp-controller="Citas" asp-action="Detalle" asp-route-id="@cita.CitaId" class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;">Ver</a>
+                                        <button type="button"
+                                                class="btn btn-ghost btn-sm"
+                                                style="padding:2px 10px;font-size:.75rem;"
+                                                data-cita-detalle
+                                                data-cita-id="@cita.CitaId"
+                                                aria-label="Ver detalle de cita con @cita.NombreProfesional">
+                                            Ver
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -293,7 +300,10 @@
     }
 </div>
 
+@await Html.PartialAsync("_ModalDetalleCita")
+
 @section Scripts {
 @Html.AntiForgeryToken()
 <script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
+<script src="~/js/cita-detalle-modal.js" asp-append-version="true"></script>
 }

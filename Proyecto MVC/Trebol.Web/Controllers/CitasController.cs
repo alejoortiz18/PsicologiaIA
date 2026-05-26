@@ -65,8 +65,29 @@ public class CitasController(ICitaRepository citaRepo) : Controller
     // GET /Citas/Detalle/5
     public async Task<IActionResult> Detalle(int id)
     {
-        var cita = await citaRepo.ObtenerDetalleAsync(id);
+        var cita = await ObtenerDetalleAutorizadoAsync(id);
         if (cita is null) return NotFound();
         return View(cita);
+    }
+
+    /// <summary>Fragmento HTML del detalle para modal (solo el usuario dueño de la cita).</summary>
+    [Authorize(Roles = "Usuario")]
+    [HttpGet]
+    public async Task<IActionResult> DetalleModal(int id)
+    {
+        var cita = await ObtenerDetalleAutorizadoAsync(id);
+        if (cita is null) return NotFound();
+        return PartialView("_DetalleCitaModalBody", cita);
+    }
+
+    private async Task<CitaListaDto?> ObtenerDetalleAutorizadoAsync(int citaId)
+    {
+        if (User.IsInRole("Usuario"))
+        {
+            var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            return await citaRepo.ObtenerDetalleParaClienteAsync(citaId, usuarioId, null);
+        }
+
+        return await citaRepo.ObtenerDetalleAsync(citaId);
     }
 }

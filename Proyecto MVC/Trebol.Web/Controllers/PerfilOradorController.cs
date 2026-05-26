@@ -83,7 +83,15 @@ public class PerfilOradorController(
             vm.Bloqueos = await calendarioRepo.ObtenerBloqueosAsync(id, HttpContext.RequestAborted);
             var desde = DateTime.Today.AddMonths(-1);
             var hasta = DateTime.Today.AddMonths(3);
-            var slots = await citaRepo.ObtenerSlotsPublicosAsync(id, desde, hasta, HttpContext.RequestAborted);
+            int? viewerUsuarioId = UsuarioActualId();
+            int? viewerProfesionalId = User.IsInRole("Profesional")
+                ? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+                : null;
+            var slots = CalendarioSlotPresentacion.Formatear(
+                await citaRepo.ObtenerSlotsCalendarioPublicoAsync(
+                    id, desde, hasta, viewerUsuarioId, viewerProfesionalId, HttpContext.RequestAborted),
+                CalendarioSlotPresentacion.ModoVista.Publico);
+            ViewBag.EsVistaPropietario = false;
             ViewBag.CitasSlotsJson = JsonSerializer.Serialize(slots, JsonCamel);
             ViewBag.BloqueosJson = JsonSerializer.Serialize(
                 vm.Bloqueos.Select(b => new { inicio = b.FechaHoraInicio, fin = b.FechaHoraFin }), JsonCamel);
@@ -94,10 +102,8 @@ public class PerfilOradorController(
                     inicio = h.HoraInicio.ToString("HH:mm"),
                     fin = h.HoraFin.ToString("HH:mm")
                 }), JsonCamel);
-            ViewBag.UsuarioActualId = UsuarioActualId();
-            ViewBag.MiProfesionalId = User.IsInRole("Profesional")
-                ? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
-                : (int?)null;
+            ViewBag.UsuarioActualId = viewerUsuarioId;
+            ViewBag.MiProfesionalId = viewerProfesionalId;
             return View("Calendario", vm);
         });
 

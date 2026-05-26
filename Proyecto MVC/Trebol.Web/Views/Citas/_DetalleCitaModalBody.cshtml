@@ -1,0 +1,49 @@
+@model Trebol.Model.DTOs.Cita.CitaListaDto
+@using Trebol.Model.Enums
+@using Trebol.Web.Helpers
+@{
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var fin = Model.FechaHora.AddMinutes(Model.DuracionMinutos);
+    var badgeClass = Model.Estado switch
+    {
+        EstadoCita.Programada => "badge-success",
+        EstadoCita.Movida => "badge-warning",
+        EstadoCita.Cancelada => "badge-danger",
+        EstadoCita.Finalizada => "badge-muted",
+        _ => "badge-muted"
+    };
+    var etiquetaEstado = Model.Estado switch
+    {
+        EstadoCita.Programada => "Confirmada",
+        EstadoCita.Movida => "Reprogramada",
+        EstadoCita.Finalizada => "Finalizada",
+        _ => Model.Estado.ToString()
+    };
+    var tipoLabel = Model.Tipo == TipoCita.Seguimiento ? "Acompañamiento" : "Asesoría";
+}
+
+<div class="cita-detalle-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);margin-bottom:var(--sp-4);">
+        <span class="badge @badgeClass">@etiquetaEstado</span>
+        <span class="text-meta">Cita #@Model.CitaId</span>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:var(--sp-3) var(--sp-4);font-size:.9rem;">
+        <div style="font-weight:600;color:var(--color-text-muted);">Profesional</div>
+        <div class="cita-detalle-profesional" style="font-weight:600;color:var(--color-text-primary);">@Model.NombreProfesional</div>
+
+        <div style="font-weight:600;color:var(--color-text-muted);">Fecha</div>
+        <div>@Model.FechaHora.ToString("d MMM yyyy", cultura)</div>
+
+        <div style="font-weight:600;color:var(--color-text-muted);">Hora</div>
+        <div>@CalendarioSlotPresentacion.FormatearHora12(Model.FechaHora) - @CalendarioSlotPresentacion.FormatearHora12(fin)</div>
+
+        <div style="font-weight:600;color:var(--color-text-muted);">Duración</div>
+        <div>@Model.DuracionMinutos min</div>
+
+        <div style="font-weight:600;color:var(--color-text-muted);">Tipo</div>
+        <div>@tipoLabel</div>
+
+        <div style="font-weight:600;color:var(--color-text-muted);">Valor</div>
+        <div style="font-weight:700;color:var(--color-primary);">@Model.Monto.ToString("C0", cultura)</div>
+    </div>
+</div>

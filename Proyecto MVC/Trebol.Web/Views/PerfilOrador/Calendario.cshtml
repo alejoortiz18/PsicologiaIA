@@ -25,7 +25,7 @@
         <span style="font-size:1.2rem;flex-shrink:0;" aria-hidden="true">📋</span>
         <div class="perfil-orador-info-banner__text">
             <strong>Agenda una cita privada con @p.NombreCompleto</strong><br />
-            Selecciona un horario libre en el calendario. Los bloques morados están ocupados; los espacios en blanco son libres — haz clic para agendar.<br />
+            Selecciona un horario libre en el calendario. Verde/blanco = disponible · Morado = ocupado (sin detalle ajeno) · Rosa = tu cita · Teal = charla o evento público.<br />
             Horario: <strong>@resumenHorario</strong> · Sesiones de 1 hora · Tarifa referencia: <strong>@tarifaTxt</strong>.
         </div>
         <button type="button" class="btn btn-ghost btn-icon btn-sm" style="flex-shrink:0;" onclick="document.getElementById('info-banner')?.remove()" aria-label="Cerrar">✕</button>
@@ -57,7 +57,11 @@
             </div>
             <div class="tcal-legend-item">
                 <div class="tcal-lswatch tcal-lswatch--mine"></div>
-                Mi cita reservada
+                Mi cita (detalle visible)
+            </div>
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--public"></div>
+                Charla / evento público
             </div>
             <div class="tcal-legend-item">
                 <div class="tcal-lswatch tcal-lswatch--off"></div>
@@ -74,7 +78,8 @@
             profesionalId: @p.ProfesionalId,
             usuarioId: @(ViewBag.UsuarioActualId?.ToString() ?? "null"),
             miProfesionalId: @(ViewBag.MiProfesionalId?.ToString() ?? "null"),
-            puedeAgendar: @((User.IsInRole("Usuario") || User.IsInRole("Profesional")) ? "true" : "false"),
+            esVistaPropietario: @(ViewBag.EsVistaPropietario == true ? "true" : "false"),
+            puedeAgendar: @((User.IsInRole("Usuario") || (User.IsInRole("Profesional") && ViewBag.EsVistaPropietario != true)) ? "true" : "false"),
             nuevaCitaUrl: '@Url.Action("Confirmar", "PagoCita", new { profesionalId = p.ProfesionalId })',
             disponibilidad: @Html.Raw(ViewBag.DisponibilidadJson ?? "[]"),
             bloqueos: @Html.Raw(ViewBag.BloqueosJson ?? "[]"),
