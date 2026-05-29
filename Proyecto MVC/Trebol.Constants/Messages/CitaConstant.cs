@@ -3,6 +3,7 @@ namespace Trebol.Constants.Messages;
 public static class CitaConstant
 {
     public const string HorarioNoDisponible = "El profesional no tiene disponibilidad en ese horario.";
+    public const string HorarioYaPasado     = "No puedes agendar una cita en un horario que ya pasó.";
     public const string HorarioBloqueado    = "El horario seleccionado está bloqueado por el profesional.";
     public const string CitaAgendada        = "Tu cita fue agendada exitosamente.";
     public const string CitaCancelada       = "La cita fue cancelada.";

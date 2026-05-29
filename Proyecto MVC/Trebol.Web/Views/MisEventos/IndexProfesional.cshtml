@@ -1,5 +1,6 @@
 @model Trebol.Model.DTOs.Sala.MisEventosProfesionalVm
 @using Trebol.Model.Enums
+@using Trebol.Web.Helpers
 @{
     ViewData["Title"] = "Mis eventos";
     Layout = "~/Views/Shared/_LayoutInterno.cshtml";
@@ -26,8 +27,7 @@
         var finH = fin ?? inicio.Value.AddHours(2);
         return $"Hoy · {inicio.Value:h:mm tt} – {finH:h:mm tt}";
     }
-    string EstadoLabel(EstadoSala e) => e == EstadoSala.Abierta ? "Abierta" : "Cerrada";
-    string EstadoBadge(EstadoSala e) => e == EstadoSala.Abierta ? "badge-success" : "badge-muted";
+    EstadoSala EstadoEfectivo(Trebol.Model.DTOs.Sala.SalaDto s) => SalaVigenciaHelper.EstadoEfectivo(s);
 }
 
 @section Styles {
@@ -76,7 +76,8 @@
     @if (Model.EventosHoy.Any())
     {
         var hoy = Model.EventosHoy.First();
-        var puedeIngresar = hoy.Estado == EstadoSala.Abierta;
+        var estadoHoy = EstadoEfectivo(hoy);
+        var puedeIngresar = estadoHoy == EstadoSala.Abierta;
 
         <div class="me-hero">
             <div class="me-hero__inner">
@@ -96,7 +97,7 @@
                     <button type="button" class="btn btn-sm me-hero__btn-ghost btn-me-detalle"
                         data-sala-id="@hoy.SalaId"
                         data-titulo="@hoy.Titulo"
-                        data-estado="@EstadoLabel(hoy.Estado)"
+                        data-estado="@SalaVigenciaHelper.EtiquetaEstado(estadoHoy)"
                         data-inscritos="@hoy.TotalInscritos"
                         data-capacidad="@hoy.Capacidad"
                         data-precio="@FmtPrecio(hoy.Precio)"
@@ -167,9 +168,11 @@
                 <tbody>
                     @foreach (var sala in salasOrdenadas)
                     {
-                        var esHoy = sala.FechaInicio.HasValue && sala.FechaInicio.Value.Date == DateTime.Today;
+                        var estado = EstadoEfectivo(sala);
+                        var esHoy = estado == EstadoSala.Abierta
+                            && sala.FechaInicio.HasValue && sala.FechaInicio.Value.Date == DateTime.Today;
                         <tr class="me-fila @(esHoy ? "is-hoy" : "")"
-                            data-estado="@EstadoLabel(sala.Estado)"
+                            data-estado="@SalaVigenciaHelper.EtiquetaEstado(estado)"
                             data-titulo="@sala.Titulo.ToLowerInvariant()">
                             <td>
                                 <strong>@sala.Titulo</strong>
@@ -178,14 +181,14 @@
                                     <span class="badge badge-success" style="margin-left:6px;font-size:0.65rem;">HOY</span>
                                 }
                             </td>
-                            <td><span class="badge @EstadoBadge(sala.Estado)">@EstadoLabel(sala.Estado)</span></td>
+                            <td><span class="badge @SalaVigenciaHelper.ClaseBadge(estado)">@SalaVigenciaHelper.EtiquetaEstado(estado)</span></td>
                             <td>@sala.TotalInscritos</td>
                             <td>@sala.Capacidad</td>
                             <td>@FmtPrecio(sala.Precio)</td>
                             <td>@FmtFecha(sala.FechaInicio)</td>
                             <td>
                                 <div class="d-flex gap-2" style="flex-wrap:wrap;">
-                                    @if (esHoy && sala.Estado == EstadoSala.Abierta)
+                                    @if (esHoy && estado == EstadoSala.Abierta)
                                     {
                                         <a asp-controller="Salas" asp-action="SalaConferenciaProfesional" asp-route-id="@sala.SalaId"
                                            class="btn btn-primary btn-sm" aria-label="Ingresar al evento @sala.Titulo">▶ Ingresar</a>
@@ -193,14 +196,14 @@
                                     <button type="button" class="btn btn-ghost btn-sm btn-me-detalle"
                                             data-sala-id="@sala.SalaId"
                                             data-titulo="@sala.Titulo"
-                                            data-estado="@EstadoLabel(sala.Estado)"
+                                            data-estado="@SalaVigenciaHelper.EtiquetaEstado(estado)"
                                             data-inscritos="@sala.TotalInscritos"
                                             data-capacidad="@sala.Capacidad"
                                             data-precio="@FmtPrecio(sala.Precio)"
                                             data-horario="@FmtHorario(sala.FechaInicio, sala.FechaFin)"
                                             data-descripcion="@(sala.Descripcion ?? "")"
                                             aria-label="Ver detalle de @sala.Titulo">Ver detalle</button>
-                                    @if (sala.Estado == EstadoSala.Abierta)
+                                    @if (estado == EstadoSala.Abierta)
                                     {
                                         <a asp-controller="Salas" asp-action="Editar" asp-route-id="@sala.SalaId"
                                            class="btn btn-ghost btn-sm" aria-label="Editar @sala.Titulo">Editar</a>

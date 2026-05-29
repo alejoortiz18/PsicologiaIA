@@ -300,4 +300,13 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
             ? ResultadoOperacion.Ok(result.Mensaje)
             : ResultadoOperacion.Fail(result?.Mensaje ?? "Error al cerrar sala.");
     }
+
+    public async Task CerrarSalasEventosVencidosAsync(int? profesionalId = null, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        await conn.ExecuteAsync(
+            "sp_CerrarSalasEventosVencidos",
+            new { ProfesionalId = profesionalId },
+            commandType: CommandType.StoredProcedure);
+    }
 }

@@ -30,4 +30,5 @@ public interface ISalaRepository
     Task<ResultadoOperacion>     ActualizarAsync(EditarSalaDto dto, CancellationToken ct = default);
     Task<ResultadoOperacion>     EliminarAsync(int salaId, int profesionalId, CancellationToken ct = default);
     Task<ResultadoOperacion>     CerrarAsync(int salaId, int profesionalId, CancellationToken ct = default);
+    Task CerrarSalasEventosVencidosAsync(int? profesionalId = null, CancellationToken ct = default);
 }

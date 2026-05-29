@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Sala;
 using Trebol.Model.Enums;
+using Trebol.Web.Helpers;
 
 namespace Trebol.Web.Controllers;
 
@@ -19,7 +20,8 @@ public class MisEventosController(
 
         if (tipo == "Profesional")
         {
-            var salas = (await salaRepo.ObtenerPorProfesionalAsync(id)).ToList();
+            await salaRepo.CerrarSalasEventosVencidosAsync(id, HttpContext.RequestAborted);
+            var salas = (await salaRepo.ObtenerPorProfesionalAsync(id, HttpContext.RequestAborted)).ToList();
             var dash  = await profesionalRepo.ObtenerDashboardAsync(id);
             var eventosHoy = salas
                 .Where(s => s.FechaInicio.HasValue && s.FechaInicio.Value.Date == DateTime.Today)
@@ -32,7 +34,7 @@ public class MisEventosController(
                 Salas           = salas,
                 EventosHoy      = eventosHoy,
                 TotalSalas      = salas.Count,
-                SalasAbiertas   = salas.Count(s => s.Estado == EstadoSala.Abierta),
+                SalasAbiertas   = salas.Count(s => SalaVigenciaHelper.EstadoEfectivo(s) == EstadoSala.Abierta),
                 TotalInscritos  = salas.Sum(s => s.TotalInscritos),
                 IngresosMes     = dash.IngresosMes,
                 EventoHoy       = eventosHoy.FirstOrDefault()

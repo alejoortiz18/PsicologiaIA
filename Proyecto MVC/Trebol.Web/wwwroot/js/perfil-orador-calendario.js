@@ -114,6 +114,14 @@
     return `${fmt2(h)}:00`;
   }
 
+  function slotDateTime(y, m, d, h) {
+    return new Date(y, m, d, h, 0, 0, 0);
+  }
+
+  function isSlotPast(y, m, d, h) {
+    return slotDateTime(y, m, d, h) < new Date();
+  }
+
   function freeSlots(y, m, d) {
     const dow = new Date(y, m, d).getDay();
     const w = work[dow];
@@ -142,6 +150,7 @@
     if (!w || h < w.from || h >= w.to) return 'off';
     const date = new Date(y, m, d);
     if (date < TODAY) return 'past';
+    if (isSlotPast(y, m, d, h)) return 'past';
     if (blockedDays.has(dateKey(y, m, d))) return 'off';
     const meta = slotMeta[`${dateKey(y, m, d)}|${h}`];
     if (meta) {
@@ -168,6 +177,12 @@
   }
 
   function goToBooking(y, m, d, h) {
+    if (isSlotPast(y, m, d, h)) {
+      if (typeof showToast === 'function') {
+        showToast({ title: 'Ese horario ya pasó. Elige una fecha y hora futura.', type: 'info' });
+      }
+      return;
+    }
     if (!cfg.puedeAgendar) {
       if (typeof showToast === 'function') {
         showToast({ title: 'Debes iniciar sesión para agendar citas', type: 'info' });
@@ -340,6 +355,8 @@
           } else if (st === 'free') {
             html += `<div class="tcw-free-slot" style="top:${top}px;height:${HOUR_H}px;" tabindex="0" role="button" data-y="${y}" data-m="${m}" data-d="${dd}" data-h="${h}" aria-label="Disponible ${fmtTime(h)}">
               <div class="tcw-free-hint"><div class="tcw-free-hint-pill">＋ ${fmtTime(h)}</div></div></div>`;
+          } else if (st === 'past') {
+            html += `<div class="tcw-past-hour" style="top:${top}px;height:${HOUR_H}px;" aria-hidden="true"></div>`;
           }
         }
       }

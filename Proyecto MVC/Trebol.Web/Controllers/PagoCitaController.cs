@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Trebol.Constants.Messages;
 using Trebol.Constants.Pagos;
 using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Cita;
@@ -31,6 +32,12 @@ public class PagoCitaController(
 
         var perfil = await profesionalRepo.ObtenerDtoAsync(profesionalId, HttpContext.RequestAborted);
         if (perfil is null) return NotFound();
+
+        if (fechaHora.HasValue && fechaHora.Value < DateTime.Now)
+        {
+            TempData["Error"] = CitaConstant.HorarioYaPasado;
+            return RedirectToAction("Calendario", "PerfilOrador", new { id = profesionalId });
+        }
 
         var tarifaHora = perfil.TarifaCita ?? 0m;
         var precio = await citaPrecio.CalcularAsync(tarifaHora, duracionMinutos, HttpContext.RequestAborted);
@@ -69,6 +76,12 @@ public class PagoCitaController(
 
         var perfil = await profesionalRepo.ObtenerDtoAsync(profesionalId, HttpContext.RequestAborted);
         if (perfil is null) return NotFound();
+
+        if (fechaHora < DateTime.Now)
+        {
+            TempData["Error"] = CitaConstant.HorarioYaPasado;
+            return RedirectToAction(nameof(Confirmar), new { profesionalId, fechaHora, duracionMinutos });
+        }
 
         var dto = new CrearCitaDto
         {

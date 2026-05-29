@@ -480,6 +480,15 @@
   pointer-events: none;
 }
 
+.tcw-past-hour {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: rgba(245, 245, 245, 0.85);
+  z-index: 2;
+  pointer-events: none;
+}
+
 .tcw-occ-block {
   position: absolute;
   left: 3px;
