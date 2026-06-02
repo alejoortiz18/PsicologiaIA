@@ -90,14 +90,17 @@
                     @(Model.EsSeguido ? "Siguiendo" : "+ Seguir")
                 </button>
             }
-            <button type="button" class="btn btn-secondary"
-                    data-pm-name="@p.NombreCompleto"
-                    data-pm-avatar="@ini"
-                    data-pm-bg="@pmBg"
-                    data-pm-profesional-id="@p.ProfesionalId"
-                    aria-label="Enviar mensaje a @p.NombreCompleto">
-                💬 Mensaje
-            </button>
+            @if (!Model.EsVistaPreviaPropia)
+            {
+                <button type="button" class="btn btn-secondary"
+                        data-pm-name="@p.NombreCompleto"
+                        data-pm-avatar="@ini"
+                        data-pm-bg="@pmBg"
+                        data-pm-profesional-id="@p.ProfesionalId"
+                        aria-label="Enviar mensaje a @p.NombreCompleto">
+                    💬 Mensaje
+                </button>
+            }
         </div>
     </div>
 </section>

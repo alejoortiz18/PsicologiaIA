@@ -76,6 +76,13 @@ public class RegistroController(
         var resultado = await usuarioRepo.RegistrarAsync(dto);
         if (!resultado.Exito)
         {
+            if (await usuarioRepo.EstaPendienteConfirmacionAsync(vm.Correo, ct))
+            {
+                TempData["CorreoRegistro"] = vm.Correo.Trim();
+                TempData["Mensaje"] = RegistroConstant.CorreoPendienteConfirmacion;
+                return RedirectToAction(nameof(ReenviarConfirmacion), new { correo = vm.Correo.Trim() });
+            }
+
             ModelState.AddModelError(string.Empty, resultado.Mensaje);
             await CargarUbicacionRegistroAsync(vm.PaisId, ct);
             if (vm.PaisId.HasValue)
@@ -83,31 +90,10 @@ public class RegistroController(
             return View(vm);
         }
 
-        var enlaceConfirmacion = EnlaceConfirmarEmailUsuario(token);
-        if (string.IsNullOrEmpty(enlaceConfirmacion))
-        {
-            ModelState.AddModelError(string.Empty, "No se pudo generar el enlace de confirmación. Intenta de nuevo.");
-            await CargarUbicacionRegistroAsync(vm.PaisId, ct);
-            if (vm.PaisId.HasValue)
-                ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
-            return View(vm);
-        }
-
-        var mensajeUsuario = $"Recibimos tu solicitud de registro como usuario en <strong style=\"color:#1A3C34;\">Trébol</strong>. " +
-                             "Para continuar, haz clic en el botón y crea tu contraseña.";
-        try
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            await emailHelper.EnviarAsync(
-                vm.Correo,
-                RegistroEmailTemplates.AsuntoConfirmacionCorreo,
-                RegistroEmailTemplates.BuildConfirmacionCorreo(vm.NombreCompleto, enlaceConfirmacion, mensajeUsuario, horasValidez: 1),
-                cts.Token);
-        }
-        catch (Exception ex)
+        if (!await EnviarCorreoConfirmacionUsuarioAsync(vm.Correo.Trim(), vm.NombreCompleto.Trim(), token, ct))
         {
             ModelState.AddModelError(string.Empty,
-                $"No pudimos enviar el correo de confirmación. Por favor, intenta más tarde. Error: {ex.Message}");
+                "No pudimos enviar el correo de confirmación. Por favor, intenta más tarde.");
             await CargarUbicacionRegistroAsync(vm.PaisId, ct);
             if (vm.PaisId.HasValue)
                 ViewBag.Ciudades = await catalogoRepo.ObtenerCiudadesAsync(vm.PaisId, ct);
@@ -115,6 +101,7 @@ public class RegistroController(
         }
 
         TempData["Mensaje"] = RegistroConstant.RegistroExitoso;
+        TempData["CorreoRegistro"] = vm.Correo.Trim();
         TempData["HorasEnlace"] = "1";
         return RedirectToAction("EsperaConfirmacion");
     }
@@ -326,8 +313,53 @@ public class RegistroController(
     [HttpGet]
     public IActionResult EsperaConfirmacion()
     {
-        ViewData["HorasEnlace"] = TempData["HorasEnlace"] ?? "72";
+        ViewData["HorasEnlace"] = TempData["HorasEnlace"] ?? "1";
+        ViewData["CorreoRegistro"] = TempData["CorreoRegistro"] ?? TempData.Peek("CorreoRegistro");
+        ViewData["Mensaje"] = TempData["Mensaje"];
         return View();
+    }
+
+    // GET /Registro/ReenviarConfirmacion
+    [HttpGet]
+    public IActionResult ReenviarConfirmacion(string? correo)
+    {
+        var vm = new ReenviarConfirmacionViewModel
+        {
+            Correo = correo
+                ?? TempData["CorreoRegistro"]?.ToString()
+                ?? string.Empty
+        };
+        ViewData["Mensaje"] = TempData["Mensaje"];
+        return View(vm);
+    }
+
+    // POST /Registro/ReenviarConfirmacion
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReenviarConfirmacion(ReenviarConfirmacionViewModel vm, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+            return View(vm);
+
+        var correo = vm.Correo.Trim();
+        var token = tokenHelper.GenerarToken();
+        var expiracion = DateTime.Now.AddHours(1);
+        var resultado = await usuarioRepo.ReenviarConfirmacionAsync(correo, token, expiracion, ct);
+
+        if (resultado.Exito && resultado.Datos is { } datos)
+        {
+            if (!await EnviarCorreoConfirmacionUsuarioAsync(datos.Correo, datos.NombreCompleto, token, ct))
+            {
+                ModelState.AddModelError(string.Empty,
+                    "No pudimos enviar el correo de confirmación. Por favor, intenta más tarde.");
+                return View(vm);
+            }
+        }
+
+        TempData["Mensaje"] = RegistroConstant.ReenvioConfirmacionEnviado;
+        TempData["CorreoRegistro"] = correo;
+        TempData["HorasEnlace"] = "1";
+        return RedirectToAction(nameof(EsperaConfirmacion));
     }
 
     // GET /Registro/ConfirmarEmail?token=xxx
@@ -447,6 +479,32 @@ public class RegistroController(
     }
 
     // ═ Enlaces correo — solo flujo usuario ═
+
+    private async Task<bool> EnviarCorreoConfirmacionUsuarioAsync(
+        string correo, string nombreCompleto, string token, CancellationToken ct)
+    {
+        var enlaceConfirmacion = EnlaceConfirmarEmailUsuario(token);
+        if (string.IsNullOrEmpty(enlaceConfirmacion))
+            return false;
+
+        var mensajeUsuario = "Para activar tu cuenta en <strong style=\"color:#1A3C34;\">Trébol</strong>, " +
+                             "haz clic en el botón y crea tu contraseña.";
+        try
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(30));
+            await emailHelper.EnviarAsync(
+                correo,
+                RegistroEmailTemplates.AsuntoConfirmacionCorreo,
+                RegistroEmailTemplates.BuildConfirmacionCorreo(nombreCompleto, enlaceConfirmacion, mensajeUsuario, horasValidez: 1),
+                cts.Token);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     /// <summary>URL absoluta del formulario de confirmación (mismo host/puerto con el que se registró).</summary>
     private string? EnlaceConfirmarEmailUsuario(string token)

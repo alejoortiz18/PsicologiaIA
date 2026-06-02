@@ -1042,8 +1042,42 @@ h3 { font-size: 1.125rem; font-weight: 600; font-family: var(--font-body); }   /
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   position: relative;
   overflow: hidden;
-  display: flex; align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   padding: var(--sp-4);
+}
+
+.room-card__banner-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  width: 100%;
+  z-index: 1;
+}
+
+.room-card__btn-ingresar {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.95);
+  color: var(--color-primary);
+  font-weight: 700;
+  border: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.room-card__btn-ingresar:hover {
+  background: #fff;
+  color: var(--color-primary-dark, var(--color-primary));
+}
+
+.ingreso-countdown-clock {
+  font-size: 3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.05em;
 }
 
 .room-card__banner-text {

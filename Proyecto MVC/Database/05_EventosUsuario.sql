@@ -156,14 +156,32 @@ BEGIN
         WHERE  ix.SalaId = s.SalaId AND ix.Estado NOT IN (N'Cancelada')
     ) insc
     OUTER APPLY (
-        SELECT TOP 1 e.FechaInicio, e.FechaFin, e.Nombre
+        SELECT TOP 1 e.FechaInicio, e.FechaFin, e.Nombre, e.Estado AS EstadoEvento
         FROM   Evento e
-        WHERE  e.SalaId = s.SalaId AND e.Estado = N'Abierto'
-        ORDER  BY e.FechaInicio ASC
+        WHERE  e.SalaId = s.SalaId
+        ORDER  BY e.FechaInicio DESC
     ) ev
     WHERE  i.UsuarioId = @UsuarioId AND i.Estado NOT IN (N'Cancelada')
       AND  s.Tipo = N'Publica'
-      AND  (ev.FechaFin IS NULL OR ev.FechaFin >= GETDATE())
+      AND  s.Estado = N'Abierta'
+      AND  ev.EstadoEvento <> N'Cerrado'
+      AND  ev.EstadoEvento <> N'Cancelado'
+      AND  (
+            CASE
+                WHEN ev.FechaInicio IS NULL THEN ev.FechaFin
+                WHEN ev.FechaFin IS NULL THEN DATEADD(MINUTE, 120, ev.FechaInicio)
+                WHEN DATEDIFF(MINUTE, ev.FechaInicio, ev.FechaFin) BETWEEN 15 AND 480
+                    THEN ev.FechaFin
+                ELSE DATEADD(MINUTE, 120, ev.FechaInicio)
+            END IS NULL
+            OR CASE
+                WHEN ev.FechaInicio IS NULL THEN ev.FechaFin
+                WHEN ev.FechaFin IS NULL THEN DATEADD(MINUTE, 120, ev.FechaInicio)
+                WHEN DATEDIFF(MINUTE, ev.FechaInicio, ev.FechaFin) BETWEEN 15 AND 480
+                    THEN ev.FechaFin
+                ELSE DATEADD(MINUTE, 120, ev.FechaInicio)
+            END >= GETDATE()
+          )
     ORDER  BY ev.FechaInicio ASC;
 END
 GO

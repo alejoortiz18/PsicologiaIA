@@ -64,6 +64,13 @@ public class ConfirmarEmailViewModel
     [DataType(DataType.Password)] public string ConfirmarPassword { get; set; } = string.Empty;
 }
 
+public class ReenviarConfirmacionViewModel
+{
+    [Required(ErrorMessage = "El correo es obligatorio.")]
+    [EmailAddress(ErrorMessage = "Correo inválido.")]
+    public string Correo { get; set; } = string.Empty;
+}
+
 public class ReenviarDocumentosViewModel
 {
     [Required][EmailAddress] public string Correo { get; set; } = string.Empty;

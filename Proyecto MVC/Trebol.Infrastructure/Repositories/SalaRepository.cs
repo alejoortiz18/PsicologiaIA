@@ -98,6 +98,17 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
         return result.AsList();
     }
 
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerInscritosCerradosUsuarioAsync(
+        int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerEventosInscritosCerradosUsuario",
+            new { UsuarioId = usuarioId },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
     public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerSemanaUsuarioAsync(
         int usuarioId, CancellationToken ct = default)
     {
@@ -207,6 +218,7 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
                      s.Tipo,
                      s.Estado,
                      s.CupoMaximo AS Capacidad,
+                     s.ChatHabilitado,
                      (SELECT COUNT(*)
                       FROM   Inscripcion i
                       WHERE  i.SalaId = s.SalaId AND i.Estado NOT IN ('Cancelada')) AS TotalInscritos,
@@ -220,6 +232,48 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
               LEFT JOIN Categoria c ON c.CategoriaId = s.CategoriaId
               WHERE  s.SalaId = @SalaId AND s.ProfesionalId = @ProfesionalId",
             new { SalaId = salaId, ProfesionalId = profesionalId });
+    }
+
+    public async Task<SalaConferenciaAsistenteDto?> ObtenerConferenciaAsistenteAsync(
+        int salaId, int? usuarioId, int? profesionalInscriptorId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.QueryFirstOrDefaultAsync<SalaConferenciaAsistenteDto>(
+            "sp_ObtenerConferenciaAsistente",
+            new { SalaId = salaId, UsuarioId = usuarioId, ProfesionalInscriptorId = profesionalInscriptorId },
+            commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<IReadOnlyList<EventoPublicoDto>> ObtenerInscritosProfesionalAsync(
+        int profesionalInscriptorId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<EventoPublicoDto>(
+            "sp_ObtenerEventosInscritosProfesional",
+            new { ProfesionalInscriptorId = profesionalInscriptorId },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<ResultadoOperacion> ToggleChatSalaAsync(
+        int salaId, int profesionalId, bool habilitado, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryFirstOrDefaultAsync<SpResult>(
+            "sp_ToggleChatSala",
+            new { SalaId = salaId, ProfesionalId = profesionalId, Habilitado = habilitado },
+            commandType: CommandType.StoredProcedure);
+        return result?.Exito == true
+            ? ResultadoOperacion.Ok(result.Mensaje)
+            : ResultadoOperacion.Fail(result?.Mensaje ?? "Error al actualizar chat.");
+    }
+
+    public async Task<bool> ChatHabilitadoAsync(int salaId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.ExecuteScalarAsync<bool>(
+            "SELECT ChatHabilitado FROM Sala WHERE SalaId = @SalaId",
+            new { SalaId = salaId });
     }
 
     public async Task<ResultadoOperacion<int>> CrearAsync(CrearSalaDto dto, CancellationToken ct = default)

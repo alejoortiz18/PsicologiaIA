@@ -21,10 +21,10 @@ public static class EventoVigenciaHelper
     {
         var ahora = DateTime.Now;
         var cerrada = string.Equals(estadoSala, "Cerrada", StringComparison.OrdinalIgnoreCase);
+        var finEfectivo = EventoIngresoHelper.FinEfectivo(fechaInicio, fechaFin);
 
         var yaPaso = cerrada
-            || (fechaFin.HasValue && fechaFin.Value < ahora)
-            || (fechaInicio.HasValue && fechaInicio.Value < ahora);
+            || (finEfectivo.HasValue && finEfectivo.Value < ahora);
 
         var enVivo = !yaPaso
             && fechaInicio.HasValue

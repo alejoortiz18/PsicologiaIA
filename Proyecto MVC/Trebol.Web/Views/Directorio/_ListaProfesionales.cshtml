@@ -4,6 +4,8 @@
 
     var esProfesional = User.IsInRole("Profesional");
     var esListaColegas = ViewData["EsListaColegas"] as bool? == true;
+    var mostrarResumenCitas = ViewData["MostrarResumenCitas"] as bool? == true;
+    var cultura = new System.Globalization.CultureInfo("es-CO");
 
     var avatarColors = new[] { "#2D4A8F", "#1A3C34", "#8E44AD", "#1A7A5C", "#D35400" };
 
@@ -174,6 +176,11 @@ else
                         }
 
                         <span>👥 @p.TotalSeguidos seguidores</span>
+
+                        @if (mostrarResumenCitas && p.TotalCitas > 0)
+                        {
+                            <span>📅 @p.TotalCitas cita@(p.TotalCitas == 1 ? "" : "s")@(p.UltimaCita.HasValue ? $" · última " + p.UltimaCita.Value.ToString("d MMM yyyy", cultura) : "")</span>
+                        }
 
                     </div>
 

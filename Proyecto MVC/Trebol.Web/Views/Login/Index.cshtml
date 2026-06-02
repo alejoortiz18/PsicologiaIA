@@ -75,6 +75,21 @@ body { background: var(--color-surface); }
                     <a asp-controller="Recuperacion" asp-action="SolicitarRecuperacion" class="text-sm" style="color:var(--color-primary-light);">¿Olvidaste tu contraseña?</a>
                 </div>
 
+                @if (ViewBag.MostrarReenviarConfirmacion == true)
+                {
+                    <div style="background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.35);border-radius:var(--radius-md);padding:var(--sp-4);margin-bottom:var(--sp-5);">
+                        <p style="font-size:.875rem;color:var(--color-text-secondary);margin:0 0 var(--sp-3);line-height:1.5;">
+                            Tu cuenta no está confirmada. Puedes solicitar un <strong>nuevo enlace</strong> (el anterior quedará invalidado).
+                        </p>
+                        <a asp-controller="Registro"
+                           asp-action="ReenviarConfirmacion"
+                           asp-route-correo="@(ViewBag.CorreoSinConfirmar as string ?? Model.Correo)"
+                           class="btn btn-secondary w-full">
+                            Reenviar correo de confirmación
+                        </a>
+                    </div>
+                }
+
                 <button type="submit" class="btn btn-primary w-full">
                     <span class="btn-text">Iniciar sesión</span>
                 </button>

@@ -1,5 +1,6 @@
 @model Trebol.Model.DTOs.Dashboard.HomeUsuarioIndexViewModel
 @using Trebol.Model.Enums
+@using Trebol.Web.Helpers
 @{
     ViewData["Title"] = "Inicio";
     Layout = "~/Views/Shared/_LayoutInterno.cshtml";
@@ -186,17 +187,35 @@
                         + (ev.Finalizado ? " home-inscripcion-item--muted" : "")
                         + (ev.EnVivo ? " home-inscripcion-item--live" : "");
 
-                    if (ev.EnVivo)
+                    var finEf = EventoIngresoHelper.FinEfectivo(ev.FechaInicio, ev.FechaFin);
+                    var mostrarIngresar = !ev.Finalizado;
+                    var urlIngreso = Url.Action("Asistente", "Conferencia", new { id = ev.SalaId })!;
+
+                    if (ev.EnVivo || mostrarIngresar)
                     {
-                        <a asp-controller="MisEventos" asp-action="Index" class="@itemClass" aria-label="Ingresar a @ev.Titulo — en vivo">
-                            <div class="home-inscripcion-item__icon" style="background:@iconBg;">🧘</div>
+                        <div class="@itemClass home-inscripcion-item--con-ingreso">
+                            <div class="home-inscripcion-item__icon" style="background:@iconBg;">@(ev.EnVivo ? "🧘" : "🎪")</div>
                             <div class="home-inscripcion-item__body">
-                                <div class="home-inscripcion-item__title" style="color:var(--color-primary);">@ev.Titulo</div>
+                                <div class="home-inscripcion-item__title" style="@(ev.EnVivo ? "color:var(--color-primary);" : "")">@ev.Titulo</div>
                                 <div class="home-inscripcion-item__sub">@meta</div>
                             </div>
-                            <span class="badge badge-success" style="flex-shrink:0;white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
-                            <span class="evt-enter">Ingresar →</span>
-                        </a>
+                            @if (ev.EnVivo)
+                            {
+                                <span class="badge badge-success" style="flex-shrink:0;white-space:nowrap;"><span class="badge-dot"></span>En vivo</span>
+                            }
+                            else
+                            {
+                                <span class="badge @BadgeInscripcion(ev)" style="flex-shrink:0;white-space:nowrap;">@TextoBadgeInscripcion(ev)</span>
+                            }
+                            @if (mostrarIngresar)
+                            {
+                                <button type="button" class="btn btn-primary btn-sm btn-ingresar-evento evt-enter-btn"
+                                        data-sala-id="@ev.SalaId"
+                                        data-fecha-inicio="@ev.FechaInicio?.ToString("o")"
+                                        data-fecha-fin="@finEf?.ToString("o")"
+                                        data-url="@urlIngreso">Ingresar</button>
+                            }
+                        </div>
                     }
                     else
                     {
@@ -300,10 +319,7 @@
     }
 </div>
 
-@await Html.PartialAsync("_ModalDetalleCita")
-
 @section Scripts {
 @Html.AntiForgeryToken()
 <script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
-<script src="~/js/cita-detalle-modal.js" asp-append-version="true"></script>
 }

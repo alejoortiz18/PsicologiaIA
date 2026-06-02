@@ -4,6 +4,8 @@
     var cultura = new System.Globalization.CultureInfo("es-CO");
     var cuposRestantes = Math.Max(0, Model.Capacidad - Model.TotalInscritos);
     var vigencia = EventoVigenciaHelper.Evaluar(Model.FechaInicio, Model.FechaFin, Model.Estado, Model.EsInscrito, cuposRestantes);
+    var finEfectivo = EventoIngresoHelper.FinEfectivo(Model.FechaInicio, Model.FechaFin);
+    var mostrarIngresar = EventoIngresoHelper.MostrarBotonIngresar(Model.EsInscrito, Model.FechaInicio, Model.FechaFin, Model.Estado);
     var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", cultura);
     var sinCupos = !Model.EsInscrito && cuposRestantes == 0;
     var filtroEstado = vigencia.YaPaso ? "finalizada" : vigencia.EnVivo ? "envivo" : "abierta";
@@ -32,6 +34,7 @@
         : (vigencia.YaPaso ? "Este evento ya finalizó"
             : (sinCupos ? "Sin cupos disponibles"
                 : (Model.Precio > 0 ? "Inscribirse y pagar en este evento" : "Registrarse en este evento")));
+    var urlIngreso = Url.Action("Asistente", "Conferencia", new { id = Model.SalaId })!;
 }
 <article class="room-card@(vigencia.YaPaso ? " room-card--pasado" : "")" aria-label="Sala: @Model.Titulo"
          data-sala-id="@Model.SalaId"
@@ -41,12 +44,26 @@
          data-nombre="@Model.Titulo.ToLowerInvariant()"
          data-estado="@filtroEstado">
     <div class="room-card__banner" style="background:@bannerBg;@(vigencia.YaPaso ? "opacity:.85;" : "")">
-        <div class="room-card__banner-text">@Model.Titulo</div>
         <div class="room-card__badge">
             <span class="badge @vigencia.BadgeClass">
                 @if (vigencia.MostrarBadgeDot) { <span class="badge-dot" aria-hidden="true"></span> }
                 @vigencia.BadgeText
             </span>
+        </div>
+        <div class="room-card__banner-row">
+            <div class="room-card__banner-text">@Model.Titulo</div>
+            @if (mostrarIngresar)
+            {
+                <button type="button"
+                        class="btn btn-sm room-card__btn-ingresar btn-ingresar-evento"
+                        data-sala-id="@Model.SalaId"
+                        data-fecha-inicio="@Model.FechaInicio?.ToString("o")"
+                        data-fecha-fin="@finEfectivo?.ToString("o")"
+                        data-url="@urlIngreso"
+                        aria-label="Ingresar al evento @Model.Titulo">
+                    ▶ Ingresar
+                </button>
+            }
         </div>
     </div>
     <div class="room-card__body">

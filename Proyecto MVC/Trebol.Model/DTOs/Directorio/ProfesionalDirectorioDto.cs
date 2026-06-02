@@ -13,4 +13,6 @@ public class ProfesionalDirectorioDto
     public string? SobreMi        { get; set; }
     public string? TipoProfesional { get; set; }
     public List<string> Especialidades { get; set; } = [];
+    public DateTime? UltimaCita { get; set; }
+    public int TotalCitas { get; set; }
 }

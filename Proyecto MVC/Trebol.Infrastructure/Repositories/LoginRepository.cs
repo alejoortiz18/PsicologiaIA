@@ -43,10 +43,20 @@ public class LoginRepository(IConfiguration configuration, IPasswordHelper passw
 
         if (row is null) return null;
 
-        // Usuario: sin activar correo / contraseña
-        if (row.TipoEntidad == "Usuario"
-            && (row.Estado == "PENDIENTE" || string.IsNullOrWhiteSpace(row.PasswordHash)))
-            return new UsuarioSesionDto { TipoEntidad = "SinConfirmar" };
+        // Usuario pendiente de confirmar correo
+        if (row.TipoEntidad == "Usuario" && row.Estado == "PENDIENTE")
+        {
+            if (!string.IsNullOrWhiteSpace(row.PasswordHash)
+                && !passwordHelper.VerifyPassword(password, row.PasswordHash))
+                return null;
+
+            return new UsuarioSesionDto
+            {
+                TipoEntidad    = "SinConfirmar",
+                Correo         = row.Correo,
+                NombreCompleto = row.NombreCompleto
+            };
+        }
 
         // Retornar tipo especial para estados no activos (mensaje claro al usuario)
         if (row.Estado == "PENDIENTE_VALIDACION")

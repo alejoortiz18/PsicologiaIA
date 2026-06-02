@@ -6,7 +6,8 @@
         ? int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value)
         : (int?)null;
     var usarInscripcion = User.IsInRole("Usuario")
-        || (miProfesionalId.HasValue && miProfesionalId != Model.Perfil.ProfesionalId);
+        || (miProfesionalId.HasValue && miProfesionalId != Model.Perfil.ProfesionalId)
+        || Model.ModoVistaPublica;
 }
 
 <div id="tab-salas">

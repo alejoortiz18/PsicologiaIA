@@ -21,16 +21,16 @@ public class PerfilOradorController(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public Task<IActionResult> Index(int id)
-        => MostrarAsync(id, "cuenta", async vm =>
+    public Task<IActionResult> Index(int id, bool vistaPublica = false)
+        => MostrarAsync(id, "cuenta", vistaPublica, async vm =>
         {
             vm.Estudios = await profesionalRepo.ObtenerEstudiosAsync(id, HttpContext.RequestAborted);
             PerfilOradorPresentacion.EnriquecerTabCuenta(vm, User.IsInRole("Usuario"));
             return View("Index", vm);
         });
 
-    public Task<IActionResult> Salas(int id)
-        => MostrarAsync(id, "salas", async vm =>
+    public Task<IActionResult> Salas(int id, bool vistaPublica = false)
+        => MostrarAsync(id, "salas", vistaPublica, async vm =>
         {
             vm.Salas = await salaRepo.ObtenerPorProfesionalAsync(id, HttpContext.RequestAborted);
             var participante = InscripcionParticipante.From(User);
@@ -46,28 +46,18 @@ public class PerfilOradorController(
             }
 
             if (vm.SalasEventos.Count == 0 && vm.Salas.Count > 0
-                && (participante.UsuarioId.HasValue || participante.ProfesionalInscriptorId.HasValue))
+                && (vistaPublica
+                    || participante.UsuarioId.HasValue
+                    || participante.ProfesionalInscriptorId.HasValue))
             {
-                vm.SalasEventos = vm.Salas.Select(s => new Trebol.Model.DTOs.Publico.EventoPublicoDto
-                {
-                    SalaId            = s.SalaId,
-                    ProfesionalId     = s.ProfesionalId,
-                    Titulo            = s.Titulo,
-                    NombreProfesional = vm.Perfil.NombreCompleto,
-                    Categoria         = s.Categoria,
-                    Estado            = s.Estado.ToString(),
-                    Capacidad         = s.Capacidad,
-                    TotalInscritos    = s.TotalInscritos,
-                    Precio            = s.Precio,
-                    FechaInicio       = s.FechaInicio
-                }).ToList();
+                vm.SalasEventos = MapearSalasComoEventosPublicos(vm);
             }
 
             return View("Salas", vm);
         });
 
-    public Task<IActionResult> Comentarios(int id)
-        => MostrarAsync(id, "comentarios", async vm =>
+    public Task<IActionResult> Comentarios(int id, bool vistaPublica = false)
+        => MostrarAsync(id, "comentarios", vistaPublica, async vm =>
         {
             var uid = UsuarioActualId();
             vm.Comentarios = await profesionalRepo.ObtenerComentariosPublicosAsync(id, uid, HttpContext.RequestAborted);
@@ -76,8 +66,8 @@ public class PerfilOradorController(
             return View("Comentarios", vm);
         });
 
-    public Task<IActionResult> Calendario(int id)
-        => MostrarAsync(id, "calendario", async vm =>
+    public Task<IActionResult> Calendario(int id, bool vistaPublica = false)
+        => MostrarAsync(id, "calendario", vistaPublica, async vm =>
         {
             vm.Disponibilidad = await calendarioRepo.ObtenerDisponibilidadAsync(id, HttpContext.RequestAborted);
             vm.Bloqueos = await calendarioRepo.ObtenerBloqueosAsync(id, HttpContext.RequestAborted);
@@ -139,20 +129,24 @@ public class PerfilOradorController(
     }
 
     private async Task<IActionResult> MostrarAsync(
-        int id, string tab, Func<PerfilOradorPublicoVm, Task<IActionResult>> render)
+        int id, string tab, bool vistaPublica, Func<PerfilOradorPublicoVm, Task<IActionResult>> render)
     {
+        int? miProfesionalId = null;
         if (User.IsInRole("Profesional"))
         {
-            var miId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            if (id == miId)
+            miProfesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (id == miProfesionalId && !vistaPublica)
                 return RedirectToAction("Index", "PerfilProfesional");
         }
 
         var vm = await ConstruirVmAsync(id, tab);
         if (vm is null) return NotFound();
 
+        vm.ModoVistaPublica = vistaPublica;
+        vm.EsVistaPreviaPropia = vistaPublica && miProfesionalId == id;
+
         ViewData["EsPerfilPublico"] = true;
-        ViewData["Title"]           = "Perfil del orador";
+        ViewData["Title"]           = vm.EsVistaPreviaPropia ? "Vista previa del perfil público" : "Perfil del orador";
         return await render(vm);
     }
 
@@ -171,10 +165,7 @@ public class PerfilOradorController(
 
         var esSeguido = false;
         if (User.IsInRole("Usuario") && uid.HasValue)
-        {
-            var mentores = await directorioRepo.ObtenerMisMentoresAsync(uid.Value, HttpContext.RequestAborted);
-            esSeguido = mentores.Any(m => m.ProfesionalId == id);
-        }
+            esSeguido = await directorioRepo.EsSeguidorAsync(uid.Value, id, HttpContext.RequestAborted);
 
         return new PerfilOradorPublicoVm
         {
@@ -192,4 +183,19 @@ public class PerfilOradorController(
         => User.IsInRole("Usuario")
             ? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
             : null;
+
+    private static List<Trebol.Model.DTOs.Publico.EventoPublicoDto> MapearSalasComoEventosPublicos(PerfilOradorPublicoVm vm)
+        => vm.Salas.Select(s => new Trebol.Model.DTOs.Publico.EventoPublicoDto
+        {
+            SalaId            = s.SalaId,
+            ProfesionalId     = s.ProfesionalId,
+            Titulo            = s.Titulo,
+            NombreProfesional = vm.Perfil.NombreCompleto,
+            Categoria         = s.Categoria,
+            Estado            = s.Estado.ToString(),
+            Capacidad         = s.Capacidad,
+            TotalInscritos    = s.TotalInscritos,
+            Precio            = s.Precio,
+            FechaInicio       = s.FechaInicio
+        }).ToList();
 }

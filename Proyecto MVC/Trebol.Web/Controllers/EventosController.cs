@@ -10,18 +10,25 @@ namespace Trebol.Web.Controllers;
 [Authorize(Roles = "Usuario,Profesional")]
 public class EventosController(ISalaRepository salaRepo) : Controller
 {
-    private int EntidadId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
     // GET /Eventos
-    [Authorize(Roles = "Usuario")]
     public async Task<IActionResult> Index(CancellationToken ct)
     {
-        var vm = new EventosUsuarioViewModel
+        var p = InscripcionParticipante.From(User);
+        var vm = new EventosUsuarioViewModel();
+
+        if (p.UsuarioId is int uid)
         {
-            Inscritos     = await salaRepo.ObtenerInscritosUsuarioAsync(EntidadId, ct),
-            EstaSemana    = await salaRepo.ObtenerSemanaUsuarioAsync(EntidadId, ct),
-            TodosVigentes = await salaRepo.ObtenerTodosVigentesAsync(EntidadId, ct)
-        };
+            vm.Inscritos     = await salaRepo.ObtenerInscritosUsuarioAsync(uid, ct);
+            vm.EstaSemana    = await salaRepo.ObtenerSemanaUsuarioAsync(uid, ct);
+            vm.TodosVigentes = await salaRepo.ObtenerTodosVigentesAsync(uid, ct);
+        }
+        else if (p.ProfesionalInscriptorId is int pid)
+        {
+            vm.Inscritos     = await salaRepo.ObtenerInscritosProfesionalAsync(pid, ct);
+            vm.EstaSemana    = [];
+            vm.TodosVigentes = [];
+        }
+
         return View(vm);
     }
 

@@ -40,6 +40,8 @@ public class LoginController(ILoginRepository loginRepo, ILandingRepository land
 
         if (resultado.TipoEntidad == "SinConfirmar")
         {
+            ViewBag.MostrarReenviarConfirmacion = true;
+            ViewBag.CorreoSinConfirmar = string.IsNullOrWhiteSpace(resultado.Correo) ? vm.Correo : resultado.Correo;
             ModelState.AddModelError(string.Empty, AuthConstant.CuentaSinConfirmar);
             return View(vm);
         }

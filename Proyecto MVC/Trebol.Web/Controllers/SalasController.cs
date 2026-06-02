@@ -1,17 +1,21 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Trebol.Constants.Messages;
 using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Sala;
 using Trebol.Model.Enums;
+using Trebol.Web.Helpers;
+using Trebol.Web.Hubs;
 
 namespace Trebol.Web.Controllers;
 
 [Authorize(Roles = "Profesional")]
 public class SalasController(
     ISalaRepository salaRepo,
-    ICitaRepository citaRepo) : Controller
+    ICitaRepository citaRepo,
+    IHubContext<ConferenciaHub> conferenciaHub) : Controller
 {
     public async Task<IActionResult> Index()
     {
@@ -197,11 +201,22 @@ public class SalasController(
         });
     }
 
-    private bool PuedeIngresarCita(SalaCitaProfesionalDto cita)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleChatSala(int salaId, bool habilitado)
     {
-        if (cita.Estado is not (EstadoCita.Programada or EstadoCita.Movida))
-            return false;
+        var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var resultado = await salaRepo.ToggleChatSalaAsync(salaId, profesionalId, habilitado);
+        if (resultado.Exito)
+        {
+            await conferenciaHub.Clients
+                .Group(ConferenciaHub.GrupoSala(salaId))
+                .SendAsync("ChatEstadoActualizado", habilitado);
+        }
 
-        return cita.EsHoy;
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
     }
+
+    private static bool PuedeIngresarCita(SalaCitaProfesionalDto cita)
+        => CitaSalaHelper.PuedeIngresar(cita.Estado, cita.FechaHora, cita.FechaHoraFin);
 }

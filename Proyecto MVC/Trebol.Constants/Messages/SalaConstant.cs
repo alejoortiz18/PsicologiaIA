@@ -10,4 +10,7 @@ public static class SalaConstant
     public const string SalaFinalizada    = "La sala de conferencia fue finalizada.";
     public const string SinPermisoConferencia = "No tienes permiso para moderar esta sala.";
     public const string ConferenciaNoActiva   = "La sala no está activa para transmitir.";
+    public const string IngresoMuyTemprano    = "El evento aún no está habilitado para el ingreso. Podrás entrar 3 minutos antes de la hora de inicio.";
+    public const string IngresoEventoFinalizado = "Este evento ya finalizó.";
+    public const string IngresoNoInscrito     = "Debes estar inscrito para ingresar al evento.";
 }

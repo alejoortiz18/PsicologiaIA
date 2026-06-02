@@ -1,0 +1,54 @@
+@model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
+@using Trebol.Model.DTOs.Directorio
+@{
+    ViewData["Title"] = "Mis mentores";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var items = Model.ToList();
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+}
+
+<div class="page-header mb-6">
+    <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;">👥 Mis mentores</h1>
+    <p class="text-meta" style="margin-top:4px;">
+        Profesionales con los que has tenido o tienes citas de asesoría o acompañamiento (seguimiento).
+    </p>
+</div>
+
+@if (items.Any())
+{
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--sp-4);margin-bottom:var(--sp-6);">
+        <div class="card" style="padding:var(--sp-4);text-align:center;">
+            <div style="font-size:1.5rem;font-weight:700;color:var(--color-primary);">@items.Count</div>
+            <div class="text-meta">Profesional@(items.Count == 1 ? "" : "es")</div>
+        </div>
+        <div class="card" style="padding:var(--sp-4);text-align:center;">
+            <div style="font-size:1.5rem;font-weight:700;color:var(--color-primary);">@items.Sum(m => m.TotalCitas)</div>
+            <div class="text-meta">Citas en total</div>
+        </div>
+        <div class="card" style="padding:var(--sp-4);text-align:center;">
+            <div style="font-size:1.5rem;font-weight:700;color:var(--color-primary);">@items.Count(m => m.EsSeguido)</div>
+            <div class="text-meta">Que sigues</div>
+        </div>
+    </div>
+}
+
+@if (items.Any())
+{
+    ViewData["MostrarResumenCitas"] = true;
+    @await Html.PartialAsync("_ListaProfesionales", Model)
+}
+else
+{
+    <div class="card" style="padding:var(--sp-12);text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--sp-4);">👥</div>
+        <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">Aún no tienes mentores por citas</div>
+        <p style="margin:0 0 var(--sp-6);color:var(--color-text-muted);font-size:.875rem;max-width:420px;margin-left:auto;margin-right:auto;">
+            Cuando agendes una asesoría o sesión de acompañamiento, el profesional aparecerá aquí automáticamente.
+        </p>
+        <a asp-controller="Directorio" asp-action="Medicos" class="btn btn-primary">Buscar profesional</a>
+    </div>
+}
+
+@section Scripts {
+@Html.AntiForgeryToken()
+}

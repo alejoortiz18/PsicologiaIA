@@ -294,7 +294,7 @@ function initTabs(container) {
   const el = typeof container === 'string' ? document.querySelector(container) : container;
   if (!el) return;
 
-  const tabItems = el.querySelectorAll('.tab-item');
+  const tabItems = el.querySelectorAll('.tab-item[data-tab], .prof-tab-link[data-tab]');
   const tabContents = el.querySelectorAll('.tab-content');
 
   tabItems.forEach((item, i) => {
@@ -303,7 +303,10 @@ function initTabs(container) {
       tabContents.forEach(c => c.classList.remove('active'));
       item.classList.add('active');
       item.setAttribute('aria-selected', 'true');
-      if (tabContents[i]) tabContents[i].classList.add('active');
+      const targetId = item.dataset.tab;
+      const target = targetId ? el.querySelector(`#${CSS.escape(targetId)}`) : null;
+      if (target) target.classList.add('active');
+      else if (tabContents[i]) tabContents[i].classList.add('active');
     });
   });
 }

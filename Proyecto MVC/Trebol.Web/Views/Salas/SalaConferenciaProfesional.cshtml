@@ -52,8 +52,8 @@
             Pantalla
         </div>
         <div class="ctrl-label">
-            <button type="button" class="ctrl-btn ctrl-btn--active-green" id="btn-chat-toggle" onclick="toggleChatEnabled()" title="Preguntas">💬</button>
-            Preguntas
+            <button type="button" class="ctrl-btn @(Model.ChatHabilitado ? "ctrl-btn--active-green" : "ctrl-btn--off")" id="btn-chat-toggle" onclick="toggleChatEnabled()" title="Chat grupal">💬</button>
+            Chat
         </div>
         <div class="ctrl-label">
             <button type="button" class="ctrl-btn ctrl-btn--normal" data-open-modal="attendees-modal" title="Asistentes">👥</button>
@@ -68,7 +68,7 @@
     <aside class="conf-side" aria-label="Panel de la conferencia">
         <div class="conf-tabs" role="tablist">
             <button type="button" class="conf-tab active" role="tab" data-ctab="tab-questions" aria-selected="true">
-                ❓ Preguntas <span class="conf-tab-count">3</span>
+                💬 Chat <span class="conf-tab-count" id="conf-tab-msg-count" hidden>0</span>
             </button>
             <button type="button" class="conf-tab" role="tab" data-ctab="tab-info" aria-selected="false">ℹ️ Info</button>
         </div>
@@ -76,16 +76,22 @@
         <div class="conf-panel-section active" id="tab-questions">
             <div class="conf-chat-bar">
                 <div>
-                    <div class="conf-chat-bar__label">Preguntas de asistentes</div>
+                    <div class="conf-chat-bar__label">Chat grupal de asistentes</div>
                     <div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:2px;">Solo tú ves el alias de quien escribe</div>
                 </div>
-                <label class="toggle-switch" aria-label="Habilitar preguntas">
-                    <input type="checkbox" id="chat-toggle-check" checked onchange="syncChatToggle()">
+                <label class="toggle-switch" aria-label="Habilitar chat grupal">
+                    <input type="checkbox" id="chat-toggle-check" @(Model.ChatHabilitado ? "checked" : "") onchange="syncChatToggle()">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
-            <div class="conf-msg-list" role="log" aria-live="polite" id="conf-msg-list">
-                <div class="notif-empty" style="padding:var(--sp-6);">Aún no hay preguntas en esta sala. Las preguntas de los asistentes aparecerán aquí.</div>
+            <div id="conf-chat-pro-disabled" class="conf-chat-disabled" role="status" @(Model.ChatHabilitado ? "hidden" : null)>
+                <p>El chat grupal está deshabilitado.</p>
+                <p class="text-meta">Actívalo con el interruptor para que los asistentes puedan escribir.</p>
+            </div>
+            <div id="conf-chat-pro-active" class="conf-chat-pro-active" @(!Model.ChatHabilitado ? "hidden" : null)>
+                <div class="conf-msg-list" role="log" aria-live="polite" id="conf-msg-list">
+                    <div class="notif-empty conf-chat-welcome" style="padding:var(--sp-6);">Aún no hay mensajes. Los mensajes de los asistentes aparecerán aquí.</div>
+                </div>
             </div>
         </div>
 
@@ -144,35 +150,60 @@
 @section Scripts {
 @Html.AntiForgeryToken()
 <script>
-let chatEnabled = true;
+window.confSalaHub = {
+  salaId: @Model.SalaId,
+  chatHabilitado: @(Model.ChatHabilitado ? "true" : "false"),
+  rol: 'profesional'
+};
+</script>
+<script src="~/js/conf-sala-hub.js" asp-append-version="true"></script>
+<script>
+let chatEnabled = @(Model.ChatHabilitado ? "true" : "false");
+
+async function persistChatToggle(habilitado) {
+  const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+  const res = await fetch('/Salas/ToggleChatSala', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `salaId=@Model.SalaId&habilitado=${habilitado ? 'true' : 'false'}&__RequestVerificationToken=${encodeURIComponent(token)}`
+  });
+  const d = await res.json();
+  if (!d.exito && typeof showToast === 'function') {
+    showToast({ title: d.mensaje || 'Error al actualizar chat', type: 'error' });
+  }
+  return d.exito;
+}
 
 function syncChatToggle() {
   chatEnabled = document.getElementById('chat-toggle-check').checked;
-  updateChatUI();
+  persistChatToggle(chatEnabled).then(ok => { if (ok) updateChatUI(true); });
 }
 
 function toggleChatEnabled() {
   chatEnabled = !chatEnabled;
   document.getElementById('chat-toggle-check').checked = chatEnabled;
-  updateChatUI();
+  persistChatToggle(chatEnabled).then(ok => { if (ok) updateChatUI(true); });
 }
 
-function updateChatUI() {
+function updateChatUI(mostrarToast) {
   const btn = document.getElementById('btn-chat-toggle');
-  if (!btn) return;
-  if (chatEnabled) {
-    btn.classList.remove('ctrl-btn--off');
-    btn.classList.add('ctrl-btn--active-green');
-    if (typeof showToast === 'function') showToast({ title: 'Preguntas habilitadas', type: 'success' });
-  } else {
-    btn.classList.remove('ctrl-btn--active-green');
-    btn.classList.add('ctrl-btn--off');
-    if (typeof showToast === 'function') showToast({ title: 'Preguntas deshabilitadas', type: 'info' });
+  if (btn) {
+    if (chatEnabled) {
+      btn.classList.remove('ctrl-btn--off');
+      btn.classList.add('ctrl-btn--active-green');
+    } else {
+      btn.classList.remove('ctrl-btn--active-green');
+      btn.classList.add('ctrl-btn--off');
+    }
+  }
+  if (typeof window.confSalaAplicarChat === 'function') {
+    window.confSalaAplicarChat(chatEnabled, mostrarToast !== false);
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   initConfTabs();
+  updateChatUI(false);
 
   document.getElementById('confirm-end-conf')?.addEventListener('click', async () => {
     const btn = document.getElementById('confirm-end-conf');

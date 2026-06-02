@@ -109,12 +109,12 @@ body { background: var(--color-surface); }
                     : mensajeToken)
             </p>
             <p style="margin:var(--sp-3) 0 0;color:var(--color-text-muted);font-size:.875rem;">
-                Si ya activaste tu cuenta, inicia sesión. Si no, regístrate de nuevo.
+                Si ya activaste tu cuenta, inicia sesión. Si el enlace expiró, solicita uno nuevo.
             </p>
         </div>
         <div class="modal-footer">
-            <a asp-controller="Login" asp-action="Index" class="btn btn-primary">Iniciar sesión</a>
-            <a asp-controller="Registro" asp-action="RegistroUsuario" class="btn btn-secondary">Crear cuenta</a>
+            <a asp-controller="Registro" asp-action="ReenviarConfirmacion" class="btn btn-primary">Reenviar confirmación</a>
+            <a asp-controller="Login" asp-action="Index" class="btn btn-secondary">Iniciar sesión</a>
         </div>
     </div>
 </div>

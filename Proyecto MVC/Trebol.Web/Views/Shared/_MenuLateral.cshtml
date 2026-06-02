@@ -41,7 +41,8 @@
     <div class="nav-section">
         <div class="nav-section__label">Mi espacio</div>
         <a asp-controller="Citas" asp-action="Index"
-           class="nav-item @(Is("Citas") ? "active" : "")">
+           class="nav-item @(Is("Citas") ? "active" : "")"
+           aria-current="@(Is("Citas") ? "page" : null)">
             <span class="nav-item__icon">📅</span> Mis citas
         </a>
         <a asp-controller="MisEventos" asp-action="Index"
@@ -52,12 +53,9 @@
            class="nav-item @(Is("Mensajeria") ? "active" : "")">
             <span class="nav-item__icon">💬</span> Mensajes
         </a>
-        <a asp-controller="Calendario" asp-action="Index"
-           class="nav-item @(Is("Calendario") ? "active" : "")">
-            <span class="nav-item__icon">🗓</span> Calendario
-        </a>
         <a asp-controller="PerfilUsuario" asp-action="Index"
-           class="nav-item @(Is("PerfilUsuario") ? "active" : "")">
+           class="nav-item @(Is("PerfilUsuario") ? "active" : "")"
+           aria-current="@(Is("PerfilUsuario") ? "page" : null)">
             <span class="nav-item__icon">👤</span> Mi perfil
         </a>
     </div>
@@ -74,6 +72,10 @@ else if (rol == "Profesional")
         <a asp-controller="MisEventos" asp-action="Index"
            class="nav-item @(Is("MisEventos") ? "active" : "")">
             <span class="nav-item__icon">🎪</span> Mis eventos
+        </a>
+        <a asp-controller="Eventos" asp-action="Index"
+           class="nav-item @(Is("Eventos") ? "active" : "")">
+            <span class="nav-item__icon">🎫</span> Eventos inscritos
         </a>
         <div class="nav-item @(ctrl is "Directorio" ? "open" : "")" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="@(ctrl is "Directorio" ? "true" : "false")">
             <span class="nav-item__icon">👥</span> Profesionales

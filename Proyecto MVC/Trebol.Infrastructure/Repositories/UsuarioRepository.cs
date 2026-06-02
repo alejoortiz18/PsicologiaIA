@@ -83,6 +83,38 @@ public class UsuarioRepository(AppDbContext context, IConfiguration configuratio
             : ResultadoOperacion.Fail(result?.Mensaje ?? "Error al activar.");
     }
 
+    public async Task<bool> EstaPendienteConfirmacionAsync(string correo, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(correo)) return false;
+
+        using var conn = CrearConexion();
+        var count = await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM Usuario WHERE Correo = @Correo AND Estado = N'PENDIENTE'",
+            new { Correo = correo.Trim() });
+
+        return count > 0;
+    }
+
+    public async Task<ResultadoOperacion<(string NombreCompleto, string Correo)>> ReenviarConfirmacionAsync(
+        string correo, string token, DateTime expiracion, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(correo) || string.IsNullOrWhiteSpace(token))
+            return ResultadoOperacion<(string, string)>.Fail("Datos inválidos.");
+
+        using var conn = CrearConexion();
+        var result = await conn.QueryFirstOrDefaultAsync<ReenviarConfirmacionRow>(
+            "sp_ReenviarConfirmacionUsuario",
+            new { Correo = correo.Trim(), Token = token, Expiracion = expiracion },
+            commandType: CommandType.StoredProcedure);
+
+        if (result?.Exito != true || string.IsNullOrWhiteSpace(result.NombreCompleto))
+            return ResultadoOperacion<(string, string)>.Fail(result?.Mensaje ?? "No se pudo reenviar la confirmación.");
+
+        return ResultadoOperacion<(string, string)>.Ok(
+            (result.NombreCompleto, correo.Trim()),
+            result.Mensaje);
+    }
+
     public async Task<Usuario?> ObtenerPorCorreoAsync(string correo, CancellationToken ct = default)
         => await context.Usuarios
                         .AsNoTracking()
@@ -151,7 +183,33 @@ public class UsuarioRepository(AppDbContext context, IConfiguration configuratio
         return result.AsList();
     }
 
+    public async Task<IReadOnlyList<InscripcionPerfilDto>> ObtenerEventosInscritosPerfilAsync(
+        int usuarioId, int pagina = 1, int tamanoPagina = 7, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<InscripcionPerfilDto>(
+            "sp_ObtenerEventosInscritosPerfilUsuario",
+            new { UsuarioId = usuarioId, Pagina = pagina, TamanoPagina = tamanoPagina },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<int> ContarEventosInscritosPerfilAsync(int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.QueryFirstOrDefaultAsync<int>(
+            "sp_ContarEventosInscritosPerfilUsuario",
+            new { UsuarioId = usuarioId },
+            commandType: CommandType.StoredProcedure);
+    }
+
     private sealed class SpResult { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; }
     private sealed class SpResultId { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; public int Id { get; init; } }
     private sealed class TokenUsuarioRow { public string Correo { get; init; } = ""; public string NombreCompleto { get; init; } = ""; }
+    private sealed class ReenviarConfirmacionRow
+    {
+        public bool Exito { get; init; }
+        public string Mensaje { get; init; } = "";
+        public string? NombreCompleto { get; init; }
+    }
 }

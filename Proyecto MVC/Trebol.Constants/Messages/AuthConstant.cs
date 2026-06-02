@@ -5,7 +5,7 @@ public static class AuthConstant
     public const string CredencialesInvalidas  = "Correo o contraseña incorrectos.";
     public const string CuentaBloqueada        = "Tu cuenta está bloqueada. Contacta al administrador.";
     public const string CuentaPendiente        = "Tu cuenta está pendiente de validación. Recibirás un correo cuando sea aprobada.";
-    public const string CuentaSinConfirmar     = "Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.";
+    public const string CuentaSinConfirmar     = "Tu cuenta aún no ha sido confirmada. Revisa tu correo o solicita un nuevo enlace de confirmación.";
     public const string CuentaEnRevision       = "Tu solicitud está siendo revisada. Recibirás un correo con el resultado en 3–5 días hábiles.";
     public const string CuentaRechazada        = "Tu solicitud fue rechazada. Revisa el correo de notificación y reenvia tus documentos corregidos.";
     public const string TokenInvalido          = "El enlace es inválido o ha expirado.";

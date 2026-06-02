@@ -15,4 +15,5 @@ public class SalaConferenciaProfesionalDto
     public int        TotalInscritos   { get; set; }
     public DateTime?  FechaInicio      { get; set; }
     public string     NombreProfesional { get; set; } = string.Empty;
+    public bool       ChatHabilitado    { get; set; }
 }

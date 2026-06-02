@@ -166,12 +166,24 @@
     perfilLink.href = `/PerfilOrador/Index/${d.profesionalId ?? d.ProfesionalId}`;
 
     const regBtn = document.getElementById('detail-modal-reg-btn');
+    const ingBtn = document.getElementById('detail-modal-ingresar-btn');
     regBtn.dataset.salaId = salaId;
     regBtn.dataset.salaTitulo = d.titulo || '';
     regBtn.classList.add('btn-reg-sala');
+    ingBtn.style.display = 'none';
+    regBtn.style.display = '';
 
     if (d.esInscrito) {
       markInscrito(regBtn);
+      const pasado = eventoYaPaso(d);
+      if (!pasado) {
+        const fin = d.fechaFin ? new Date(d.fechaFin) : null;
+        ingBtn.dataset.salaId = salaId;
+        ingBtn.dataset.fechaInicio = d.fechaInicio || '';
+        ingBtn.dataset.fechaFin = fin ? fin.toISOString() : '';
+        ingBtn.dataset.url = `/Conferencia/Asistente/${encodeURIComponent(salaId)}`;
+        ingBtn.style.display = '';
+      }
       return;
     }
 
@@ -210,7 +222,7 @@
     }
 
     const regBtn = e.target.closest('#detail-modal-reg-btn, .btn-reg-sala');
-    if (regBtn) {
+    if (regBtn && !e.target.closest('.btn-ingresar-evento')) {
       inscribirSala(regBtn, e);
       return;
     }

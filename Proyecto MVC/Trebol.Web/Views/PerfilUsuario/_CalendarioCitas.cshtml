@@ -1,0 +1,35 @@
+<div class="perfil-orador-info-banner perfil-usuario-cal-banner">
+    <span style="font-size:1.2rem;flex-shrink:0;" aria-hidden="true">📅</span>
+    <div class="perfil-orador-info-banner__text">
+        <strong>Tu agenda de citas y eventos</strong><br />
+        Incluye citas pasadas y próximas, y los eventos en los que estás inscrito. Rosa = cita privada · Teal = evento inscrito. Usa ‹ › para ver semanas anteriores.
+    </div>
+</div>
+
+<div class="perfil-orador-calendar-wrap">
+    <div class="tcal-toolbar">
+        <button type="button" class="btn btn-ghost btn-sm" id="tcal-hoy">Hoy</button>
+        <div class="tcal-nav-group">
+            <button type="button" class="tcal-nav-btn" id="tcal-prev" aria-label="Anterior">‹</button>
+            <button type="button" class="tcal-nav-btn" id="tcal-next" aria-label="Siguiente">›</button>
+        </div>
+        <div class="tcal-nav-title" id="tcal-nav-title">Cargando…</div>
+        <div style="flex:1;"></div>
+        <div class="tcal-view-pills" role="group" aria-label="Vista del calendario">
+            <button type="button" class="tcal-vpill" data-view="mensual" aria-pressed="false">Mes</button>
+            <button type="button" class="tcal-vpill active" data-view="semanal" aria-pressed="true">Semana</button>
+            <button type="button" class="tcal-vpill" data-view="diario" aria-pressed="false">Día</button>
+        </div>
+    </div>
+    <div class="tcal-legend" aria-label="Leyenda">
+        <div class="tcal-legend-item">
+            <div class="tcal-lswatch tcal-lswatch--mine"></div>
+            Cita privada
+        </div>
+        <div class="tcal-legend-item">
+            <div class="tcal-lswatch tcal-lswatch--public"></div>
+            Evento inscrito
+        </div>
+    </div>
+    <div id="tcal-content" role="region" aria-live="polite" aria-label="Calendario de citas"></div>
+</div>

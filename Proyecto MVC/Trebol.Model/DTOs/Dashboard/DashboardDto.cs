@@ -89,6 +89,12 @@ public class EventosUsuarioViewModel
     public IReadOnlyList<EventoPublicoDto> TodosVigentes { get; set; } = [];
 }
 
+public class MisEventosUsuarioVm
+{
+    public IReadOnlyList<EventoPublicoDto> EventosVigentes { get; set; } = [];
+    public IReadOnlyList<EventoPublicoDto> EventosCerrados { get; set; } = [];
+}
+
 public class ProfesionalResumenDto
 {
     public int    ProfesionalId { get; set; }

@@ -2,8 +2,9 @@
 @{
     var controller = Model.Controller ?? ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home";
     var action = Model.Action ?? ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+    var paramPagina = Model.ParamPagina ?? "pagina";
     var query = Context.Request.Query
-        .Where(q => q.Key != "pagina")
+        .Where(q => !string.Equals(q.Key, paramPagina, StringComparison.OrdinalIgnoreCase))
         .Select(q => $"{q.Key}={Uri.EscapeDataString(q.Value.ToString())}");
     var qs = string.Join("&", query);
     var baseUrl = Url.Action(action, controller) + (string.IsNullOrEmpty(qs) ? "?" : "?" + qs + "&");
@@ -20,12 +21,12 @@
                 var prev = Math.Max(1, Model.PaginaActual - 1);
                 var next = Math.Min(Model.TotalPaginas, Model.PaginaActual + 1);
             }
-            <a href="@(baseUrl)pagina=@prev" class="pagination__btn @(Model.PaginaActual <= 1 ? "disabled" : "")" aria-label="Página anterior">‹</a>
+            <a href="@(baseUrl)@paramPagina=@prev" class="pagination__btn @(Model.PaginaActual <= 1 ? "disabled" : "")" aria-label="Página anterior">‹</a>
             @for (var p = 1; p <= Model.TotalPaginas; p++)
             {
                 if (p == 1 || p == Model.TotalPaginas || Math.Abs(p - Model.PaginaActual) <= 1)
                 {
-                    <a href="@(baseUrl)pagina=@p" class="pagination__btn @(p == Model.PaginaActual ? "active" : "")">@p</a>
+                    <a href="@(baseUrl)@paramPagina=@p" class="pagination__btn @(p == Model.PaginaActual ? "active" : "")">@p</a>
                 }
                 else if (p == 2 && Model.PaginaActual > 3)
                 {
@@ -36,7 +37,7 @@
                     <span class="pagination__btn" style="cursor:default;border:none;">…</span>
                 }
             }
-            <a href="@(baseUrl)pagina=@next" class="pagination__btn @(Model.PaginaActual >= Model.TotalPaginas ? "disabled" : "")" aria-label="Página siguiente">›</a>
+            <a href="@(baseUrl)@paramPagina=@next" class="pagination__btn @(Model.PaginaActual >= Model.TotalPaginas ? "disabled" : "")" aria-label="Página siguiente">›</a>
         </nav>
     }
 </div>

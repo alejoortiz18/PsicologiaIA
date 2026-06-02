@@ -4,19 +4,53 @@ using Microsoft.AspNetCore.Mvc;
 using Trebol.Constants.Messages;
 using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Cita;
+using Trebol.Model.DTOs.Common;
+using Trebol.Web.Helpers;
 
 namespace Trebol.Web.Controllers;
 
 [Authorize(Roles = "Usuario,Profesional")]
 public class CitasController(ICitaRepository citaRepo) : Controller
 {
+    private const int TamanoPagina = 10;
+
     // GET /Citas/Index  — Vista del usuario (sus citas como paciente)
     [Authorize(Roles = "Usuario")]
-    public async Task<IActionResult> Index(string estado = "Todos", int pagina = 1)
+    public async Task<IActionResult> Index(int paginaActivas = 1, int paginaPasadas = 1, CancellationToken ct = default)
     {
         var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var citas     = await citaRepo.ObtenerPorUsuarioAsync(usuarioId, estado, pagina);
-        return View(citas);
+        paginaActivas = Math.Max(1, paginaActivas);
+        paginaPasadas = Math.Max(1, paginaPasadas);
+
+        var totalActivas = await citaRepo.ContarActivasPorUsuarioAsync(usuarioId, ct);
+        var totalPasadas = await citaRepo.ContarPasadasPorUsuarioAsync(usuarioId, ct);
+
+        var vm = new MisCitasUsuarioVm
+        {
+            CitasActivas = await citaRepo.ObtenerActivasPorUsuarioAsync(usuarioId, paginaActivas, TamanoPagina, ct),
+            CitasPasadas = await citaRepo.ObtenerPasadasPorUsuarioAsync(usuarioId, paginaPasadas, TamanoPagina, ct),
+            PaginacionActivas = Paginacion("paginaActivas", paginaActivas, totalActivas),
+            PaginacionPasadas = Paginacion("paginaPasadas", paginaPasadas, totalPasadas)
+        };
+
+        return View(vm);
+    }
+
+    private static PaginacionVm Paginacion(string param, int pagina, int total)
+    {
+        var totalPaginas = TamanoPagina > 0 ? (int)Math.Ceiling(total / (double)TamanoPagina) : 0;
+        if (totalPaginas > 0 && pagina > totalPaginas)
+            pagina = totalPaginas;
+
+        return new PaginacionVm
+        {
+            Controller   = "Citas",
+            Action       = "Index",
+            PaginaActual = pagina,
+            TamanoPagina = TamanoPagina,
+            TotalRegistros = total,
+            ParamPagina  = param
+        };
     }
 
     [Authorize(Roles = "Profesional")]
@@ -68,6 +102,40 @@ public class CitasController(ICitaRepository citaRepo) : Controller
         var cita = await ObtenerDetalleAutorizadoAsync(id);
         if (cita is null) return NotFound();
         return View(cita);
+    }
+
+    /// <summary>Sala de videollamada privada — usuario (sala-usuario.html).</summary>
+    [Authorize(Roles = "Usuario")]
+    [HttpGet]
+    public async Task<IActionResult> SalaUsuario(int citaId, CancellationToken ct)
+    {
+        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var cita = await citaRepo.ObtenerParaSalaUsuarioAsync(citaId, usuarioId, ct);
+        if (cita is null) return NotFound();
+
+        if (!CitaSalaHelper.PuedeIngresar(cita.Estado, cita.FechaHora, cita.FechaHoraFin))
+        {
+            TempData["Error"] = cita.EsHoy
+                ? CitaConstant.EstadoInvalidoSala
+                : CitaConstant.SalaNoDisponible;
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(cita);
+    }
+
+    [Authorize(Roles = "Usuario")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ActualizarAliasCita(int citaId, bool mostrarAlias, CancellationToken ct)
+    {
+        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var cita = await citaRepo.ObtenerParaSalaUsuarioAsync(citaId, usuarioId, ct);
+        if (cita is null)
+            return Json(new { exito = false, mensaje = CitaConstant.CitaNoEncontrada });
+
+        var resultado = await citaRepo.ActualizarMostrarAliasAsync(citaId, usuarioId, mostrarAlias, ct);
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
     }
 
     /// <summary>Fragmento HTML del detalle para modal (solo el usuario dueño de la cita).</summary>

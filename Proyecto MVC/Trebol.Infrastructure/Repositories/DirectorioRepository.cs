@@ -64,11 +64,24 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
         int usuarioId, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
-        var result = await conn.QueryAsync<ProfesionalDirectorioDto>(
+        var filas = await conn.QueryAsync<ProfesionalDirectorioRow>(
             "sp_ObtenerMisMentores",
             new { UsuarioId = usuarioId },
             commandType: CommandType.StoredProcedure);
-        return result.AsList();
+        return filas.Select(Map).ToList();
+    }
+
+    public async Task<bool> EsSeguidorAsync(int usuarioId, int profesionalId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.ExecuteScalarAsync<bool>(
+            """
+            SELECT CASE WHEN EXISTS (
+                SELECT 1 FROM Seguidor
+                WHERE UsuarioId = @UsuarioId AND ProfesionalId = @ProfesionalId)
+            THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+            """,
+            new { UsuarioId = usuarioId, ProfesionalId = profesionalId });
     }
 
     public async Task<IReadOnlyList<ProfesionalDirectorioDto>> ObtenerMisColegasAsync(
@@ -122,7 +135,9 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
         EsSeguido      = row.EsSeguido,
         SobreMi          = row.SobreMi,
         TipoProfesional  = row.TipoProfesional,
-        Especialidades   = ParseEspecialidades(row.EspecialidadesTexto)
+        Especialidades   = ParseEspecialidades(row.EspecialidadesTexto),
+        UltimaCita       = row.UltimaCita,
+        TotalCitas       = row.TotalCitas
     };
 
     private static List<string> ParseEspecialidades(string? texto)
@@ -145,5 +160,7 @@ public class DirectorioRepository(IConfiguration configuration) : IDirectorioRep
         public int      TotalSeguidos  { get; init; }
         public bool     EsSeguido      { get; init; }
         public string?  EspecialidadesTexto { get; init; }
+        public DateTime? UltimaCita { get; init; }
+        public int       TotalCitas { get; init; }
     }
 }

@@ -272,6 +272,10 @@
   gap: var(--sp-3); padding: 0 var(--sp-6);
 }
 
+.conf-controls--asistente {
+  justify-content: center;
+}
+
 .conf-side {
   grid-column: 2; grid-row: 2 / 4;
   background: #111827; border-left: 1px solid rgba(255,255,255,.08);
@@ -381,4 +385,64 @@
   .cita-side-panel { grid-column: 1; }
   .conf-layout { grid-template-columns: 1fr; grid-template-rows: 60px 1fr 72px 240px; }
   .conf-side { grid-column: 1; grid-row: 4; }
+}
+
+.conf-chat-disabled {
+  padding: var(--sp-8) var(--sp-5);
+  text-align: center;
+  color: rgba(255,255,255,.55);
+  font-size: .875rem;
+  line-height: 1.5;
+}
+
+#conf-chat-active,
+.conf-chat-pro-active {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#tab-questions {
+  flex: 1;
+  min-height: 0;
+}
+
+.conf-chat-feed {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.conf-chat-input-row {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+
+.conf-chat-input-row .form-control { flex: 1; }
+
+.conf-alias-chip {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 99px; padding: 4px 12px;
+  font-size: .72rem; color: rgba(255,255,255,.55); font-weight: 600;
+  flex-shrink: 0;
+}
+
+.conf-alias-chip__label { color: rgba(255,255,255,.3); font-weight: 400; }
+.conf-alias-chip__name { color: rgba(255,255,255,.7); }
+
+.home-inscripcion-item--con-ingreso {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.evt-enter-btn {
+  flex-shrink: 0;
+  margin-left: auto;
 }

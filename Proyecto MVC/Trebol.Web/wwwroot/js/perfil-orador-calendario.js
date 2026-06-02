@@ -30,8 +30,36 @@
   }
 
   const ES_PROPIETARIO = !!cfg.esVistaPropietario;
+  const ES_USUARIO = !!cfg.esVistaUsuario;
   const slotMeta = {};
   const SLOT_RANK = { owner: 4, mine: 3, public: 2, busy: 1 };
+
+  function initUsuarioWorkHours() {
+    let hStart = 8;
+    let hEnd = 18;
+    (cfg.citas || []).forEach(c => {
+      const d = new Date(c.fechaHora);
+      const h = d.getHours();
+      const endH = h + Math.max(1, Math.ceil((c.duracionMinutos || 60) / 60));
+      hStart = Math.min(hStart, h);
+      hEnd = Math.max(hEnd, endH);
+    });
+    H_START = Math.max(0, hStart - 1);
+    H_END = Math.min(23, Math.max(hEnd + 1, H_START + 1));
+    for (let d = 0; d <= 6; d++) {
+      work[d] = { from: H_START, to: H_END };
+    }
+  }
+
+  function dayHasEvents(y, m, d) {
+    const key = dateKey(y, m, d);
+    return Object.keys(slotMeta).some(k => k.startsWith(`${key}|`));
+  }
+
+  function countDayEvents(y, m, d) {
+    const key = dateKey(y, m, d);
+    return Object.keys(slotMeta).filter(k => k.startsWith(`${key}|`)).length;
+  }
 
   function escHtml(s) {
     const el = document.createElement('div');
@@ -40,6 +68,9 @@
   }
 
   function slotKind(c) {
+    if (ES_USUARIO) {
+      return c.tipoSlot === 'EventoPublico' ? 'public' : 'mine';
+    }
     if (ES_PROPIETARIO) {
       if (c.tipoSlot === 'EventoPublico') return 'public';
       return 'owner';
@@ -72,6 +103,8 @@
       setSlotMeta(`${key}|${h0 + i}`, meta);
     }
   });
+
+  if (ES_USUARIO) initUsuarioWorkHours();
 
   const blockedDays = new Set();
   (cfg.bloqueos || []).forEach(b => {
@@ -134,6 +167,11 @@
   }
 
   function getDayStatus(y, m, d) {
+    if (ES_USUARIO) {
+      const date = new Date(y, m, d);
+      if (date < TODAY && !dayHasEvents(y, m, d)) return 'past';
+      return dayHasEvents(y, m, d) ? 'available' : 'off';
+    }
     const date = new Date(y, m, d);
     const dow = date.getDay();
     if (!work[dow]) return 'off';
@@ -145,6 +183,15 @@
   }
 
   function getSlotStatus(y, m, d, h) {
+    if (ES_USUARIO) {
+      const meta = slotMeta[`${dateKey(y, m, d)}|${h}`];
+      if (meta) {
+        if (meta.kind === 'public') return 'public-event';
+        return 'my-booking';
+      }
+      if (isSlotPast(y, m, d, h)) return 'past';
+      return 'off';
+    }
     const dow = new Date(y, m, d).getDay();
     const w = work[dow];
     if (!w || h < w.from || h >= w.to) return 'off';
@@ -261,7 +308,13 @@
     const content = document.getElementById('tcal-content');
     if (!title || !content) return;
 
-    if (!Object.keys(work).length) {
+    if (ES_USUARIO && !(cfg.citas || []).length) {
+      title.textContent = 'Tu agenda';
+      content.innerHTML = '<div class="tcal-empty"><div class="tcal-empty__icon">📅</div><div class="tcal-empty__msg">No tienes citas ni eventos en este periodo.<br><a href="/Directorio/Medicos">Agendar cita</a></div></div>';
+      return;
+    }
+
+    if (!Object.keys(work).length && !ES_USUARIO) {
       title.textContent = 'Sin horario configurado';
       content.innerHTML = `<div class="tcal-empty"><div class="tcal-empty__icon">📅</div><div class="tcal-empty__msg">Este profesional aún no ha configurado su disponibilidad.</div></div>`;
       return;
@@ -297,11 +350,16 @@
       const isPast = d < TODAY;
       const dow = d.getDay();
       const w = work[dow];
-      const free = (!isPast && dayStatus === 'available') ? freeSlots(y, m, dd) : 0;
-      const sub = isPast ? 'Pasado' : (!w || dayStatus === 'off') ? 'No disponible' : free > 0 ? `${free} libre${free > 1 ? 's' : ''}` : 'Sin espacios';
-      const subColor = (free > 0 && !isToday) ? '#2D6A4F' : 'inherit';
+      const free = (!isPast && dayStatus === 'available' && !ES_USUARIO) ? freeSlots(y, m, dd) : 0;
+      const sub = ES_USUARIO
+        ? (dayHasEvents(y, m, dd) ? 'Con actividad' : (isPast ? 'Pasado' : 'Sin citas'))
+        : (isPast ? 'Pasado' : (!w || dayStatus === 'off') ? 'No disponible' : free > 0 ? `${free} libre${free > 1 ? 's' : ''}` : 'Sin espacios');
+      const subColor = ES_USUARIO
+        ? (dayHasEvents(y, m, dd) ? '#2D6A4F' : 'inherit')
+        : ((free > 0 && !isToday) ? '#2D6A4F' : 'inherit');
       let cls = 'tcw-day-header';
-      if (!w || dayStatus === 'off') cls += ' is-off';
+      if (!ES_USUARIO && (!w || dayStatus === 'off')) cls += ' is-off';
+      if (ES_USUARIO && !dayHasEvents(y, m, dd) && !isPast) cls += ' is-off';
       html += `<div class="${cls}">
         <div class="tcw-day-name">${DAYS_SH[i]}</div>
         <div class="tcw-day-num">${isToday ? `<span class="tcw-today-badge">${dd}</span>` : dd}</div>
@@ -343,7 +401,16 @@
         }
       }
 
-      if (isPast) {
+      if (ES_USUARIO) {
+        for (let h = H_START; h < H_END; h++) {
+          const st = getSlotStatus(y, m, dd, h);
+          if (st === 'my-booking' || st === 'public-event') {
+            const top = (h - H_START) * HOUR_H;
+            const meta = slotMeta[`${dateKey(y, m, dd)}|${h}`];
+            html += renderOccupiedBlock(meta, top, HOUR_H);
+          }
+        }
+      } else if (isPast) {
         html += `<div class="tcw-past-overlay" style="height:${TOTAL_H * HOUR_H}px;"></div>`;
       } else if (w && dayStatus !== 'off') {
         for (let h = w.from; h < w.to; h++) {
@@ -374,12 +441,16 @@
     });
 
     html += '</div></div>';
-    html += footerHint('Haz clic en un espacio libre para agendar · Usa ‹ › para navegar entre semanas');
+    html += footerHint(ES_USUARIO
+      ? 'Tus citas y eventos inscritos · Usa ‹ › para navegar entre semanas'
+      : 'Haz clic en un espacio libre para agendar · Usa ‹ › para navegar entre semanas');
     content.innerHTML = html;
 
-    content.querySelectorAll('.tcw-free-slot').forEach(el => {
-      bindFreeSlot(el, +el.dataset.y, +el.dataset.m, +el.dataset.d, +el.dataset.h);
-    });
+    if (!ES_USUARIO) {
+      content.querySelectorAll('.tcw-free-slot').forEach(el => {
+        bindFreeSlot(el, +el.dataset.y, +el.dataset.m, +el.dataset.d, +el.dataset.h);
+      });
+    }
 
     const bodyScroll = content.querySelector('.tcw-body-scroll');
     if (bodyScroll) {
@@ -405,7 +476,17 @@
       let cls = 'tcal-mday';
       let sub = '';
       let extra = '';
-      if (status === 'available') {
+      if (ES_USUARIO) {
+        if (dayHasEvents(viewYear, viewMonth, d)) {
+          cls += ' avail';
+          sub = '<span class="tcal-mday__sub">Con actividad</span>';
+          extra = `data-y="${viewYear}" data-m="${viewMonth}" data-d="${d}" role="button" tabindex="0" class="tcal-mday-jump"`;
+        } else if (new Date(viewYear, viewMonth, d) < TODAY) {
+          cls += ' off past';
+        } else {
+          cls += ' off';
+        }
+      } else if (status === 'available') {
         const free = freeSlots(viewYear, viewMonth, d);
         cls += ' avail';
         sub = `<span class="tcal-mday__sub">${free} libre${free !== 1 ? 's' : ''}</span>`;
@@ -421,7 +502,9 @@
       if (isToday) cls += ' today-cell';
       html += `<div class="${cls}" ${extra}><span>${d}</span>${sub}</div>`;
     }
-    html += '</div><p style="font-size:.78rem;color:var(--color-text-muted);text-align:center;">Haz clic en un día verde para abrir esa semana</p></div>';
+    html += '</div><p style="font-size:.78rem;color:var(--color-text-muted);text-align:center;">'
+      + (ES_USUARIO ? 'Haz clic en un día con actividad para abrir esa semana' : 'Haz clic en un día verde para abrir esa semana')
+      + '</p></div>';
     content.innerHTML = html;
 
     content.querySelectorAll('.tcal-mday-jump').forEach(el => {
@@ -447,19 +530,28 @@
       <button type="button" class="btn btn-ghost btn-sm tcal-daily-next">Siguiente →</button>
     </div>`;
 
-    if (!w || dayStatus === 'off') {
+    if (!ES_USUARIO && (!w || dayStatus === 'off')) {
       content.innerHTML = nav + `<div class="tcal-empty"><div class="tcal-empty__icon">🚫</div><div class="tcal-empty__msg">${!w ? `La profesional no atiende los ${DAYS_FULL[dow]}s` : 'Este día no está disponible'}</div></div>`;
       bindDailyNav(content);
       return;
     }
-    if (dayStatus === 'occupied') {
+    if (!ES_USUARIO && dayStatus === 'occupied') {
       content.innerHTML = nav + `<div class="tcal-empty"><div class="tcal-empty__icon">⏰</div><div class="tcal-empty__msg">Todos los horarios están ocupados</div></div>`;
       bindDailyNav(content);
       return;
     }
 
+    if (ES_USUARIO && !dayHasEvents(y, m, d)) {
+      content.innerHTML = nav + '<div class="tcal-empty"><div class="tcal-empty__icon">📅</div><div class="tcal-empty__msg">No tienes citas ni eventos este día</div></div>';
+      bindDailyNav(content);
+      return;
+    }
+
+    const hourFrom = ES_USUARIO ? H_START : w.from;
+    const hourTo = ES_USUARIO ? H_END : w.to;
+
     let html = nav + '<div class="tcal-daily">';
-    for (let h = w.from; h < w.to; h++) {
+    for (let h = hourFrom; h < hourTo; h++) {
       const status = getSlotStatus(y, m, d, h);
       let cellCls = 'tcal-drow__cell';
       let inner = '';
@@ -493,12 +585,14 @@
       }
       html += `<div class="tcal-drow"><div class="tcal-drow__lbl">${fmtTime(h)}</div><div class="${cellCls}" ${attrs}>${inner}</div></div>`;
     }
-    html += '</div>' + footerHint('Haz clic en un horario disponible para agendar');
+    html += '</div>' + footerHint(ES_USUARIO ? 'Tus citas y eventos inscritos' : 'Haz clic en un horario disponible para agendar');
     content.innerHTML = html;
 
-    content.querySelectorAll('.tcal-drow-book').forEach(el => {
-      bindFreeSlot(el, +el.dataset.y, +el.dataset.m, +el.dataset.d, +el.dataset.h);
-    });
+    if (!ES_USUARIO) {
+      content.querySelectorAll('.tcal-drow-book').forEach(el => {
+        bindFreeSlot(el, +el.dataset.y, +el.dataset.m, +el.dataset.d, +el.dataset.h);
+      });
+    }
     bindDailyNav(content);
   }
 

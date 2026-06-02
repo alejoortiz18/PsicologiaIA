@@ -8,7 +8,8 @@ public static class CalendarioSlotPresentacion
     public enum ModoVista
     {
         Publico,
-        Propietario
+        Propietario,
+        Usuario
     }
 
     public static IReadOnlyList<CalendarioSlotDto> Formatear(
@@ -28,6 +29,17 @@ public static class CalendarioSlotPresentacion
 
     private static void FormatearCitaPrivada(CalendarioSlotDto s, ModoVista modo)
     {
+        if (modo == ModoVista.Usuario)
+        {
+            var fin = s.FechaHora.AddMinutes(s.DuracionMinutos);
+            var seguimiento = string.Equals(s.TipoCita, "Seguimiento", StringComparison.OrdinalIgnoreCase);
+            var tipo = seguimiento ? "Acompañamiento" : "Asesoría";
+            s.Etiqueta = string.IsNullOrWhiteSpace(s.NombreCliente) ? "Cita privada" : s.NombreCliente.Trim();
+            s.Subtitulo = $"{tipo} · {FormatearHora12(s.FechaHora)} - {FormatearHora12(fin)} · {FormatearEstado(s.EstadoCita)}";
+            s.EsDetalleVisible = true;
+            return;
+        }
+
         if (modo == ModoVista.Propietario)
         {
             var fin = s.FechaHora.AddMinutes(s.DuracionMinutos);
@@ -60,6 +72,16 @@ public static class CalendarioSlotPresentacion
         var hint = s.Subtitulo ?? string.Empty;
         var esCharla = hint.Contains("charla", StringComparison.OrdinalIgnoreCase);
         var tipoEvento = esCharla ? "Charla" : "Evento público";
+
+        if (modo == ModoVista.Usuario)
+        {
+            var fin = s.FechaHora.AddMinutes(s.DuracionMinutos);
+            if (string.IsNullOrWhiteSpace(s.Etiqueta))
+                s.Etiqueta = "Evento inscrito";
+            var tipoEv = esCharla ? "Charla" : "Evento inscrito";
+            s.Subtitulo = $"{tipoEv} · {FormatearHora12(s.FechaHora)} - {FormatearHora12(fin)}";
+            return;
+        }
 
         if (modo == ModoVista.Propietario)
         {

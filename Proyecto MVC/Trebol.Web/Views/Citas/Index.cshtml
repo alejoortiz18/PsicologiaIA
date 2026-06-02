@@ -1,68 +1,46 @@
-@model IEnumerable<Trebol.Model.DTOs.Cita.CitaListaDto>
+@model Trebol.Model.DTOs.Cita.MisCitasUsuarioVm
 @{
-    ViewData["Title"] = "Mis Citas";
+    ViewData["Title"] = "Mis citas";
     Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var pagActivas = Model.PaginacionActivas;
+    var pagPasadas = Model.PaginacionPasadas;
 }
 
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-6);">
+<div class="page-header mb-6">
     <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;">📅 Mis citas</h1>
+    <p class="text-meta" style="margin-top:4px;">Consulta tus citas activas y el historial de sesiones pasadas.</p>
 </div>
 
-<!-- Filtro -->
-<form method="get" asp-action="Index" style="margin-bottom:var(--sp-5);">
-    <select name="estado" class="form-control" style="width:auto;display:inline-block;" onchange="this.form.submit()">
-        <option value="Todos">Todos los estados</option>
-        <option value="Pendiente">Pendiente</option>
-        <option value="Confirmada">Confirmada</option>
-        <option value="Completada">Completada</option>
-        <option value="Cancelada">Cancelada</option>
-    </select>
-</form>
-
-@if (!Model.Any())
-{
-    <div class="card" style="padding:var(--sp-12);text-align:center;">
-        <div style="font-size:3rem;margin-bottom:var(--sp-4);">📭</div>
-        <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">No tienes citas registradas</div>
-        <div style="color:var(--color-text-muted);font-size:.875rem;">Busca un profesional y agenda tu primera sesión.</div>
-        <div style="margin-top:var(--sp-6);">
-            <a asp-controller="Directorio" asp-action="Medicos" class="btn btn-primary">Buscar profesional</a>
-        </div>
-    </div>
-}
-else
-{
-    <div class="card" style="overflow:hidden;">
-        @foreach (var cita in Model)
+<section class="mb-8" aria-labelledby="citas-activas-heading">
+    <div class="home-section-head">
+        <h2 id="citas-activas-heading" style="color:var(--color-primary);font-family:var(--font-display);">
+            🟢 Citas activas
+        </h2>
+        @if (pagActivas.TotalRegistros > 0)
         {
-            var estadoBadge = cita.Estado.ToString() switch {
-                "Confirmada" => "badge-success",
-                "Cancelada" => "badge-danger",
-                "Completada" => "badge-muted",
-                _ => "badge-warning"
-            };
-            <div style="padding:var(--sp-4) var(--sp-5);border-bottom:1px solid var(--color-border-light);display:flex;align-items:center;gap:var(--sp-4);">
-                <div class="avatar" style="flex-shrink:0;">@(cita.NombreProfesional?.Length > 1 ? string.Concat(cita.NombreProfesional.Split(' ').Take(2).Select(p => p[0].ToString())) : "?")</div>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:4px;">@cita.NombreProfesional</div>
-                    <div style="font-size:.8rem;color:var(--color-text-muted);">@cita.FechaHora.ToString("dd/MM/yyyy HH:mm") &middot; @cita.DuracionMinutos min &middot; $@cita.Monto.ToString("N0")</div>
-                </div>
-                <span class="badge @estadoBadge" style="flex-shrink:0;">@cita.Estado</span>
-                <div style="display:flex;gap:var(--sp-2);flex-shrink:0;">
-                    <a asp-action="Detalle" asp-route-id="@cita.CitaId" class="btn btn-ghost btn-sm">Ver</a>
-                    @if (cita.Estado.ToString() == "Pendiente" || cita.Estado.ToString() == "Confirmada")
-                    {
-                        <button class="btn btn-secondary btn-sm" onclick="cancelarCita(@cita.CitaId)">Cancelar</button>
-                    }
-                    @if (cita.Estado.ToString() == "Confirmada" && cita.FechaHora > DateTime.Now)
-                    {
-                        <a asp-controller="PagoCita" asp-action="Index" asp-route-citaId="@cita.CitaId" class="btn btn-primary btn-sm">Pagar</a>
-                    }
-                </div>
-            </div>
+            <span class="text-meta">@pagActivas.TotalRegistros cita@(pagActivas.TotalRegistros == 1 ? "" : "s")</span>
         }
     </div>
-}
+    @await Html.PartialAsync("_TablaCitasUsuario", Model.CitasActivas, new ViewDataDictionary(ViewData) { { "Paginacion", pagActivas }, { "EsActiva", true } })
+</section>
+
+<section class="mb-6" aria-labelledby="citas-pasadas-heading">
+    <div class="home-section-head">
+        <h2 id="citas-pasadas-heading" style="color:var(--color-primary);font-family:var(--font-display);">
+            🗂 Citas pasadas
+        </h2>
+        @if (pagPasadas.TotalRegistros > 0)
+        {
+            <span class="text-meta">@pagPasadas.TotalRegistros cita@(pagPasadas.TotalRegistros == 1 ? "" : "s")</span>
+        }
+    </div>
+    @await Html.PartialAsync("_TablaCitasUsuario", Model.CitasPasadas, new ViewDataDictionary(ViewData) { { "Paginacion", pagPasadas }, { "EsActiva", false } })
+</section>
+
+<p class="text-meta" style="font-size:.8125rem;">
+    Para ver tu agenda en calendario (citas y eventos inscritos), abre
+    <a asp-controller="PerfilUsuario" asp-action="Index" asp-route-tab="citas">Mi perfil → Mi agenda</a>.
+</p>
 
 @section Scripts {
 <script>

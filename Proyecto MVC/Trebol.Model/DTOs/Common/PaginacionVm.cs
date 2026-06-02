@@ -12,4 +12,6 @@ public class PaginacionVm
         : 0;
     public int Desde => TotalRegistros == 0 ? 0 : (PaginaActual - 1) * TamanoPagina + 1;
     public int Hasta => Math.Min(PaginaActual * TamanoPagina, TotalRegistros);
+    /// <summary>Nombre del query string de página (p. ej. paginaActivas).</summary>
+    public string ParamPagina { get; set; } = "pagina";
 }

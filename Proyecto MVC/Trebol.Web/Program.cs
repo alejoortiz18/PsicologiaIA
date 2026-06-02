@@ -27,5 +27,6 @@ app.MapControllerRoute(
     pattern: "{controller=Landing}/{action=Index}/{id?}");
 
 app.MapHub<Trebol.Web.Hubs.ChatHub>("/hubs/chat");
+app.MapHub<Trebol.Web.Hubs.ConferenciaHub>("/hubs/conferencia");
 
 app.Run();

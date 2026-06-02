@@ -2,6 +2,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Trebol.Domain.Interfaces;
+using Trebol.Model.DTOs.Dashboard;
+using Trebol.Model.DTOs.Publico;
 using Trebol.Model.DTOs.Sala;
 using Trebol.Model.Enums;
 using Trebol.Web.Helpers;
@@ -29,7 +31,7 @@ public class MisEventosController(
                 .ThenBy(s => s.FechaInicio)
                 .ToList();
 
-            var vm = new MisEventosProfesionalVm
+            var vmProfesional = new MisEventosProfesionalVm
             {
                 Salas           = salas,
                 EventosHoy      = eventosHoy,
@@ -40,22 +42,27 @@ public class MisEventosController(
                 EventoHoy       = eventosHoy.FirstOrDefault()
             };
 
-            return View("IndexProfesional", vm);
+            return View("IndexProfesional", vmProfesional);
         }
 
-        var inscritos = await salaRepo.ObtenerInscritosUsuarioAsync(id);
-        var salasUsuario = inscritos.Select(e => new SalaDto
-        {
-            SalaId         = e.SalaId,
-            Titulo         = e.Titulo,
-            Tipo           = TipoSala.Publica,
-            Estado         = Enum.TryParse<EstadoSala>(e.Estado, true, out var est) ? est : EstadoSala.Abierta,
-            Capacidad      = e.Capacidad,
-            FechaInicio    = e.FechaInicio,
-            TotalInscritos = e.TotalInscritos,
-            Categoria      = e.Categoria
-        }).ToList();
+        var vigentes = await salaRepo.ObtenerInscritosUsuarioAsync(id, HttpContext.RequestAborted);
+        var cerrados = await salaRepo.ObtenerInscritosCerradosUsuarioAsync(id, HttpContext.RequestAborted);
 
-        return View(salasUsuario);
+        var vmUsuario = new MisEventosUsuarioVm
+        {
+            EventosVigentes = FiltrarInscritosAbiertos(vigentes),
+            EventosCerrados = FiltrarInscritosFinalizados(cerrados)
+        };
+        return View("IndexInscritos", vmUsuario);
     }
+
+    private static IReadOnlyList<EventoPublicoDto> FiltrarInscritosAbiertos(IEnumerable<EventoPublicoDto> eventos)
+        => eventos
+            .Where(e => !EventoIngresoHelper.EventoFinalizado(e.FechaInicio, e.FechaFin, e.Estado))
+            .ToList();
+
+    private static IReadOnlyList<EventoPublicoDto> FiltrarInscritosFinalizados(IEnumerable<EventoPublicoDto> eventos)
+        => eventos
+            .Where(e => EventoIngresoHelper.EventoFinalizado(e.FechaInicio, e.FechaFin, e.Estado))
+            .ToList();
 }

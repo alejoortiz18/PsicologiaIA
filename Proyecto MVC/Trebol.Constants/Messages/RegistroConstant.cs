@@ -12,5 +12,7 @@ public static class RegistroConstant
     public const string AsuntoCuentaActiva        = "🍀 Tu cuenta en Trébol está activa";
     public const string AliasRequerido            = "El alias es obligatorio.";
     public const string CelularRequerido          = "El número de celular es obligatorio.";
-    public const string TokenInvalidoUsuario      = "Este enlace no es válido, ya fue utilizado o expiró. Inicia sesión o regístrate de nuevo.";
+    public const string TokenInvalidoUsuario      = "Este enlace no es válido, ya fue utilizado o expiró. Solicita un nuevo enlace de confirmación.";
+    public const string ReenvioConfirmacionEnviado = "Si tu cuenta está pendiente de confirmación, te enviamos un nuevo enlace a tu correo.";
+    public const string CorreoPendienteConfirmacion = "Este correo ya está registrado pero no ha sido confirmado. Puedes solicitar un nuevo enlace de confirmación.";
 }

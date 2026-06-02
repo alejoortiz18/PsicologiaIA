@@ -1,0 +1,105 @@
+@model IReadOnlyList<Trebol.Model.DTOs.Cita.CitaListaDto>
+@using Trebol.Model.DTOs.Common
+@using Trebol.Model.Enums
+@{
+    var pag = ViewData["Paginacion"] as PaginacionVm ?? new PaginacionVm();
+    var esActiva = ViewData["EsActiva"] as bool? ?? false;
+    var ariaLabel = esActiva ? "Citas activas" : "Citas pasadas";
+    string BadgeCita(EstadoCita e) => e switch
+    {
+        EstadoCita.Programada => "badge-success",
+        EstadoCita.Cancelada => "badge-danger",
+        EstadoCita.Movida => "badge-warning",
+        _ => "badge-muted"
+    };
+    string LabelCita(EstadoCita e) => e switch
+    {
+        EstadoCita.Finalizada => "Completada",
+        EstadoCita.Programada => "Programada",
+        EstadoCita.Movida => "Reprogramada",
+        EstadoCita.Cancelada => "Cancelada",
+        _ => e.ToString()
+    };
+    string LabelTipo(TipoCita t) => t == TipoCita.Seguimiento ? "Acompañamiento" : "Asesoría";
+}
+
+@if (!Model.Any())
+{
+    <div class="card" style="padding:var(--sp-8);text-align:center;">
+        <p style="margin:0;color:var(--color-text-muted);">
+            @(esActiva ? "No tienes citas activas en este momento." : "No tienes citas pasadas registradas.")
+        </p>
+        @if (esActiva)
+        {
+            <div style="margin-top:var(--sp-4);">
+                <a asp-controller="Directorio" asp-action="Medicos" class="btn btn-primary btn-sm">Buscar profesional</a>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card" style="overflow:hidden;">
+        <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:.855rem;" aria-label="@ariaLabel">
+                <thead style="background:var(--color-surface-alt);">
+                    <tr>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Profesional</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Tipo</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Fecha</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Duración</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Valor</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Estado</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var cita in Model)
+                    {
+                        var iniciales = string.Join("", (cita.NombreProfesional ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+                        <tr style="border-bottom:1px solid var(--color-border-light);">
+                            <td style="padding:var(--sp-4);">
+                                <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                                    <div class="avatar avatar-sm" style="flex-shrink:0;">@(string.IsNullOrEmpty(iniciales) ? "?" : iniciales)</div>
+                                    <div style="font-weight:600;">@cita.NombreProfesional</div>
+                                </div>
+                            </td>
+                            <td style="padding:var(--sp-4);"><span class="badge badge-info">@LabelTipo(cita.Tipo)</span></td>
+                            <td style="padding:var(--sp-4);">
+                                @cita.FechaHora.ToString("dd/MM/yyyy")<br />
+                                <small class="text-meta">@cita.FechaHora.ToString("HH:mm")</small>
+                            </td>
+                            <td style="padding:var(--sp-4);">@cita.DuracionMinutos min</td>
+                            <td style="padding:var(--sp-4);">$@cita.Monto.ToString("N0")</td>
+                            <td style="padding:var(--sp-4);"><span class="badge @BadgeCita(cita.Estado)">@LabelCita(cita.Estado)</span></td>
+                            <td style="padding:var(--sp-4);">
+                                <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
+                                    <button type="button"
+                                            class="btn btn-ghost btn-sm"
+                                            data-cita-detalle
+                                            data-cita-id="@cita.CitaId"
+                                            aria-label="Ver detalle de cita con @cita.NombreProfesional">
+                                        Ver
+                                    </button>
+                                    @if (esActiva && cita.Estado is EstadoCita.Programada or EstadoCita.Movida)
+                                    {
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelarCita(@cita.CitaId)">Cancelar</button>
+                                        @if (cita.FechaHora > DateTime.Now)
+                                        {
+                                            <a asp-controller="PagoCita" asp-action="Index" asp-route-citaId="@cita.CitaId" class="btn btn-primary btn-sm">Pagar</a>
+                                        }
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (pag.TotalPaginas > 1)
+        {
+            @await Html.PartialAsync("_Paginacion", pag)
+        }
+    </div>
+}

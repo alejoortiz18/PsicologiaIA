@@ -24,4 +24,8 @@ public class PerfilOradorPublicoVm
     public IReadOnlyList<HorarioBloqueado> Bloqueos { get; set; } = [];
     public int? UsuarioActualId { get; set; }
     public bool PuedeComentar { get; set; }
+    /// <summary>Vista explícita de perfil público (p. ej. desde «Ver perfil público»).</summary>
+    public bool ModoVistaPublica { get; set; }
+    /// <summary>El profesional autenticado previsualiza su propio perfil público.</summary>
+    public bool EsVistaPreviaPropia { get; set; }
 }

@@ -60,6 +60,46 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
         return result.AsList();
     }
 
+    public async Task<IReadOnlyList<CitaListaDto>> ObtenerActivasPorUsuarioAsync(
+        int usuarioId, int pagina, int tamanoPagina = 10, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<CitaListaDto>(
+            "sp_ObtenerCitasActivasUsuario",
+            new { UsuarioId = usuarioId, Pagina = pagina, TamanoPagina = tamanoPagina },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<int> ContarActivasPorUsuarioAsync(int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.ExecuteScalarAsync<int>(
+            "sp_ContarCitasActivasUsuario",
+            new { UsuarioId = usuarioId },
+            commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<IReadOnlyList<CitaListaDto>> ObtenerPasadasPorUsuarioAsync(
+        int usuarioId, int pagina, int tamanoPagina = 10, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<CitaListaDto>(
+            "sp_ObtenerCitasPasadasUsuario",
+            new { UsuarioId = usuarioId, Pagina = pagina, TamanoPagina = tamanoPagina },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<int> ContarPasadasPorUsuarioAsync(int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.ExecuteScalarAsync<int>(
+            "sp_ContarCitasPasadasUsuario",
+            new { UsuarioId = usuarioId },
+            commandType: CommandType.StoredProcedure);
+    }
+
     public async Task<IReadOnlyList<CitaHoyProfesionalDto>> ObtenerHoyPorProfesionalAsync(
         int profesionalId, CancellationToken ct = default)
     {
@@ -151,6 +191,54 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
             new { CitaId = citaId, ProfesionalId = profesionalId });
     }
 
+    public async Task<SalaCitaUsuarioDto?> ObtenerParaSalaUsuarioAsync(
+        int citaId, int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.QueryFirstOrDefaultAsync<SalaCitaUsuarioDto>(
+            @"SELECT c.CitaId,
+                     c.UsuarioId,
+                     c.ProfesionalId,
+                     p.NombreCompleto AS NombreProfesional,
+                     p.FotoPerfil AS FotoProfesional,
+                     u.Alias AS AliasUsuario,
+                     c.MostrarAlias,
+                     c.FechaHora,
+                     c.FechaHoraFin,
+                     DATEDIFF(MINUTE, c.FechaHora, c.FechaHoraFin) AS DuracionMinutos,
+                     c.Tipo,
+                     c.Estado,
+                     CASE WHEN CAST(c.FechaHora AS DATE) = CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END AS EsHoy,
+                     rec.Contenido AS RecomendacionContenido,
+                     rec.Fecha AS RecomendacionFecha
+              FROM   Cita c
+              JOIN   Usuario u ON u.UsuarioId = c.UsuarioId
+              JOIN   Profesional p ON p.ProfesionalId = c.ProfesionalId
+              OUTER APPLY (
+                  SELECT TOP 1 r.Contenido, r.Fecha
+                  FROM   Recomendacion r
+                  WHERE  r.CitaId = c.CitaId
+                  ORDER  BY r.Fecha DESC
+              ) rec
+              WHERE  c.CitaId = @CitaId AND c.UsuarioId = @UsuarioId",
+            new { CitaId = citaId, UsuarioId = usuarioId });
+    }
+
+    public async Task<ResultadoOperacion> ActualizarMostrarAliasAsync(
+        int citaId, int usuarioId, bool mostrarAlias, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var rows = await conn.ExecuteAsync(
+            @"UPDATE Cita
+              SET    MostrarAlias = @MostrarAlias, FechaModificacion = GETDATE()
+              WHERE  CitaId = @CitaId AND UsuarioId = @UsuarioId",
+            new { CitaId = citaId, UsuarioId = usuarioId, MostrarAlias = mostrarAlias });
+
+        return rows > 0
+            ? ResultadoOperacion.Ok()
+            : ResultadoOperacion.Fail("No se pudo actualizar la preferencia de privacidad.");
+    }
+
     public async Task<ResultadoOperacion> FinalizarAsync(
         int citaId, int profesionalId, CancellationToken ct = default)
     {
@@ -229,6 +317,20 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
         var result = await conn.QueryAsync<CalendarioSlotDto>(
             "sp_ObtenerSlotsCalendarioPropietario",
             new { ProfesionalId = profesionalId, Desde = desde, Hasta = hasta },
+            commandType: CommandType.StoredProcedure);
+        return result.AsList();
+    }
+
+    public async Task<IReadOnlyList<CalendarioSlotDto>> ObtenerSlotsCalendarioUsuarioAsync(
+        int usuarioId,
+        DateTime desde,
+        DateTime hasta,
+        CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<CalendarioSlotDto>(
+            "sp_ObtenerSlotsCalendarioUsuario",
+            new { UsuarioId = usuarioId, Desde = desde, Hasta = hasta },
             commandType: CommandType.StoredProcedure);
         return result.AsList();
     }

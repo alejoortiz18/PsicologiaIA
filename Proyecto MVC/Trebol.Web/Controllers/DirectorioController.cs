@@ -30,6 +30,13 @@ public class DirectorioController(IDirectorioRepository directorioRepo) : Contro
     public async Task<IActionResult> Psicologos([FromQuery] FiltroDirectorioDto filtro)
         => await VistaDirectorioAsync("Psicologos", filtro, directorioRepo.ObtenerPsicologosAsync);
 
+    [Authorize(Roles = "Usuario")]
+    public async Task<IActionResult> MisMentores(CancellationToken ct = default)
+    {
+        var lista = await directorioRepo.ObtenerMisMentoresAsync(IdentidadId, ct);
+        return View(lista);
+    }
+
     [Authorize(Roles = "Profesional")]
     public async Task<IActionResult> Mentores()
     {
