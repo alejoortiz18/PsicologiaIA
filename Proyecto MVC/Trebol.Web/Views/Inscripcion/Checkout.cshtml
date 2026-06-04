@@ -1,5 +1,7 @@
 @model Trebol.Model.DTOs.Pago.CheckoutVm
 @using Trebol.Constants.Pagos
+@using Trebol.Model.Enums
+@using Trebol.Web.Helpers
 @{
     Layout = "~/Views/Shared/_LayoutInterno.cshtml";
     var cultura = new System.Globalization.CultureInfo("es-CO");
@@ -87,6 +89,13 @@
                     <span class="session-info-label">🎓 Profesional</span>
                     <span class="session-info-value">@Model.NombreProfesional</span>
                 </div>
+                @if (Model.TipoCita.HasValue)
+                {
+                    <div class="session-info-row">
+                        <span class="session-info-label">📋 Tipo de cita</span>
+                        <span class="session-info-value">@CitaTipoHelper.Etiqueta(Model.TipoCita.Value)</span>
+                    </div>
+                }
             }
             @if (!string.IsNullOrWhiteSpace(Model.Descripcion))
             {
@@ -97,9 +106,16 @@
         <aside class="checkout-summary">
             <h3 class="checkout-summary__title">Resumen</h3>
             <div class="session-info-row">
-                <span class="session-info-label">@(esCita ? "Cita" : "Sala")</span>
+                <span class="session-info-label">@(esCita ? "Tipo de cita" : "Sala")</span>
                 <span class="session-info-value">@Model.Titulo</span>
             </div>
+            @if (esCita && Model.TipoCita.HasValue)
+            {
+                <div class="session-info-row">
+                    <span class="session-info-label">Profesional</span>
+                    <span class="session-info-value">@Model.NombreProfesional</span>
+                </div>
+            }
             <div class="session-info-row">
                 <span class="session-info-label">Subtotal</span>
                 <span class="session-info-value">@(Model.Subtotal <= 0 ? "Entrada libre" : Fmt(Model.Subtotal))</span>
@@ -146,11 +162,19 @@
                     <input type="hidden" name="profesionalId" value="@Model.ProfesionalId" />
                     <input type="hidden" name="fechaHora" value="@(Model.FechaHoraCita?.ToString("o"))" />
                     <input type="hidden" name="duracionMinutos" value="@Model.DuracionMinutos" />
-                    <input type="hidden" name="tipo" value="@Trebol.Model.Enums.TipoCita.Asesoria" />
+                    <input type="hidden" name="tipo" value="@(Model.TipoCita ?? TipoCita.Asesoria)" />
                     <button type="submit" class="btn btn-primary w-full">
                         @(Model.RequierePago ? "Confirmar y pagar" : "Confirmar cita")
                     </button>
                 </form>
+            }
+            @if (esCita && Model.ProfesionalId > 0)
+            {
+                <a asp-controller="PagoCita" asp-action="SeleccionarTipo"
+                   asp-route-profesionalId="@Model.ProfesionalId"
+                   asp-route-fechaHora="@Model.FechaHoraCita?.ToString("o")"
+                   asp-route-duracionMinutos="@Model.DuracionMinutos"
+                   class="btn btn-ghost w-full mt-3">Cambiar tipo de cita</a>
             }
             <a href="javascript:history.back()" class="btn btn-ghost w-full mt-3">Cancelar</a>
         </aside>
@@ -209,7 +233,12 @@
                         <div class="checkout-codigo__val">@Model.CodigoInscripcion</div>
                     </div>
                 }
-                <div class="session-info-row"><span class="session-info-label">@(esCita ? "Cita" : "Sala")</span><span class="session-info-value">@Model.Titulo</span></div>
+                <div class="session-info-row"><span class="session-info-label">@(esCita ? "Tipo de cita" : "Sala")</span><span class="session-info-value">@Model.Titulo</span></div>
+                @if (esCita && Model.FechaHoraCita.HasValue)
+                {
+                    <div class="session-info-row"><span class="session-info-label">Fecha y hora</span><span class="session-info-value">@FmtFecha(Model.FechaHoraCita) · @FmtHora(Model.FechaHoraCita)</span></div>
+                    <div class="session-info-row"><span class="session-info-label">Profesional</span><span class="session-info-value">@Model.NombreProfesional</span></div>
+                }
                 @if (Model.RequierePago || Model.Total > 0)
                 {
                     <div class="session-info-row"><span class="session-info-label">💰 Pagado</span><span class="session-info-value" style="color:var(--color-success);">@Fmt(Model.Total)</span></div>

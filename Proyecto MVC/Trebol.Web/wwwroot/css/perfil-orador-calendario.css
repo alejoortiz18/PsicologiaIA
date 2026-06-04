@@ -564,6 +564,23 @@
   overflow: hidden;
 }
 
+.tcw-block--clickable {
+  cursor: pointer;
+}
+
+.tcw-block--clickable:hover {
+  filter: brightness(0.97);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.tcal-drow-cal-slot {
+  cursor: pointer;
+}
+
+.tcal-drow-cal-slot:hover {
+  filter: brightness(0.98);
+}
+
 .tcw-my-block .tcw-b-title,
 .tcw-owner-block .tcw-b-title,
 .tcw-public-block .tcw-b-title {

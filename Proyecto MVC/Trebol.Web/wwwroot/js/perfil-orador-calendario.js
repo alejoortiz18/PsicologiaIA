@@ -34,18 +34,24 @@
   const slotMeta = {};
   const SLOT_RANK = { owner: 4, mine: 3, public: 2, busy: 1 };
 
-  function initUsuarioWorkHours() {
-    let hStart = 8;
-    let hEnd = 18;
+  /** Amplía el eje horario para incluir todas las citas/eventos (no solo el horario semanal). */
+  function expandirHorarioPorAgenda() {
+    let hStart = H_START;
+    let hEnd = H_END;
     (cfg.citas || []).forEach(c => {
-      const d = new Date(c.fechaHora);
+      const d = parseSlotDate(c.fechaHora);
+      if (Number.isNaN(d.getTime())) return;
       const h = d.getHours();
       const endH = h + Math.max(1, Math.ceil((c.duracionMinutos || 60) / 60));
       hStart = Math.min(hStart, h);
       hEnd = Math.max(hEnd, endH);
     });
     H_START = Math.max(0, hStart - 1);
-    H_END = Math.min(23, Math.max(hEnd + 1, H_START + 1));
+    H_END = Math.min(24, Math.max(hEnd + 1, H_START + 1));
+  }
+
+  function initUsuarioWorkHours() {
+    expandirHorarioPorAgenda();
     for (let d = 0; d <= 6; d++) {
       work[d] = { from: H_START, to: H_END };
     }
@@ -87,8 +93,17 @@
     }
   }
 
+  function parseSlotDate(iso) {
+    if (!iso) return new Date(NaN);
+    const s = String(iso);
+    const m = s.match(/(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], 0);
+    return new Date(iso);
+  }
+
   (cfg.citas || []).forEach(c => {
-    const d = new Date(c.fechaHora);
+    const d = parseSlotDate(c.fechaHora);
+    if (Number.isNaN(d.getTime())) return;
     const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
     const h0 = d.getHours();
     const durRaw = c.duracionMinutos || 60;
@@ -97,7 +112,14 @@
     const meta = {
       kind,
       etiqueta: c.etiqueta || (kind === 'busy' ? 'Ocupado' : 'Mi cita'),
-      subtitulo: c.subtitulo || ''
+      subtitulo: c.subtitulo || '',
+      tipoSlot: c.tipoSlot || '',
+      refId: c.citaId || null,
+      fechaHora: c.fechaHora,
+      duracionMinutos: c.duracionMinutos || 60,
+      estadoCita: c.estadoCita || '',
+      nombreCliente: c.nombreCliente || '',
+      tipoCita: c.tipoCita || ''
     };
     for (let i = 0; i < dur / 60; i++) {
       setSlotMeta(`${key}|${h0 + i}`, meta);
@@ -105,6 +127,7 @@
   });
 
   if (ES_USUARIO) initUsuarioWorkHours();
+  else if (ES_PROPIETARIO) expandirHorarioPorAgenda();
 
   const blockedDays = new Set();
   (cfg.bloqueos || []).forEach(b => {
@@ -158,9 +181,10 @@
   function freeSlots(y, m, d) {
     const dow = new Date(y, m, d).getDay();
     const w = work[dow];
-    if (!w) return 0;
+    const from = w ? w.from : H_START;
+    const to = w ? w.to : H_END;
     let n = 0;
-    for (let h = w.from; h < w.to; h++) {
+    for (let h = from; h < to; h++) {
       if (getSlotStatus(y, m, d, h) === 'free') n++;
     }
     return n;
@@ -171,6 +195,18 @@
       const date = new Date(y, m, d);
       if (date < TODAY && !dayHasEvents(y, m, d)) return 'past';
       return dayHasEvents(y, m, d) ? 'available' : 'off';
+    }
+    if (ES_PROPIETARIO) {
+      if (dayHasEvents(y, m, d)) {
+        const free = freeSlots(y, m, d);
+        return free > 0 ? 'available' : 'occupied';
+      }
+      const date = new Date(y, m, d);
+      const dow = date.getDay();
+      if (!work[dow]) return 'off';
+      if (date < TODAY) return 'past';
+      if (blockedDays.has(dateKey(y, m, d))) return 'off';
+      return 'available';
     }
     const date = new Date(y, m, d);
     const dow = date.getDay();
@@ -191,6 +227,20 @@
       }
       if (isSlotPast(y, m, d, h)) return 'past';
       return 'off';
+    }
+    if (ES_PROPIETARIO) {
+      const meta = slotMeta[`${dateKey(y, m, d)}|${h}`];
+      if (meta) {
+        if (meta.kind === 'public') return 'public-event';
+        if (meta.kind === 'owner') return 'owner-booking';
+        return 'booked';
+      }
+      const dow = new Date(y, m, d).getDay();
+      const w = work[dow];
+      if (!w || h < w.from || h >= w.to) return 'off';
+      if (blockedDays.has(dateKey(y, m, d))) return 'off';
+      if (isSlotPast(y, m, d, h)) return 'past';
+      return 'free';
     }
     const dow = new Date(y, m, d).getDay();
     const w = work[dow];
@@ -218,9 +268,39 @@
       ? `<div class="tcw-b-time">${escHtml(meta.subtitulo)}</div>`
       : '';
     const disabled = meta.kind === 'busy' ? ' aria-disabled="true"' : '';
-    return `<div class="${cls}" style="top:${top + 2}px;height:${height - 4}px;"${disabled}>
+    const clickable = ES_PROPIETARIO && meta.refId && (meta.kind === 'owner' || meta.kind === 'public');
+    const clickCls = clickable ? ' tcw-block--clickable' : '';
+    const clickAttrs = clickable
+      ? ` tabindex="0" role="button" data-cal-slot="1" data-tipo-slot="${meta.tipoSlot === 'EventoPublico' ? 'evento' : 'cita'}" data-ref-id="${meta.refId}" aria-label="Ver detalle"`
+      : '';
+    return `<div class="${cls}${clickCls}" style="top:${top + 2}px;height:${height - 4}px;"${disabled}${clickAttrs}>
       <span class="tcw-b-icon">${icon}</span>
       <div><div class="tcw-b-title">${escHtml(meta.etiqueta)}</div>${sub}</div></div>`;
+  }
+
+  function bindCalendarioDetalle(root) {
+    if (!ES_PROPIETARIO || !root) return;
+    root.querySelectorAll('[data-cal-slot]').forEach(el => {
+      const open = () => {
+        const tipo = el.getAttribute('data-tipo-slot');
+        const refId = parseInt(el.getAttribute('data-ref-id') || '0', 10);
+        if (!refId) return;
+        const key = Object.keys(slotMeta).find(k => {
+          const m = slotMeta[k];
+          return m && m.refId === refId;
+        });
+        const meta = key ? slotMeta[key] : null;
+        if (tipo === 'cita' && typeof window.abrirDetalleCita === 'function') {
+          window.abrirDetalleCita(refId);
+        } else if (tipo === 'evento' && typeof window.abrirDetalleEventoCalendario === 'function' && meta) {
+          window.abrirDetalleEventoCalendario(meta);
+        }
+      };
+      el.addEventListener('click', open);
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      });
+    });
   }
 
   function goToBooking(y, m, d, h) {
@@ -353,7 +433,9 @@
       const free = (!isPast && dayStatus === 'available' && !ES_USUARIO) ? freeSlots(y, m, dd) : 0;
       const sub = ES_USUARIO
         ? (dayHasEvents(y, m, dd) ? 'Con actividad' : (isPast ? 'Pasado' : 'Sin citas'))
-        : (isPast ? 'Pasado' : (!w || dayStatus === 'off') ? 'No disponible' : free > 0 ? `${free} libre${free > 1 ? 's' : ''}` : 'Sin espacios');
+        : (isPast ? 'Pasado' : (!w || dayStatus === 'off') ? 'No disponible'
+          : dayHasEvents(y, m, dd) && free === 0 ? 'Con citas'
+          : free > 0 ? `${free} libre${free > 1 ? 's' : ''}` : 'Sin espacios');
       const subColor = ES_USUARIO
         ? (dayHasEvents(y, m, dd) ? '#2D6A4F' : 'inherit')
         : ((free > 0 && !isToday) ? '#2D6A4F' : 'inherit');
@@ -410,6 +492,20 @@
             html += renderOccupiedBlock(meta, top, HOUR_H);
           }
         }
+      } else if (ES_PROPIETARIO) {
+        for (let h = H_START; h < H_END; h++) {
+          const st = getSlotStatus(y, m, dd, h);
+          const top = (h - H_START) * HOUR_H;
+          const meta = slotMeta[`${dateKey(y, m, dd)}|${h}`];
+          if (st === 'owner-booking' || st === 'public-event') {
+            html += renderOccupiedBlock(meta, top, HOUR_H);
+          } else if (st === 'free') {
+            html += `<div class="tcw-free-slot" style="top:${top}px;height:${HOUR_H}px;" tabindex="0" role="button" data-y="${y}" data-m="${m}" data-d="${dd}" data-h="${h}" aria-label="Disponible ${fmtTime(h)}">
+              <div class="tcw-free-hint"><div class="tcw-free-hint-pill">＋ ${fmtTime(h)}</div></div></div>`;
+          } else if (st === 'past') {
+            html += `<div class="tcw-past-hour" style="top:${top}px;height:${HOUR_H}px;" aria-hidden="true"></div>`;
+          }
+        }
       } else if (isPast) {
         html += `<div class="tcw-past-overlay" style="height:${TOTAL_H * HOUR_H}px;"></div>`;
       } else if (w && dayStatus !== 'off') {
@@ -443,7 +539,9 @@
     html += '</div></div>';
     html += footerHint(ES_USUARIO
       ? 'Tus citas y eventos inscritos · Usa ‹ › para navegar entre semanas'
-      : 'Haz clic en un espacio libre para agendar · Usa ‹ › para navegar entre semanas');
+      : ES_PROPIETARIO
+        ? 'Citas privadas y eventos públicos · Clic en un bloque para ver detalle · Espacio libre = disponible para agendar'
+        : 'Haz clic en un espacio libre para agendar · Usa ‹ › para navegar entre semanas');
     content.innerHTML = html;
 
     if (!ES_USUARIO) {
@@ -451,6 +549,7 @@
         bindFreeSlot(el, +el.dataset.y, +el.dataset.m, +el.dataset.d, +el.dataset.h);
       });
     }
+    bindCalendarioDetalle(content);
 
     const bodyScroll = content.querySelector('.tcw-body-scroll');
     if (bodyScroll) {
@@ -476,15 +575,16 @@
       let cls = 'tcal-mday';
       let sub = '';
       let extra = '';
-      if (ES_USUARIO) {
+      if (ES_USUARIO || ES_PROPIETARIO) {
         if (dayHasEvents(viewYear, viewMonth, d)) {
           cls += ' avail';
-          sub = '<span class="tcal-mday__sub">Con actividad</span>';
+          const n = countDayEvents(viewYear, viewMonth, d);
+          sub = `<span class="tcal-mday__sub">${n} en agenda</span>`;
           extra = `data-y="${viewYear}" data-m="${viewMonth}" data-d="${d}" role="button" tabindex="0" class="tcal-mday-jump"`;
         } else if (new Date(viewYear, viewMonth, d) < TODAY) {
           cls += ' off past';
         } else {
-          cls += ' off';
+          cls += ES_PROPIETARIO ? ' off' : ' off';
         }
       } else if (status === 'available') {
         const free = freeSlots(viewYear, viewMonth, d);
@@ -530,12 +630,12 @@
       <button type="button" class="btn btn-ghost btn-sm tcal-daily-next">Siguiente →</button>
     </div>`;
 
-    if (!ES_USUARIO && (!w || dayStatus === 'off')) {
+    if (!ES_USUARIO && !ES_PROPIETARIO && (!w || dayStatus === 'off')) {
       content.innerHTML = nav + `<div class="tcal-empty"><div class="tcal-empty__icon">🚫</div><div class="tcal-empty__msg">${!w ? `La profesional no atiende los ${DAYS_FULL[dow]}s` : 'Este día no está disponible'}</div></div>`;
       bindDailyNav(content);
       return;
     }
-    if (!ES_USUARIO && dayStatus === 'occupied') {
+    if (!ES_USUARIO && !ES_PROPIETARIO && dayStatus === 'occupied' && !dayHasEvents(y, m, d)) {
       content.innerHTML = nav + `<div class="tcal-empty"><div class="tcal-empty__icon">⏰</div><div class="tcal-empty__msg">Todos los horarios están ocupados</div></div>`;
       bindDailyNav(content);
       return;
@@ -547,8 +647,8 @@
       return;
     }
 
-    const hourFrom = ES_USUARIO ? H_START : w.from;
-    const hourTo = ES_USUARIO ? H_END : w.to;
+    const hourFrom = (ES_USUARIO || ES_PROPIETARIO) ? H_START : w.from;
+    const hourTo = (ES_USUARIO || ES_PROPIETARIO) ? H_END : w.to;
 
     let html = nav + '<div class="tcal-daily">';
     for (let h = hourFrom; h < hourTo; h++) {
@@ -565,6 +665,10 @@
         attrs = `data-y="${y}" data-m="${m}" data-d="${d}" data-h="${h}" tabindex="0" role="button" class="tcal-drow-book"`;
       } else if (status === 'owner-booking' || status === 'my-booking' || status === 'public-event' || status === 'booked') {
         const meta = slotMeta[`${dateKey(y, m, d)}|${h}`] || { kind: 'busy', etiqueta: 'Ocupado', subtitulo: '' };
+        const clickDaily = ES_PROPIETARIO && meta.refId && (status === 'owner-booking' || status === 'public-event');
+        if (clickDaily) {
+          attrs = ` tabindex="0" role="button" data-cal-slot="1" data-tipo-slot="${meta.tipoSlot === 'EventoPublico' ? 'evento' : 'cita'}" data-ref-id="${meta.refId}" class="tcal-drow-cal-slot"`;
+        }
         if (status === 'owner-booking') {
           cellCls += ' owner-booking-cell';
           inner = `<div class="tcal-drow-evt owner-lbl"><span>👤 ${escHtml(meta.etiqueta)}</span>${meta.subtitulo ? `<span class="tcal-drow-sub">${escHtml(meta.subtitulo)}</span>` : ''}</div>`;
@@ -593,6 +697,7 @@
         bindFreeSlot(el, +el.dataset.y, +el.dataset.m, +el.dataset.d, +el.dataset.h);
       });
     }
+    bindCalendarioDetalle(content);
     bindDailyNav(content);
   }
 

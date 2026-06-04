@@ -63,7 +63,7 @@ public class CitasController(ICitaRepository citaRepo) : Controller
     [Authorize(Roles = "Usuario")]
     [HttpGet]
     public IActionResult NuevaCita(int profesionalId, DateTime? fechaHora)
-        => RedirectToAction("Confirmar", "PagoCita", new { profesionalId, fechaHora, duracionMinutos = 60 });
+        => RedirectToAction("SeleccionarTipo", "PagoCita", new { profesionalId, fechaHora, duracionMinutos = 60 });
 
     // POST /Citas/NuevaCita
     [Authorize(Roles = "Usuario")]
@@ -138,14 +138,17 @@ public class CitasController(ICitaRepository citaRepo) : Controller
         return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
     }
 
-    /// <summary>Fragmento HTML del detalle para modal (solo el usuario dueño de la cita).</summary>
-    [Authorize(Roles = "Usuario")]
+    /// <summary>Fragmento HTML del detalle para modal (usuario dueño o profesional de la cita).</summary>
+    [Authorize(Roles = "Usuario,Profesional")]
     [HttpGet]
     public async Task<IActionResult> DetalleModal(int id)
     {
         var cita = await ObtenerDetalleAutorizadoAsync(id);
         if (cita is null) return NotFound();
-        return PartialView("_DetalleCitaModalBody", cita);
+
+        return User.IsInRole("Profesional")
+            ? PartialView("_DetalleCitaModalProfesional", cita)
+            : PartialView("_DetalleCitaModalBody", cita);
     }
 
     private async Task<CitaListaDto?> ObtenerDetalleAutorizadoAsync(int citaId)
@@ -154,6 +157,14 @@ public class CitasController(ICitaRepository citaRepo) : Controller
         {
             var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             return await citaRepo.ObtenerDetalleParaClienteAsync(citaId, usuarioId, null);
+        }
+
+        if (User.IsInRole("Profesional"))
+        {
+            var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var enSala = await citaRepo.ObtenerParaSalaProfesionalAsync(citaId, profesionalId);
+            if (enSala is null) return null;
+            return await citaRepo.ObtenerDetalleAsync(citaId);
         }
 
         return await citaRepo.ObtenerDetalleAsync(citaId);

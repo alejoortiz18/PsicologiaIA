@@ -1,4 +1,5 @@
 using Trebol.Model.DTOs.Cita;
+using Trebol.Model.Enums;
 
 namespace Trebol.Web.Helpers;
 
@@ -43,8 +44,10 @@ public static class CalendarioSlotPresentacion
         if (modo == ModoVista.Propietario)
         {
             var fin = s.FechaHora.AddMinutes(s.DuracionMinutos);
-            var seguimiento = string.Equals(s.TipoCita, "Seguimiento", StringComparison.OrdinalIgnoreCase);
-            var tipo = seguimiento ? "Acompañamiento" : "Asesoría";
+            var tipo = CitaTipoHelper.Etiqueta(
+                string.Equals(s.TipoCita, "Seguimiento", StringComparison.OrdinalIgnoreCase)
+                    ? TipoCita.Seguimiento
+                    : TipoCita.Asesoria);
             s.Etiqueta = string.IsNullOrWhiteSpace(s.NombreCliente) ? tipo : s.NombreCliente.Trim();
             s.Subtitulo = $"{tipo} · {FormatearHora12(s.FechaHora)} - {FormatearHora12(fin)} · {FormatearEstado(s.EstadoCita)}";
             s.EsDetalleVisible = true;

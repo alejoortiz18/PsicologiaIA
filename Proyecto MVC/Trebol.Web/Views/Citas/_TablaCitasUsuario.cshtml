@@ -1,6 +1,7 @@
 @model IReadOnlyList<Trebol.Model.DTOs.Cita.CitaListaDto>
 @using Trebol.Model.DTOs.Common
 @using Trebol.Model.Enums
+@using Trebol.Web.Helpers
 @{
     var pag = ViewData["Paginacion"] as PaginacionVm ?? new PaginacionVm();
     var esActiva = ViewData["EsActiva"] as bool? ?? false;
@@ -20,7 +21,7 @@
         EstadoCita.Cancelada => "Cancelada",
         _ => e.ToString()
     };
-    string LabelTipo(TipoCita t) => t == TipoCita.Seguimiento ? "Acompañamiento" : "Asesoría";
+    string LabelTipo(TipoCita t) => CitaTipoHelper.Etiqueta(t);
 }
 
 @if (!Model.Any())

@@ -20,6 +20,7 @@
         _ => Model.Estado.ToString()
     };
     var tipoLabel = CitaTipoHelper.Etiqueta(Model.Tipo);
+    var nombreCliente = string.IsNullOrWhiteSpace(Model.AliasUsuario) ? "Cliente" : Model.AliasUsuario;
 }
 
 <div class="cita-detalle-modal">
@@ -28,8 +29,8 @@
         <span class="text-meta">Cita #@Model.CitaId</span>
     </div>
     <div style="display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:var(--sp-3) var(--sp-4);font-size:.9rem;">
-        <div style="font-weight:600;color:var(--color-text-muted);">Profesional</div>
-        <div class="cita-detalle-profesional" style="font-weight:600;color:var(--color-text-primary);">@Model.NombreProfesional</div>
+        <div style="font-weight:600;color:var(--color-text-muted);">Cliente</div>
+        <div class="cita-detalle-cliente" style="font-weight:600;color:var(--color-text-primary);">@nombreCliente</div>
 
         <div style="font-weight:600;color:var(--color-text-muted);">Fecha</div>
         <div>@Model.FechaHora.ToString("d MMM yyyy", cultura)</div>
@@ -40,10 +41,10 @@
         <div style="font-weight:600;color:var(--color-text-muted);">Duración</div>
         <div>@Model.DuracionMinutos min</div>
 
-        <div style="font-weight:600;color:var(--color-text-muted);">Tipo</div>
+        <div style="font-weight:600;color:var(--color-text-muted);">Tipo de cita</div>
         <div>@tipoLabel</div>
 
-        <div style="font-weight:600;color:var(--color-text-muted);">Valor</div>
+        <div style="font-weight:600;color:var(--color-text-muted);">Valor referencia</div>
         <div style="font-weight:700;color:var(--color-primary);">@Model.Monto.ToString("C0", cultura)</div>
     </div>
 </div>

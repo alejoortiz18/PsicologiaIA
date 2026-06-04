@@ -80,7 +80,7 @@
             miProfesionalId: @(ViewBag.MiProfesionalId?.ToString() ?? "null"),
             esVistaPropietario: @(ViewBag.EsVistaPropietario == true ? "true" : "false"),
             puedeAgendar: @((User.IsInRole("Usuario") || (User.IsInRole("Profesional") && ViewBag.EsVistaPropietario != true)) ? "true" : "false"),
-            nuevaCitaUrl: '@Url.Action("Confirmar", "PagoCita", new { profesionalId = p.ProfesionalId })',
+            nuevaCitaUrl: '@Url.Action("SeleccionarTipo", "PagoCita", new { profesionalId = p.ProfesionalId })',
             disponibilidad: @Html.Raw(ViewBag.DisponibilidadJson ?? "[]"),
             bloqueos: @Html.Raw(ViewBag.BloqueosJson ?? "[]"),
             citas: @Html.Raw(ViewBag.CitasSlotsJson ?? "[]")

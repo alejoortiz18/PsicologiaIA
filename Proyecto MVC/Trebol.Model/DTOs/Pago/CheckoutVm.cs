@@ -1,8 +1,11 @@
+using Trebol.Model.Enums;
+
 namespace Trebol.Model.DTOs.Pago;
 
 public class CheckoutVm
 {
     public string Tipo { get; set; } = "inscripcion";
+    public TipoCita? TipoCita { get; set; }
     public int ReferenciaId { get; set; }
     public int? InscripcionId { get; set; }
     public int? CitaId { get; set; }

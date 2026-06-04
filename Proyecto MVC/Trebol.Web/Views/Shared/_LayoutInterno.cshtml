@@ -160,7 +160,7 @@
     @await Html.PartialAsync("_ModalesIngresoEvento")
     <script src="~/js/evento-ingreso.js" asp-append-version="true"></script>
 }
-@if (User.IsInRole("Usuario"))
+@if (User.IsInRole("Usuario") || User.IsInRole("Profesional"))
 {
     @await Html.PartialAsync("_ModalDetalleCita")
     <script src="~/js/cita-detalle-modal.js" asp-append-version="true"></script>
