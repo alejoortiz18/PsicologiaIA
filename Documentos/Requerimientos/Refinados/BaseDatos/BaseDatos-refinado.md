@@ -608,6 +608,146 @@ CREATE TABLE PagoCita (
 );
 ```
 
+### 7.5 CuentaBancariaUsuario
+
+> Datos bancarios obligatorios del usuario para desembolsos. Relación 1:1 con `Usuario`.
+
+```sql
+CREATE TABLE CuentaBancariaUsuario (
+    CuentaBancariaUsuarioId INT             IDENTITY(1,1) NOT NULL,
+    UsuarioId               INT             NOT NULL,
+    Banco                   NVARCHAR(200)   NOT NULL,
+    TipoCuenta              NVARCHAR(30)    NOT NULL,       -- 'Ahorros', 'Corriente'
+    NumeroCuenta            NVARCHAR(50)    NOT NULL,
+    Titular                 NVARCHAR(200)   NOT NULL,
+    DocumentoTitular        NVARCHAR(30)    NULL,
+    Estado                  NVARCHAR(20)    NOT NULL DEFAULT 'Activa',
+    FechaCreacion           DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+    FechaModificacion       DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_CuentaBancariaUsuario PRIMARY KEY (CuentaBancariaUsuarioId),
+    CONSTRAINT UQ_CuentaBancariaUsuario_Usuario UNIQUE (UsuarioId),
+    CONSTRAINT FK_CuentaBancariaUsuario_Usuario FOREIGN KEY (UsuarioId) REFERENCES Usuario(UsuarioId),
+    CONSTRAINT CK_CuentaBancariaUsuario_Tipo CHECK (TipoCuenta IN ('Ahorros', 'Corriente')),
+    CONSTRAINT CK_CuentaBancariaUsuario_Estado CHECK (Estado IN ('Activa', 'Invalida', 'PendienteValidacion'))
+);
+```
+
+### 7.6 MovimientoSaldoUsuario
+
+> Ledger de saldo a favor y dinero en tránsito. Toda operación financiera del usuario queda trazada aquí.
+
+**Estados (`Estado`):**
+
+| Valor | Descripción |
+|---|---|
+| `SaldoFavor` | Crédito disponible en plataforma |
+| `EnTransito` | Desembolso bancario en proceso (15–30 días hábiles) |
+| `Desembolsado` | Transferido a cuenta bancaria |
+| `Retractado` | Usuario canceló retiro dentro de 5 días hábiles |
+| `Congelado` | Cuenta bancaria inválida; esperando corrección |
+| `Retenido` | Retención por plataforma tras 3 meses sin actualizar cuenta |
+
+**Tipos (`TipoMovimiento`):** `CreditoEventoCancelado`, `CreditoCitaProfesionalAusente`, `RecargaVoluntaria`, `DebitoPagoCita`, `DebitoPagoEvento`, `RetiroBancario`, `RetractacionRetiro`, `RetencionPlataforma`.
+
+```sql
+CREATE TABLE MovimientoSaldoUsuario (
+    MovimientoSaldoUsuarioId INT             IDENTITY(1,1) NOT NULL,
+    UsuarioId                INT             NOT NULL,
+    TipoMovimiento           NVARCHAR(40)    NOT NULL,
+    OrigenEntidad            NVARCHAR(20)    NULL,
+    OrigenEntidadId          INT             NULL,
+    ProfesionalId            INT             NULL,
+    PagoCitaId               INT             NULL,
+    PagoInscripcionId        INT             NULL,
+    SaldoRecargaId           INT             NULL,
+    MontoBruto               DECIMAL(12,2)   NOT NULL,
+    Comision                 DECIMAL(12,2)   NOT NULL DEFAULT 0,
+    MontoNeto                DECIMAL(12,2)   NOT NULL,
+    Estado                   NVARCHAR(20)    NOT NULL DEFAULT 'SaldoFavor',
+    CuentaBancariaUsuarioId  INT             NULL,
+    FechaLimiteRetractacion  DATETIME2(0)    NULL,
+    FechaEstimadaDesembolso  DATETIME2(0)    NULL,
+    FechaDesembolso          DATETIME2(0)    NULL,
+    Notas                    NVARCHAR(500)   NULL,
+    FechaCreacion            DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+    FechaModificacion        DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_MovimientoSaldoUsuario PRIMARY KEY (MovimientoSaldoUsuarioId),
+    CONSTRAINT FK_MovSaldo_Usuario FOREIGN KEY (UsuarioId) REFERENCES Usuario(UsuarioId),
+    CONSTRAINT FK_MovSaldo_Profesional FOREIGN KEY (ProfesionalId) REFERENCES Profesional(ProfesionalId),
+    CONSTRAINT CK_MovSaldo_Estado CHECK (Estado IN (
+        'SaldoFavor', 'EnTransito', 'Desembolsado', 'Retractado', 'Congelado', 'Retenido'
+    ))
+);
+```
+
+### 7.7 SaldoRecarga
+
+> Recarga voluntaria de saldo a favor mediante pasarela de pago.
+
+```sql
+CREATE TABLE SaldoRecarga (
+    SaldoRecargaId           INT             IDENTITY(1,1) NOT NULL,
+    UsuarioId                INT             NOT NULL,
+    Monto                    DECIMAL(12,2)   NOT NULL,
+    MetodoPago               NVARCHAR(25)    NOT NULL,
+    Estado                   NVARCHAR(15)    NOT NULL DEFAULT 'Pendiente',
+    ReferenciaPassarela      NVARCHAR(200)   NULL,
+    MovimientoSaldoUsuarioId INT             NULL,
+    FechaPago                DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+    FechaModificacion        DATETIME2(0)    NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_SaldoRecarga PRIMARY KEY (SaldoRecargaId),
+    CONSTRAINT FK_SaldoRecarga_Usuario FOREIGN KEY (UsuarioId) REFERENCES Usuario(UsuarioId),
+    CONSTRAINT CK_SaldoRecarga_Estado CHECK (Estado IN ('Pendiente', 'Aprobado', 'Rechazado'))
+);
+```
+
+### 7.8 CitaAsistencia
+
+> Registro de ingreso a sala de videollamada. Detección de inasistencia con **5 minutos de gracia** tras `Cita.FechaHora`.
+
+| Campo | Uso |
+|---|---|
+| `UsuarioIngresoSala` | Timestamp primer ingreso del usuario a la sala |
+| `ProfesionalIngresoSala` | Timestamp primer ingreso del profesional |
+| `ProfesionalReportoAusencia` | Reporte anticipado (hasta 5 min antes de la cita) |
+| `TipoAusencia` | `Profesional`, `Usuario`, `Ambos`, `Ninguno` |
+
+### 7.9 NovedadUsuario
+
+> Novedades pendientes mostradas en el tab **Novedades** del Perfil Usuario.
+
+**Estados:** `Pendiente`, `Resuelta`, `Expirada`.
+
+**Tipos:** `EventoCancelado`, `EventoReprogramado`, `ProfesionalNoAsistio`, `ProfesionalReportoAusencia`.
+
+### 7.10 AjusteSaldoProfesional
+
+> Descuentos al saldo por pagar del profesional cuando un usuario recibe saldo a favor.
+
+### 7.11 Estados ampliados
+
+**Cita (`Estado`):** se agrega `PendienteDecisionUsuario`.
+
+**Inscripcion (`Estado`):** se agregan `PendienteDecisionUsuario` y `ReembolsoPendiente`.
+
+**PagoCita / PagoInscripcion (`MetodoPago`):** se agrega `SaldoFavor`.
+
+**Configuracion (parámetros financieros):**
+
+| Clave | Default | Descripción |
+|---|---|---|
+| `Financiero.ComisionRetiroPorcentaje` | 3.5 | Comisión al desembolsar a banco |
+| `Financiero.DiasRetractacionRetiro` | 5 | Días hábiles para cancelar retiro |
+| `Financiero.DiasDesembolsoMin` | 15 | Días hábiles mínimos en tránsito |
+| `Financiero.DiasDesembolsoMax` | 30 | Días hábiles máximos en tránsito |
+| `Financiero.MesesRetencionCuentaInvalida` | 3 | Meses antes de retención |
+| `Financiero.MinutosGraciaInasistencia` | 5 | Minutos tras hora de cita |
+
+> Script de migración: `Proyecto MVC/Database/48_MisSaldosUsuarioFinanciero.sql`
+
 ---
 
 ## 8. Interacción Social

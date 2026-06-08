@@ -1,3 +1,4 @@
+@using Trebol.Constants.Messages
 @model Trebol.Model.DTOs.Usuario.PerfilUsuarioViewModel
 @{
     ViewData["Title"] = "Mi perfil";
@@ -10,6 +11,7 @@
             : u.NumeroDocumento;
     var pag = Model.PaginacionEventos;
     var tabActivo = ViewBag.TabActiva as string ?? (pag.PaginaActual > 1 ? "eventos" : "cuenta");
+    var cuenta = Model.CuentaBancaria;
 
     string PrecioEvento(decimal precio) => precio <= 0 ? "Entrada libre" : precio.ToString("C0", cultura);
     string BadgeEvento(bool finalizado) => finalizado ? "badge-muted" : "badge-success";
@@ -70,6 +72,62 @@
                 <button type="submit" class="btn btn-primary" id="save-btn" disabled aria-label="Guardar cambios del perfil">
                     <span class="btn-text">Guardar cambios</span>
                 </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="perfil-usuario-card" style="margin-top:var(--sp-5);">
+        <h2 class="perfil-usuario-card__title">Datos bancarios</h2>
+        <p class="text-meta" style="margin-bottom:var(--sp-5);">
+            Obligatorios para solicitar retiro de saldo a favor. La consignación se realizará a esta cuenta.
+        </p>
+        <form asp-action="GuardarCuentaBancaria" method="post" id="bank-form" novalidate>
+            @Html.AntiForgeryToken()
+            <div class="perfil-usuario-form-grid">
+                <div class="form-group">
+                    <label for="bank-banco" class="form-label">Banco <span class="required">*</span></label>
+                    <input type="text" id="bank-banco" name="Banco" class="form-control" required
+                           value="@cuenta?.Banco" aria-required="true" />
+                </div>
+                <div class="form-group">
+                    <label for="bank-tipo" class="form-label">Tipo de cuenta <span class="required">*</span></label>
+                    <select id="bank-tipo" name="TipoCuenta" class="form-control" required aria-required="true">
+                        <option value="">Seleccionar…</option>
+                        @if (cuenta?.TipoCuenta == "Ahorros")
+                        {
+                            <option value="Ahorros" selected>Ahorros</option>
+                            <option value="Corriente">Corriente</option>
+                        }
+                        else if (cuenta?.TipoCuenta == "Corriente")
+                        {
+                            <option value="Ahorros">Ahorros</option>
+                            <option value="Corriente" selected>Corriente</option>
+                        }
+                        else
+                        {
+                            <option value="Ahorros">Ahorros</option>
+                            <option value="Corriente">Corriente</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="bank-numero" class="form-label">Número de cuenta <span class="required">*</span></label>
+                    <input type="text" id="bank-numero" name="NumeroCuenta" class="form-control" required
+                           value="@cuenta?.NumeroCuenta" aria-required="true" inputmode="numeric" />
+                </div>
+                <div class="form-group">
+                    <label for="bank-titular" class="form-label">Titular de la cuenta <span class="required">*</span></label>
+                    <input type="text" id="bank-titular" name="Titular" class="form-control" required
+                           value="@(cuenta?.Titular ?? u.NombreCompleto)" aria-required="true" />
+                </div>
+                <div class="form-group">
+                    <label for="bank-documento" class="form-label">Documento del titular</label>
+                    <input type="text" id="bank-documento" name="DocumentoTitular" class="form-control"
+                           value="@cuenta?.DocumentoTitular" />
+                </div>
+            </div>
+            <div style="margin-top:var(--sp-6);">
+                <button type="submit" class="btn btn-primary">Guardar datos bancarios</button>
             </div>
         </form>
     </section>
@@ -183,6 +241,9 @@
         @await Html.PartialAsync("_CalendarioCitas")
     </section>
 </div>
+
+@await Html.PartialAsync("_TabMisSaldos", Model)
+@await Html.PartialAsync("_TabNovedades", Model)
 </div>
 </div>
 
@@ -207,6 +268,32 @@
     </div>
 </div>
 
+<!-- Modal retiro bancario -->
+<div id="retiro-confirm-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="retiro-confirm-title" aria-hidden="true">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon warning">🏦</div>
+            <div>
+                <div class="modal-title" id="retiro-confirm-title">Confirmar retiro bancario</div>
+                <div class="modal-subtitle">Verifica los montos antes de continuar</div>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="retiro-confirm" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+            <p>@SaldoConstant.ModalRetiroAdvertencia</p>
+            <dl class="mis-saldos-retiro-resumen">
+                <div><dt>Monto bruto</dt><dd id="retiro-monto-bruto">—</dd></div>
+                <div><dt>Comisión</dt><dd id="retiro-comision">—</dd></div>
+                <div><dt>Neto a consignar</dt><dd id="retiro-monto-neto">—</dd></div>
+            </dl>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="retiro-confirm">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="confirm-retiro-btn">Aceptar</button>
+        </div>
+    </div>
+</div>
+
 @section Styles {
     <link rel="stylesheet" href="~/css/perfil-usuario.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/perfil-orador-calendario.css" asp-append-version="true" />
@@ -217,6 +304,11 @@
     <script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
     <script src="~/js/perfil-usuario.js" asp-append-version="true"></script>
     <script>
+        window.perfilUsuarioFinanciero = {
+            solicitarRetiroUrl: '@Url.Action("SolicitarRetiro", "PerfilUsuario")',
+            retractarRetiroUrl: '@Url.Action("RetractarRetiro", "PerfilUsuario")',
+            token: document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+        };
         window.perfilOradorCal = {
             profesionalId: null,
             usuarioId: @Model.Usuario.UsuarioId,
@@ -237,6 +329,16 @@
             document.addEventListener('DOMContentLoaded', () => {
                 if (typeof showToast === 'function') {
                     showToast({ title: 'Perfil actualizado', message: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MensajeExito)), type: 'success' });
+                }
+            });
+        </script>
+    }
+    @if (TempData["Error"] is string errorMsg && !string.IsNullOrEmpty(errorMsg))
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                if (typeof showToast === 'function') {
+                    showToast({ title: 'Atención', message: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(errorMsg)), type: 'error' });
                 }
             });
         </script>

@@ -225,3 +225,113 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Mis saldos */
+.mis-saldos-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-6);
+}
+
+.mis-saldos-filtro {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+}
+
+.mis-saldos-kpi {
+    margin-bottom: var(--sp-6);
+}
+
+.mis-saldos-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--sp-5);
+    margin-bottom: var(--sp-4);
+}
+
+.mis-saldos-card {
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-5);
+    background: var(--color-surface-alt);
+}
+
+.mis-saldos-card--favor {
+    border-color: rgba(30, 132, 73, 0.25);
+    background: #E9F7EF;
+}
+
+.mis-saldos-card--transito {
+    border-color: rgba(214, 137, 16, 0.25);
+    background: #FEF5E7;
+}
+
+.mis-saldos-card__header {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-3);
+}
+
+.mis-saldos-card__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.mis-saldos-card__amount {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--sp-2);
+}
+
+.perfil-usuario-card__subtitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 0 0 var(--sp-4);
+}
+
+.mis-saldos-empty,
+.mis-saldos-empty-state {
+    text-align: center;
+    padding: var(--sp-8);
+    color: var(--color-text-muted);
+}
+
+.mis-saldos-empty-state__icon {
+    font-size: 2rem;
+    margin-bottom: var(--sp-3);
+}
+
+.mis-saldos-retiro-resumen {
+    margin-top: var(--sp-4);
+    display: grid;
+    gap: var(--sp-2);
+}
+
+.mis-saldos-retiro-resumen div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding: var(--sp-2) 0;
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.mis-saldos-retiro-resumen dt {
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+
+.mis-saldos-retiro-resumen dd {
+    margin: 0;
+    font-weight: 700;
+    color: var(--color-primary);
+}

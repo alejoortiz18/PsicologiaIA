@@ -95,7 +95,109 @@ public class Sesion            { public int SesionId { get; set; } public string
 // ── Disponibilidad ────────────────────────────────────────────
 public class HorarioDisponible { public int HorarioId { get; set; } public int ProfesionalId { get; set; } public byte DiaSemana { get; set; } public TimeOnly HoraInicio { get; set; } public TimeOnly HoraFin { get; set; } public bool Estado { get; set; } = true; }
 public class HorarioBloqueado  { public int BloqueoId { get; set; } public int ProfesionalId { get; set; } public DateTime FechaHoraInicio { get; set; } public DateTime FechaHoraFin { get; set; } public string? Motivo { get; set; } public DateTime FechaCreacion { get; set; } }
-public class CuentaBancaria    { public int CuentaId { get; set; } public int ProfesionalId { get; set; } public string Banco { get; set; } = string.Empty; public string NumeroCuenta { get; set; } = string.Empty; public string TipoCuenta { get; set; } = string.Empty; }
+public class CuentaBancaria
+{
+    public int CuentaId { get; set; }
+    public int ProfesionalId { get; set; }
+    public string Banco { get; set; } = string.Empty;
+    public string NumeroCuenta { get; set; } = string.Empty;
+    public string TipoCuenta { get; set; } = string.Empty;
+}
+
+public class CuentaBancariaUsuario
+{
+    public int CuentaBancariaUsuarioId { get; set; }
+    public int UsuarioId { get; set; }
+    public string Banco { get; set; } = string.Empty;
+    public string TipoCuenta { get; set; } = string.Empty;
+    public string NumeroCuenta { get; set; } = string.Empty;
+    public string Titular { get; set; } = string.Empty;
+    public string? DocumentoTitular { get; set; }
+    public string Estado { get; set; } = "Activa";
+    public DateTime FechaCreacion { get; set; }
+    public DateTime FechaModificacion { get; set; }
+}
+
+public class MovimientoSaldoUsuario
+{
+    public int MovimientoSaldoUsuarioId { get; set; }
+    public int UsuarioId { get; set; }
+    public string TipoMovimiento { get; set; } = string.Empty;
+    public string? OrigenEntidad { get; set; }
+    public int? OrigenEntidadId { get; set; }
+    public int? ProfesionalId { get; set; }
+    public int? PagoCitaId { get; set; }
+    public int? PagoInscripcionId { get; set; }
+    public int? SaldoRecargaId { get; set; }
+    public decimal MontoBruto { get; set; }
+    public decimal Comision { get; set; }
+    public decimal MontoNeto { get; set; }
+    public string Estado { get; set; } = "SaldoFavor";
+    public int? CuentaBancariaUsuarioId { get; set; }
+    public DateTime? FechaLimiteRetractacion { get; set; }
+    public DateTime? FechaEstimadaDesembolso { get; set; }
+    public DateTime? FechaDesembolso { get; set; }
+    public string? Notas { get; set; }
+    public DateTime FechaCreacion { get; set; }
+    public DateTime FechaModificacion { get; set; }
+}
+
+public class SaldoRecarga
+{
+    public int SaldoRecargaId { get; set; }
+    public int UsuarioId { get; set; }
+    public decimal Monto { get; set; }
+    public string MetodoPago { get; set; } = string.Empty;
+    public string Estado { get; set; } = "Pendiente";
+    public string? ReferenciaPassarela { get; set; }
+    public int? MovimientoSaldoUsuarioId { get; set; }
+    public DateTime FechaPago { get; set; }
+    public DateTime FechaModificacion { get; set; }
+}
+
+public class CitaAsistencia
+{
+    public int CitaAsistenciaId { get; set; }
+    public int CitaId { get; set; }
+    public DateTime? UsuarioIngresoSala { get; set; }
+    public DateTime? ProfesionalIngresoSala { get; set; }
+    public bool ProfesionalReportoAusencia { get; set; }
+    public DateTime? FechaReporteAusencia { get; set; }
+    public string? MensajeReporteAusencia { get; set; }
+    public bool EvaluacionCompleta { get; set; }
+    public string? TipoAusencia { get; set; }
+    public DateTime FechaCreacion { get; set; }
+    public DateTime FechaModificacion { get; set; }
+}
+
+public class NovedadUsuario
+{
+    public int NovedadUsuarioId { get; set; }
+    public int UsuarioId { get; set; }
+    public string TipoNovedad { get; set; } = string.Empty;
+    public string EntidadTipo { get; set; } = string.Empty;
+    public int EntidadId { get; set; }
+    public string Titulo { get; set; } = string.Empty;
+    public string Mensaje { get; set; } = string.Empty;
+    public string Estado { get; set; } = "Pendiente";
+    public string? OpcionElegida { get; set; }
+    public DateTime? FechaResolucion { get; set; }
+    public DateTime FechaCreacion { get; set; }
+    public DateTime FechaModificacion { get; set; }
+}
+
+public class AjusteSaldoProfesional
+{
+    public int AjusteSaldoProfesionalId { get; set; }
+    public int ProfesionalId { get; set; }
+    public int MovimientoSaldoUsuarioId { get; set; }
+    public decimal Monto { get; set; }
+    public string MotivoCodigo { get; set; } = string.Empty;
+    public string MotivoDetalle { get; set; } = string.Empty;
+    public int? CitaId { get; set; }
+    public int? InscripcionId { get; set; }
+    public DateTime FechaCreacion { get; set; }
+}
 
 // ── Salas y eventos ───────────────────────────────────────────
 public class Sala

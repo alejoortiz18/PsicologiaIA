@@ -356,6 +356,14 @@ public class ProfesionalRepository(AppDbContext context, IConfiguration configur
                  JOIN Cita c ON c.CitaId = pc.CitaId
                  WHERE c.ProfesionalId = @ProfesionalId AND pc.Estado = 'Aprobado'
                    AND YEAR(pc.FechaPago) = YEAR(GETDATE()) AND MONTH(pc.FechaPago) = MONTH(GETDATE())) AS IngresosMes,
+                (SELECT ISNULL(SUM(pp.Monto),0) FROM PagoProfesional pp
+                 WHERE pp.ProfesionalId = @ProfesionalId AND pp.Estado = 'Pagado') AS IngresosPagados,
+                (SELECT ISNULL(SUM(pc.Monto),0) FROM PagoCita pc
+                 JOIN Cita c ON c.CitaId = pc.CitaId
+                 WHERE c.ProfesionalId = @ProfesionalId AND pc.Estado = 'Aprobado')
+                -
+                (SELECT ISNULL(SUM(pp.Monto),0) FROM PagoProfesional pp
+                 WHERE pp.ProfesionalId = @ProfesionalId AND pp.Estado = 'Pagado') AS SaldoPorPagar,
                 (SELECT COUNT(DISTINCT UsuarioId) FROM Cita WHERE ProfesionalId = @ProfesionalId) AS TotalPacientes",
             new { ProfesionalId = profesionalId });
         return resumen ?? new PerfilProfesionalResumenDto();

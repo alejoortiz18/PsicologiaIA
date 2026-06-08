@@ -43,6 +43,14 @@
         </div>
     </article>
     <article class="kpi-card">
+        <div class="kpi-card__icon" style="background:#FEF5E7;">🏦</div>
+        <div>
+            <div class="kpi-card__label">Saldo por pagar</div>
+            <div class="kpi-card__value" style="font-size:1.6rem;color:#D68910;">$@resumen.SaldoPorPagar.ToString("N0")</div>
+            <div class="text-meta" style="font-size:.8rem;">Pendiente de transferencia por la plataforma</div>
+        </div>
+    </article>
+    <article class="kpi-card">
         <div class="kpi-card__icon" style="background:#F5EEF8;">🎪</div>
         <div>
             <div class="kpi-card__label">Salas creadas</div>
@@ -92,6 +100,10 @@
                 <tr style="border-bottom:1px solid var(--color-border-light);">
                     <td style="padding:var(--sp-4);">💰 Ingresos (pagos aprobados)</td>
                     <td style="padding:var(--sp-4);text-align:right;font-weight:600;">$@resumen.IngresosTotal.ToString("N0")</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--color-border-light);">
+                    <td style="padding:var(--sp-4);">🏦 Saldo por pagar</td>
+                    <td style="padding:var(--sp-4);text-align:right;font-weight:600;color:#D68910;">$@resumen.SaldoPorPagar.ToString("N0")</td>
                 </tr>
                 <tr style="border-bottom:1px solid var(--color-border-light);">
                     <td style="padding:var(--sp-4);">🎪 Salas</td>

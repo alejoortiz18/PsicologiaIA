@@ -15,6 +15,7 @@ namespace Trebol.Web.Controllers;
 public class SalasController(
     ISalaRepository salaRepo,
     ICitaRepository citaRepo,
+    ISaldoUsuarioRepository saldoRepo,
     IHubContext<ConferenciaHub> conferenciaHub) : Controller
 {
     public async Task<IActionResult> Index()
@@ -134,6 +135,15 @@ public class SalasController(
         return View(sala);
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CancelarEvento(int salaId, string? motivo)
+    {
+        var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var resultado = await saldoRepo.CancelarEventoSalaConNovedadesAsync(salaId, profesionalId, motivo);
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
+    }
+
     /// <summary>Sala de videollamada privada — profesional (sala-profesional.html).</summary>
     [HttpGet]
     public async Task<IActionResult> SalaPrivadaProfesional(int citaId)
@@ -149,6 +159,8 @@ public class SalasController(
                 : CitaConstant.SalaNoDisponible;
             return RedirectToAction("Citas", "PerfilProfesional");
         }
+
+        await saldoRepo.RegistrarIngresoCitaSalaAsync(citaId, "Profesional", profesionalId);
 
         return View(cita);
     }

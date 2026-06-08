@@ -10,6 +10,7 @@
     var totalEventos = Model.PaginacionEventos.TotalRegistros;
     var citasProximas = Model.CitasProximas.Count;
     var tab = ViewBag.TabActiva as string ?? "cuenta";
+    var novedadesPendientes = Model.TotalNovedadesPendientes;
 }
 
 <section class="perfil-usuario-header">
@@ -68,6 +69,24 @@
                 @if (citasProximas > 0)
                 {
                     <span class="tab-badge">@citasProximas</span>
+                }
+            </button>
+        </li>
+        <li>
+            <button type="button" class="prof-tab-link @(tab == "saldos" ? "active" : "")" role="tab"
+                    aria-selected="@(tab == "saldos" ? "true" : "false")"
+                    data-tab="tab-saldos" id="tab-btn-saldos">
+                <span class="tab-icon" aria-hidden="true">💰</span>Mis saldos
+            </button>
+        </li>
+        <li>
+            <button type="button" class="prof-tab-link @(tab == "novedades" ? "active" : "")" role="tab"
+                    aria-selected="@(tab == "novedades" ? "true" : "false")"
+                    data-tab="tab-novedades" id="tab-btn-novedades">
+                <span class="tab-icon" aria-hidden="true">🔔</span>Novedades
+                @if (novedadesPendientes > 0)
+                {
+                    <span class="tab-badge">@novedadesPendientes</span>
                 }
             </button>
         </li>

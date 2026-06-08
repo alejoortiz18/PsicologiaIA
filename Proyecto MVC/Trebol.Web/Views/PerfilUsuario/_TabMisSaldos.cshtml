@@ -1,0 +1,199 @@
+@model Trebol.Model.DTOs.Usuario.PerfilUsuarioViewModel
+@{
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var r = Model.ResumenSaldos;
+    var filtro = Model.FiltroSaldos;
+    var pag = Model.PaginacionPagos;
+    var tabActivo = ViewBag.TabActiva as string ?? "saldos";
+}
+
+<div id="tab-saldos" class="tab-content @(tabActivo == "saldos" ? "active" : "")" role="tabpanel" aria-labelledby="tab-btn-saldos">
+    <section class="perfil-usuario-card">
+        <div class="mis-saldos-toolbar">
+            <h2 class="perfil-usuario-card__title" style="margin:0;">Mis saldos</h2>
+            <form method="get" asp-action="Index" class="mis-saldos-filtro">
+                <input type="hidden" name="tab" value="saldos" />
+                <label class="form-label" for="fecha-desde">Desde</label>
+                <input type="date" id="fecha-desde" name="fechaDesde" class="form-control form-control-sm"
+                       value="@(filtro.FechaDesde?.ToString("yyyy-MM-dd"))" />
+                <label class="form-label" for="fecha-hasta">Hasta</label>
+                <input type="date" id="fecha-hasta" name="fechaHasta" class="form-control form-control-sm"
+                       value="@(filtro.FechaHasta?.ToString("yyyy-MM-dd"))" />
+                <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+            </form>
+        </div>
+
+        <div class="kpi-grid mis-saldos-kpi">
+            <article class="kpi-card">
+                <div class="kpi-card__icon" style="background:#E8F8F5;">💳</div>
+                <div>
+                    <div class="kpi-card__label">Total pagado</div>
+                    <div class="kpi-card__value">@r.TotalPagado.ToString("C0", cultura)</div>
+                    <div class="text-meta" style="font-size:.8rem;">Citas y eventos</div>
+                </div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-card__icon" style="background:#EBF5FB;">🎪</div>
+                <div>
+                    <div class="kpi-card__label">Eventos asistidos</div>
+                    <div class="kpi-card__value">@r.TotalEventosAsistidos</div>
+                </div>
+            </article>
+            <article class="kpi-card">
+                <div class="kpi-card__icon" style="background:#F5EEF8;">📅</div>
+                <div>
+                    <div class="kpi-card__label">Total citas</div>
+                    <div class="kpi-card__value">@r.TotalCitas</div>
+                </div>
+            </article>
+        </div>
+
+        <div class="mis-saldos-cards">
+            <article class="mis-saldos-card mis-saldos-card--favor">
+                <div class="mis-saldos-card__header">
+                    <span class="mis-saldos-card__icon" aria-hidden="true">✅</span>
+                    <h3 class="mis-saldos-card__title">Saldo a favor</h3>
+                </div>
+                <div class="mis-saldos-card__amount">@r.SaldoFavor.ToString("C0", cultura)</div>
+                <p class="text-meta">Crédito disponible para citas o eventos en la plataforma.</p>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-retirar-saldo"
+                        @(r.SaldoFavor <= 0 ? "disabled" : null)
+                        data-saldo="@r.SaldoFavor.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        data-comision="@Model.ComisionRetiroPorcentaje.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        data-cuenta-completa="@(Model.CuentaBancaria?.EstaCompleta == true ? "true" : "false")">
+                    Retirar
+                </button>
+            </article>
+
+            <article class="mis-saldos-card mis-saldos-card--transito">
+                <div class="mis-saldos-card__header">
+                    <span class="mis-saldos-card__icon" aria-hidden="true">🏦</span>
+                    <h3 class="mis-saldos-card__title">Dinero en tránsito</h3>
+                </div>
+                <div class="mis-saldos-card__amount">@r.DineroEnTransito.ToString("C0", cultura)</div>
+                <p class="text-meta">Desembolsos bancarios en proceso (15–30 días hábiles).</p>
+            </article>
+        </div>
+
+        @if (Model.MovimientosEnTransito.Any())
+        {
+            <div class="table-wrapper" style="margin-top:var(--sp-5);">
+                <h3 class="perfil-usuario-card__subtitle">Retiros en tránsito</h3>
+                <div style="overflow-x:auto;">
+                    <table aria-label="Dinero en tránsito">
+                        <thead>
+                            <tr>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Bruto</th>
+                                <th scope="col">Comisión</th>
+                                <th scope="col">Neto a consignar</th>
+                                <th scope="col">Cuenta</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var m in Model.MovimientosEnTransito)
+                            {
+                                <tr>
+                                    <td>@m.FechaCreacion.ToString("d MMM yyyy", cultura)</td>
+                                    <td>@m.MontoBruto.ToString("C0", cultura)</td>
+                                    <td>@m.Comision.ToString("C0", cultura)</td>
+                                    <td>@m.MontoNeto.ToString("C0", cultura)</td>
+                                    <td>@m.Banco @(m.NumeroCuenta.Length >= 4 ? "···· " + m.NumeroCuenta[^4..] : m.NumeroCuenta)</td>
+                                    <td><span class="badge @(m.Estado == "Congelado" ? "badge-warning" : "badge-muted")">@m.Estado</span></td>
+                                    <td>
+                                        @if (m.PuedeRetractar)
+                                        {
+                                            <button type="button" class="btn btn-ghost btn-sm btn-retractar-retiro"
+                                                    data-movimiento-id="@m.MovimientoSaldoUsuarioId">
+                                                Cancelar retiro
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div class="table-wrapper" style="margin-top:var(--sp-6);">
+            <h3 class="perfil-usuario-card__subtitle">Pagos por profesional</h3>
+            <div style="overflow-x:auto;">
+                <table aria-label="Pagos agrupados por profesional">
+                    <thead>
+                        <tr>
+                            <th scope="col">Profesional</th>
+                            <th scope="col">Transacciones</th>
+                            <th scope="col">Total pagado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.PagosPorProfesional.Any())
+                        {
+                            foreach (var p in Model.PagosPorProfesional)
+                            {
+                                <tr>
+                                    <td>@p.NombreProfesional</td>
+                                    <td>@p.TotalTransacciones</td>
+                                    <td>@p.TotalPagado.ToString("C0", cultura)</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" class="mis-saldos-empty">
+                                    No se encontraron registros para el período seleccionado.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (pag.TotalRegistros > 0)
+            {
+                <div class="perfil-usuario-pagination">
+                    <span class="text-meta">
+                        Mostrando @pag.Desde–@pag.Hasta de @pag.TotalRegistros registros
+                    </span>
+                    @if (pag.TotalPaginas > 1)
+                    {
+                        <nav class="pagination" role="navigation" aria-label="Paginación de pagos">
+                            @if (pag.PaginaActual > 1)
+                            {
+                                <a class="pagination__btn" asp-action="Index" asp-route-tab="saldos"
+                                   asp-route-paginaPagos="@(pag.PaginaActual - 1)"
+                                   asp-route-fechaDesde="@filtro.FechaDesde?.ToString("yyyy-MM-dd")"
+                                   asp-route-fechaHasta="@filtro.FechaHasta?.ToString("yyyy-MM-dd")">‹</a>
+                            }
+                            @for (var p = 1; p <= pag.TotalPaginas; p++)
+                            {
+                                if (p == pag.PaginaActual)
+                                {
+                                    <span class="pagination__btn active" aria-current="page">@p</span>
+                                }
+                                else
+                                {
+                                    <a class="pagination__btn" asp-action="Index" asp-route-tab="saldos"
+                                       asp-route-paginaPagos="@p"
+                                       asp-route-fechaDesde="@filtro.FechaDesde?.ToString("yyyy-MM-dd")"
+                                       asp-route-fechaHasta="@filtro.FechaHasta?.ToString("yyyy-MM-dd")">@p</a>
+                                }
+                            }
+                            @if (pag.PaginaActual < pag.TotalPaginas)
+                            {
+                                <a class="pagination__btn" asp-action="Index" asp-route-tab="saldos"
+                                   asp-route-paginaPagos="@(pag.PaginaActual + 1)"
+                                   asp-route-fechaDesde="@filtro.FechaDesde?.ToString("yyyy-MM-dd")"
+                                   asp-route-fechaHasta="@filtro.FechaHasta?.ToString("yyyy-MM-dd")">›</a>
+                            }
+                        </nav>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+</div>

@@ -10,7 +10,7 @@ using Trebol.Web.Helpers;
 namespace Trebol.Web.Controllers;
 
 [Authorize(Roles = "Usuario,Profesional")]
-public class CitasController(ICitaRepository citaRepo) : Controller
+public class CitasController(ICitaRepository citaRepo, ISaldoUsuarioRepository saldoRepo) : Controller
 {
     private const int TamanoPagina = 10;
 
@@ -121,7 +121,58 @@ public class CitasController(ICitaRepository citaRepo) : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        await saldoRepo.RegistrarIngresoCitaSalaAsync(citaId, "Usuario", usuarioId, ct);
+
         return View(cita);
+    }
+
+    [Authorize(Roles = "Usuario")]
+    [HttpGet]
+    public async Task<IActionResult> EvaluarInasistencia(int citaId, CancellationToken ct)
+    {
+        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var eval = await saldoRepo.EvaluarInasistenciaCitaAsync(citaId, usuarioId, ct);
+        if (!eval.RequiereModal || !eval.NovedadUsuarioId.HasValue)
+            return Json(new { requiereModal = false });
+
+        var novedad = await saldoRepo.ObtenerNovedadPendienteModalAsync(usuarioId, ct);
+        return Json(new
+        {
+            requiereModal = true,
+            novedad = novedad is null ? null : new
+            {
+                novedad.NovedadUsuarioId,
+                novedad.TipoNovedad,
+                novedad.Titulo,
+                novedad.Mensaje,
+                novedad.EsCita,
+                novedad.ProfesionalId
+            }
+        });
+    }
+
+    [Authorize(Roles = "Profesional")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReportarAusencia(int citaId, string? mensaje, CancellationToken ct)
+    {
+        var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var resultado = await saldoRepo.ReportarAusenciaProfesionalAsync(citaId, profesionalId, mensaje, ct);
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
+    }
+
+    [Authorize(Roles = "Profesional")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegistrarIngresoProfesional(int citaId, CancellationToken ct)
+    {
+        var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var cita = await citaRepo.ObtenerParaSalaProfesionalAsync(citaId, profesionalId, ct);
+        if (cita is null)
+            return Json(new { exito = false, mensaje = CitaConstant.CitaNoEncontrada });
+
+        var resultado = await saldoRepo.RegistrarIngresoCitaSalaAsync(citaId, "Profesional", profesionalId, ct);
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
     }
 
     [Authorize(Roles = "Usuario")]

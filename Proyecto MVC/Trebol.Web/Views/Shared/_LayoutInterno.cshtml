@@ -154,6 +154,12 @@
         });
     }
 </script>
+@if (User.IsInRole("Usuario"))
+{
+    @Html.AntiForgeryToken()
+    @await Html.PartialAsync("_ModalNovedadUsuario")
+    <script src="~/js/novedad-usuario.js" asp-append-version="true"></script>
+}
 @if (User.IsInRole("Usuario") || User.IsInRole("Profesional"))
 {
     @await Html.PartialAsync("_ModalesEventosUsuario")

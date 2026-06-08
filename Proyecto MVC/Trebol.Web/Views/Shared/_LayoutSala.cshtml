@@ -11,8 +11,9 @@
     <link rel="stylesheet" href="~/css/sala-profesional.css" asp-append-version="true" />
     @RenderSection("Styles", required: false)
 </head>
-<body class="sala-body">
+<body class="sala-body" data-es-usuario="true" data-check-novedad-on-load="false">
 @RenderBody()
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
 <script src="~/js/trebol.js" asp-append-version="true"></script>
 <script src="~/js/sala-sesion.js" asp-append-version="true"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

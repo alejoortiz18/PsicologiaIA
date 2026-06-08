@@ -12,7 +12,9 @@ public class PerfilProfesionalResumenDto
     public int CitasCompletadas { get; set; }
     public int CitasCanceladas  { get; set; }
     public int CitasTotal       { get; set; }
-    public decimal IngresosTotal  { get; set; }
-    public decimal IngresosMes    { get; set; }
-    public int TotalPacientes   { get; set; }
+    public decimal IngresosTotal   { get; set; }
+    public decimal IngresosMes     { get; set; }
+    public decimal IngresosPagados { get; set; }
+    public decimal SaldoPorPagar   { get; set; }
+    public int TotalPacientes      { get; set; }
 }

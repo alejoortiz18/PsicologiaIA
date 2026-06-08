@@ -159,16 +159,20 @@
     </div>
 </div>
 
+@await Html.PartialAsync("_ModalNovedadUsuario")
+
 @section Scripts {
 @Html.AntiForgeryToken()
 <script src="~/js/sala-usuario.js" asp-append-version="true"></script>
+<script src="~/js/novedad-usuario.js" asp-append-version="true"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   initSalaUsuario({
     citaId: @Model.CitaId,
     notaKey: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(notaKey)),
     recomendKey: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(recomendKey)),
-    tieneRecomendBd: @(string.IsNullOrEmpty(recomendTexto) ? "false" : "true")
+    tieneRecomendBd: @(string.IsNullOrEmpty(recomendTexto) ? "false" : "true"),
+    fechaHoraCita: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FechaHora.ToString("o")))
   });
 });
 </script>
