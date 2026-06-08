@@ -8,7 +8,7 @@
     string BadgeNovedad(string tipo) => tipo switch
     {
         "EventoCancelado" or "EventoReprogramado" => "badge-warning",
-        "ProfesionalNoAsistio" or "ProfesionalReportoAusencia" => "badge-danger",
+        "ProfesionalNoAsistio" or "ProfesionalReportoAusencia" or "ProfesionalNoIngresoEvento" => "badge-danger",
         _ => "badge-muted"
     };
 
@@ -18,6 +18,7 @@
         "EventoReprogramado" => "Evento reprogramado",
         "ProfesionalNoAsistio" => "Profesional no asistió",
         "ProfesionalReportoAusencia" => "Reporte de ausencia",
+        "ProfesionalNoIngresoEvento" => "Ponente no ingresó",
         _ => tipo
     };
 }
@@ -58,7 +59,8 @@
                                             data-titulo="@n.Titulo"
                                             data-mensaje="@n.Mensaje"
                                             data-tipo="@n.TipoNovedad"
-                                            data-entidad-tipo="@n.EntidadTipo">
+                                            data-entidad-tipo="@n.EntidadTipo"
+                                            data-tiene-pago="@(n.TienePagoAprobado ? "true" : "false")">
                                         Resolver
                                     </button>
                                 </td>

@@ -1,227 +1,138 @@
 @model Trebol.Model.DTOs.Sala.SalaConferenciaAsistenteDto
-
 @using Trebol.Web.Helpers
-
 @{
-
     Layout = "~/Views/Shared/_LayoutSala.cshtml";
-
     ViewData["Title"] = $"Conferencia · {Model.Titulo}";
-
     var proIni = string.Concat((Model.NombreProfesional ?? "PR").Split(' ', StringSplitOptions.RemoveEmptyEntries)
-
         .Take(2).Select(p => char.ToUpper(p[0])));
-
     if (string.IsNullOrEmpty(proIni)) proIni = "PR";
-
     var enVivo = Model.FechaInicio.HasValue && Model.FechaInicio.Value <= DateTime.Now
-
         && (!Model.FechaFin.HasValue || EventoIngresoHelper.FinEfectivo(Model.FechaInicio, Model.FechaFin) >= DateTime.Now);
-
 }
 
-
+@section Styles {
+    <link rel="stylesheet" href="~/css/conf-espera-ponente.css" asp-append-version="true" />
+}
 
 <div class="conf-layout" role="main">
-
     <header class="conf-header" role="banner">
-
         <a asp-controller="Eventos" asp-action="Index" class="conf-logo" aria-label="Volver a eventos">🍀 Trébol</a>
-
         <div class="conf-header__title">
-
             <div class="conf-header__event-name">@Model.Titulo</div>
-
             <div class="conf-header__meta">
-
                 @if (enVivo)
-
                 {
-
                     <span class="badge-live"><span class="live-pulse"></span> 🔴 En vivo</span>
-
                 }
-
                 <span class="conf-attendee-count">👥 @Model.TotalInscritos / @Model.Capacidad inscritos</span>
-
             </div>
-
         </div>
-
         <div class="conf-alias-chip" aria-label="Tu alias">
-
             <span class="conf-alias-chip__label">Tú:</span>
-
             <span class="conf-alias-chip__name">@Model.AliasParticipante</span>
-
         </div>
-
     </header>
 
-
-
     <div class="conf-stream">
-
+        <div id="conf-espera-overlay" class="conf-espera-overlay" @(Model.ProfesionalPresente ? "hidden" : null) role="status" aria-live="polite">
+            <p class="conf-espera-overlay__title">Esperando al ponente</p>
+            <p class="conf-espera-overlay__subtitle">
+                El profesional aún no ha ingresado a la conferencia. El evento comenzará cuando se conecte.
+            </p>
+            <div id="conf-espera-countdown" class="conf-espera-countdown" aria-label="Tiempo restante">05:00</div>
+            <p class="conf-espera-overlay__hint">Tiempo de gracia: 5 minutos desde el inicio programado</p>
+        </div>
         <div class="conf-stream__placeholder">
-
             <div class="conf-stream__avatar" aria-hidden="true">@proIni</div>
-
             <div class="conf-stream__name">@Model.NombreProfesional</div>
-
             <div class="conf-stream__role">Ponente · @(Model.Categoria ?? "Conferencia")</div>
-
         </div>
-
         <div class="conf-stream__ponente-chip">
-
             <span class="conf-stream__ponente-dot"></span> Ponente
-
         </div>
-
     </div>
-
-
 
     <div class="conf-controls conf-controls--asistente" role="toolbar" aria-label="Controles del asistente">
-
         <div class="ctrl-label">
-
             <button type="button" class="ctrl-btn ctrl-btn--danger" data-open-modal="salir-conf-modal" title="Salir">📞</button>
-
             Salir
-
         </div>
-
     </div>
-
-
 
     <aside class="conf-side" aria-label="Panel del asistente">
-
         <div class="conf-tabs" role="tablist">
-
             <button type="button" class="conf-tab active" role="tab" data-ctab="tab-chat-asistente" aria-selected="true">💬 Chat</button>
-
             <button type="button" class="conf-tab" role="tab" data-ctab="tab-info-asistente" aria-selected="false">ℹ️ Info</button>
-
         </div>
-
-
 
         <div class="conf-panel-section active" id="tab-chat-asistente">
-
             <div id="conf-chat-disabled" class="conf-chat-disabled" role="status" @(Model.ChatHabilitado ? "hidden" : null)>
-
                 <p>El chat grupal aún no está habilitado.</p>
-
                 <p class="text-meta">El profesional lo activará cuando esté listo para recibir mensajes.</p>
-
             </div>
-
             <div id="conf-chat-active" @(!Model.ChatHabilitado ? "hidden" : null)>
-
                 <div class="conf-chat-feed" id="chat-feed-asistente" aria-live="polite">
-
                     <p class="text-meta conf-chat-welcome" style="padding:var(--sp-4);margin:0;">Bienvenido al chat grupal del evento.</p>
-
                 </div>
-
                 <div class="conf-chat-input-row">
-
                     <input type="text" class="form-control" id="chat-input-asistente" maxlength="500" placeholder="Escribe un mensaje…" aria-label="Mensaje" />
-
                     <button type="button" class="btn btn-primary btn-sm" id="chat-send-asistente">Enviar</button>
-
                 </div>
-
             </div>
-
         </div>
-
-
 
         <div class="conf-panel-section" id="tab-info-asistente">
-
             <div class="conf-info-list">
-
                 <div class="conf-info-row"><span class="conf-info-label">📌 Evento</span><span class="conf-info-value">@Model.Titulo</span></div>
-
                 <div class="conf-info-row"><span class="conf-info-label">🎓 Ponente</span><span class="conf-info-value">@Model.NombreProfesional</span></div>
-
                 @if (Model.FechaInicio.HasValue)
-
                 {
-
                     <div class="conf-info-row"><span class="conf-info-label">📅 Inicio</span><span class="conf-info-value">@Model.FechaInicio.Value.ToString("d MMM yyyy · h:mm tt")</span></div>
-
                 }
-
                 <div class="conf-info-row"><span class="conf-info-label">👥 Inscritos</span><span class="conf-info-value">@Model.TotalInscritos / @Model.Capacidad</span></div>
-
             </div>
-
         </div>
-
     </aside>
-
 </div>
-
-
 
 <div id="salir-conf-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="salir-conf-title">
-
     <div class="modal">
-
         <div class="modal-header">
-
             <div class="modal-title" id="salir-conf-title">¿Salir del evento?</div>
-
         </div>
-
         <div class="modal-body">
-
             <p>Puedes volver a ingresar mientras el evento siga activo.</p>
-
         </div>
-
         <div class="modal-footer">
-
             <button type="button" class="btn btn-secondary" data-close-modal="salir-conf-modal">Quedarme</button>
-
             <a asp-controller="Eventos" asp-action="Index" class="btn btn-danger">Salir</a>
-
         </div>
-
     </div>
-
 </div>
 
-
+@await Html.PartialAsync("_ModalNovedadUsuario")
 
 @section Scripts {
-
+@Html.AntiForgeryToken()
 <script>
-
 window.confSalaHub = {
   salaId: @Model.SalaId,
   chatHabilitado: @(Model.ChatHabilitado ? "true" : "false"),
   rol: 'asistente'
 };
-
+window.confEsperaPonente = {
+  salaId: @Model.SalaId,
+  fechaInicio: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FechaInicio?.ToString("o"))),
+  profesionalPresente: @(Model.ProfesionalPresente ? "true" : "false"),
+  tienePagoAprobado: @(Model.TienePagoAprobado ? "true" : "false"),
+  minutosGracia: 5
+};
 </script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="~/js/conf-sala-hub.js" asp-append-version="true"></script>
-
+<script src="~/js/novedad-usuario.js" asp-append-version="true"></script>
+<script src="~/js/conf-espera-ponente.js" asp-append-version="true"></script>
 <script>
-
-document.addEventListener('DOMContentLoaded', () => {
-
-  initConfTabs();
-
-});
-
+document.addEventListener('DOMContentLoaded', () => { initConfTabs(); });
 </script>
-
 }
-
-

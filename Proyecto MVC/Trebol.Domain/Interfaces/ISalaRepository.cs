@@ -30,6 +30,9 @@ public interface ISalaRepository
     Task<IReadOnlyList<EventoPublicoDto>> ObtenerInscritosProfesionalAsync(int profesionalInscriptorId, CancellationToken ct = default);
     Task<ResultadoOperacion> ToggleChatSalaAsync(int salaId, int profesionalId, bool habilitado, CancellationToken ct = default);
     Task<bool> ChatHabilitadoAsync(int salaId, CancellationToken ct = default);
+    Task<ResultadoOperacion> RegistrarIngresoConferenciaAsync(int salaId, string tipoParticipante, int participanteId, CancellationToken ct = default);
+    Task<ConferenciaPresenciaDto> ConsultarPresenciaProfesionalAsync(int salaId, CancellationToken ct = default);
+    Task<EvaluarInasistenciaConferenciaDto> EvaluarInasistenciaConferenciaAsync(int salaId, int usuarioId, CancellationToken ct = default);
     Task<ResultadoOperacion<int>> CrearAsync(CrearSalaDto dto, CancellationToken ct = default);
     Task<SalaDto?>              ObtenerParaEdicionAsync(int salaId, int profesionalId, CancellationToken ct = default);
     Task<ResultadoOperacion>     ActualizarAsync(EditarSalaDto dto, CancellationToken ct = default);

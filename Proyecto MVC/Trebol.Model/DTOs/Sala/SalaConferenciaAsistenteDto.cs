@@ -17,4 +17,8 @@ public class SalaConferenciaAsistenteDto
     public string     NombreProfesional { get; set; } = string.Empty;
     public string     AliasParticipante { get; set; } = string.Empty;
     public bool       ChatHabilitado    { get; set; }
+    public int        InscripcionId     { get; set; }
+    public bool       ProfesionalPresente { get; set; }
+    public bool       TienePagoAprobado { get; set; }
+    public decimal    Precio            { get; set; }
 }

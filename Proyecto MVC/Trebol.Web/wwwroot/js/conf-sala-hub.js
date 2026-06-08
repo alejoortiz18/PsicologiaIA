@@ -388,6 +388,12 @@
 
     connection.on('MensajeConferencia', appendMensaje);
 
+    connection.on('PonenteConectado', function () {
+      if (typeof window.onPonenteConectadoConferencia === 'function') {
+        window.onPonenteConectadoConferencia();
+      }
+    });
+
 
 
     connection.onreconnected(function () {

@@ -28,7 +28,8 @@ public class NovedadUsuarioController(ISaldoUsuarioRepository saldoRepo) : Contr
                 novedad.Mensaje,
                 novedad.EsCita,
                 novedad.EsEvento,
-                novedad.ProfesionalId
+                novedad.ProfesionalId,
+                novedad.TienePagoAprobado
             }
         });
     }

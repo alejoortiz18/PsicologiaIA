@@ -276,6 +276,41 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
             new { SalaId = salaId });
     }
 
+    public async Task<ResultadoOperacion> RegistrarIngresoConferenciaAsync(
+        int salaId, string tipoParticipante, int participanteId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryFirstOrDefaultAsync<SpResult>(
+            "sp_RegistrarIngresoConferencia",
+            new { SalaId = salaId, TipoParticipante = tipoParticipante, ParticipanteId = participanteId },
+            commandType: CommandType.StoredProcedure);
+        return result?.Exito == true
+            ? ResultadoOperacion.Ok(result.Mensaje)
+            : ResultadoOperacion.Fail(result?.Mensaje ?? "No se pudo registrar el ingreso.");
+    }
+
+    public async Task<ConferenciaPresenciaDto> ConsultarPresenciaProfesionalAsync(
+        int salaId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var row = await conn.QueryFirstOrDefaultAsync<ConferenciaPresenciaDto>(
+            "sp_ConsultarPresenciaProfesionalConferencia",
+            new { SalaId = salaId },
+            commandType: CommandType.StoredProcedure);
+        return row ?? new ConferenciaPresenciaDto();
+    }
+
+    public async Task<EvaluarInasistenciaConferenciaDto> EvaluarInasistenciaConferenciaAsync(
+        int salaId, int usuarioId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var row = await conn.QueryFirstOrDefaultAsync<EvaluarInasistenciaConferenciaDto>(
+            "sp_EvaluarInasistenciaConferencia",
+            new { SalaId = salaId, UsuarioId = usuarioId },
+            commandType: CommandType.StoredProcedure);
+        return row ?? new EvaluarInasistenciaConferenciaDto();
+    }
+
     public async Task<ResultadoOperacion<int>> CrearAsync(CrearSalaDto dto, CancellationToken ct = default)
     {
         using var conn = CrearConexion();

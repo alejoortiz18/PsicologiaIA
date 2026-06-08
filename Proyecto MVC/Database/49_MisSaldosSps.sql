@@ -14,6 +14,7 @@ GO
 ALTER TABLE dbo.MovimientoSaldoUsuario ADD CONSTRAINT CK_MovSaldo_TipoMovimiento
     CHECK (TipoMovimiento IN (
         N'CreditoEventoCancelado',
+        N'CreditoEventoProfesionalAusente',
         N'CreditoCitaProfesionalAusente',
         N'RecargaVoluntaria',
         N'DebitoPagoCita',
@@ -86,7 +87,7 @@ BEGIN
             SELECT SUM(
                 CASE
                     WHEN m.TipoMovimiento IN (
-                        N'CreditoEventoCancelado', N'CreditoCitaProfesionalAusente',
+                        N'CreditoEventoCancelado', N'CreditoEventoProfesionalAusente', N'CreditoCitaProfesionalAusente',
                         N'RecargaVoluntaria', N'RetractacionRetiro')
                         AND m.Estado = N'SaldoFavor' THEN m.MontoNeto
                     WHEN m.TipoMovimiento IN (N'DebitoPagoCita', N'DebitoPagoEvento', N'DebitoRetiroSaldo')
@@ -98,7 +99,7 @@ BEGIN
         ), 0) AS SaldoFavor,
 
         ISNULL((
-            SELECT SUM(m.MontoBruto)
+            SELECT SUM(m.MontoNeto)
             FROM   MovimientoSaldoUsuario m
             WHERE  m.UsuarioId = @UsuarioId AND m.Estado = N'EnTransito'
         ), 0) AS DineroEnTransito;
@@ -307,7 +308,7 @@ BEGIN
         SELECT @SaldoDisponible = ISNULL(SUM(
             CASE
                 WHEN m.TipoMovimiento IN (
-                    N'CreditoEventoCancelado', N'CreditoCitaProfesionalAusente',
+                    N'CreditoEventoCancelado', N'CreditoEventoProfesionalAusente', N'CreditoCitaProfesionalAusente',
                     N'RecargaVoluntaria', N'RetractacionRetiro')
                     AND m.Estado = N'SaldoFavor' THEN m.MontoNeto
                 WHEN m.TipoMovimiento IN (N'DebitoPagoCita', N'DebitoPagoEvento', N'DebitoRetiroSaldo')

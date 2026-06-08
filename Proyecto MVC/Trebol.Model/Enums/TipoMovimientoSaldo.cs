@@ -2,8 +2,9 @@ namespace Trebol.Model.Enums;
 
 public enum TipoMovimientoSaldo
 {
-    CreditoEventoCancelado        = 1,
-    CreditoCitaProfesionalAusente  = 2,
+    CreditoEventoCancelado         = 1,
+    CreditoCitaProfesionalAusente   = 2,
+    CreditoEventoProfesionalAusente = 10,
     RecargaVoluntaria              = 3,
     DebitoPagoCita                 = 4,
     DebitoPagoEvento               = 5,

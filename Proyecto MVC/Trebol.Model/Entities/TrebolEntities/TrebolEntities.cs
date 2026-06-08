@@ -210,7 +210,7 @@ public class Sala
     public string   Tipo              { get; set; } = "Publica";
     public int      CupoMaximo        { get; set; }
     public decimal  Precio            { get; set; }
-    public bool     ChatHabilitado    { get; set; } = true;
+    public bool     ChatHabilitado    { get; set; } = false;
     public string   Estado            { get; set; } = "Abierta";
     public DateTime FechaCreacion     { get; set; }
     public DateTime FechaModificacion { get; set; }

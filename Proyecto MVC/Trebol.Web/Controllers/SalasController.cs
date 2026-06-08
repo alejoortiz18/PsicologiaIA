@@ -179,6 +179,10 @@ public class SalasController(
             return RedirectToAction("Salas", "PerfilProfesional");
         }
 
+        await salaRepo.RegistrarIngresoConferenciaAsync(id, "Profesional", profesionalId);
+        await conferenciaHub.Clients.Group(ConferenciaHub.GrupoSala(id))
+            .SendAsync("PonenteConectado", cancellationToken: HttpContext.RequestAborted);
+
         return View(sala);
     }
 

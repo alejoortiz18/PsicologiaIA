@@ -1,4 +1,5 @@
 @using Trebol.Constants.Messages
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @model Trebol.Model.DTOs.Usuario.PerfilUsuarioViewModel
 @{
     ViewData["Title"] = "Mi perfil";
@@ -301,14 +302,19 @@
 
 @section Scripts {
     @Html.AntiForgeryToken()
-    <script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
-    <script src="~/js/perfil-usuario.js" asp-append-version="true"></script>
+    <input type="hidden" id="retiro-antiforgery-token" value="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
     <script>
         window.perfilUsuarioFinanciero = {
             solicitarRetiroUrl: '@Url.Action("SolicitarRetiro", "PerfilUsuario")',
             retractarRetiroUrl: '@Url.Action("RetractarRetiro", "PerfilUsuario")',
-            token: document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            token: document.getElementById('retiro-antiforgery-token')?.value
+                || document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                || ''
         };
+    </script>
+    <script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
+    <script src="~/js/perfil-usuario.js" asp-append-version="true"></script>
+    <script>
         window.perfilOradorCal = {
             profesionalId: null,
             usuarioId: @Model.Usuario.UsuarioId,

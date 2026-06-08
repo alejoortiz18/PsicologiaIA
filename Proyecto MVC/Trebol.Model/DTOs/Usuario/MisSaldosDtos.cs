@@ -75,6 +75,7 @@ public class NovedadUsuarioDto
     public DateTime  FechaCreacion    { get; set; }
     public DateTime? FechaResolucion  { get; set; }
     public int       TotalRegistros   { get; set; }
+    public bool      TienePagoAprobado { get; set; }
 }
 
 public class RetiroSaldoResultadoDto
@@ -101,9 +102,10 @@ public class NovedadPendienteModalDto
     public int       EntidadId        { get; set; }
     public string    Titulo           { get; set; } = string.Empty;
     public string    Mensaje          { get; set; } = string.Empty;
-    public int?      ProfesionalId    { get; set; }
-    public bool      EsCita           => EntidadTipo == "Cita";
-    public bool      EsEvento         => EntidadTipo == "Inscripcion";
+    public int?      ProfesionalId       { get; set; }
+    public bool      TienePagoAprobado   { get; set; }
+    public bool      EsCita              => EntidadTipo == "Cita";
+    public bool      EsEvento            => EntidadTipo == "Inscripcion";
 }
 
 public class ResolverNovedadResultadoDto

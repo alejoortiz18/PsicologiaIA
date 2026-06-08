@@ -146,7 +146,8 @@ public class CitasController(ICitaRepository citaRepo, ISaldoUsuarioRepository s
                 novedad.Titulo,
                 novedad.Mensaje,
                 novedad.EsCita,
-                novedad.ProfesionalId
+                novedad.ProfesionalId,
+                novedad.TienePagoAprobado
             }
         });
     }

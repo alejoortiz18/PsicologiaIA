@@ -135,6 +135,7 @@ BEGIN
             FOREIGN KEY (CuentaBancariaUsuarioId) REFERENCES dbo.CuentaBancariaUsuario(CuentaBancariaUsuarioId),
         CONSTRAINT CK_MovSaldo_TipoMovimiento CHECK (TipoMovimiento IN (
             N'CreditoEventoCancelado',
+            N'CreditoEventoProfesionalAusente',
             N'CreditoCitaProfesionalAusente',
             N'RecargaVoluntaria',
             N'DebitoPagoCita',
@@ -274,7 +275,8 @@ BEGIN
             N'EventoCancelado',
             N'EventoReprogramado',
             N'ProfesionalNoAsistio',
-            N'ProfesionalReportoAusencia'
+            N'ProfesionalReportoAusencia',
+            N'ProfesionalNoIngresoEvento'
         )),
         CONSTRAINT CK_NovedadUsuario_Entidad CHECK (
             EntidadTipo IN (N'Cita', N'Inscripcion', N'Evento')
@@ -323,6 +325,7 @@ BEGIN
             FOREIGN KEY (InscripcionId) REFERENCES dbo.Inscripcion(InscripcionId),
         CONSTRAINT CK_AjusteSaldo_Motivo CHECK (MotivoCodigo IN (
             N'EventoCanceladoRetiro',
+            N'EventoProfesionalAusente',
             N'CitaProfesionalAusente',
             N'EventoReprogramadoRetiro'
         )),

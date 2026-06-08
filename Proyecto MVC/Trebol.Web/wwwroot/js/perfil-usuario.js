@@ -61,7 +61,18 @@
 
   const btnRetirar = document.getElementById('btn-retirar-saldo');
   const confirmRetiroBtn = document.getElementById('confirm-retiro-btn');
-  const cfg = window.perfilUsuarioFinanciero || {};
+
+  function getFinancieroCfg() {
+    return window.perfilUsuarioFinanciero || {};
+  }
+
+  function getAntiforgeryToken() {
+    const cfg = getFinancieroCfg();
+    return cfg.token
+      || document.getElementById('retiro-antiforgery-token')?.value
+      || document.querySelector('input[name="__RequestVerificationToken"]')?.value
+      || '';
+  }
 
   function formatCop(value) {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value || 0);
@@ -98,18 +109,40 @@
   });
 
   confirmRetiroBtn?.addEventListener('click', async () => {
-    if (!cfg.solicitarRetiroUrl) return;
+    const cfg = getFinancieroCfg();
+    if (!cfg.solicitarRetiroUrl) {
+      if (typeof showToast === 'function') {
+        showToast({ title: 'Error', message: 'No se pudo iniciar el retiro. Recarga la página.', type: 'error' });
+      }
+      return;
+    }
+    const token = getAntiforgeryToken();
+    if (!token) {
+      if (typeof showToast === 'function') {
+        showToast({ title: 'Error de sesión', message: 'Recarga la página e intenta de nuevo.', type: 'error' });
+      }
+      return;
+    }
     confirmRetiroBtn.disabled = true;
     confirmRetiroBtn.classList.add('loading');
     try {
       const body = new URLSearchParams();
-      body.append('__RequestVerificationToken', cfg.token || '');
+      body.append('__RequestVerificationToken', token);
       const res = await fetch(cfg.solicitarRetiroUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
         body: body.toString()
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('Respuesta inválida del servidor.');
+      }
       if (typeof closeModal === 'function') closeModal('retiro-confirm');
       if (typeof showToast === 'function') {
         showToast({
@@ -118,10 +151,16 @@
           type: data.exito ? 'success' : 'error'
         });
       }
-      if (data.exito) window.location.href = window.location.pathname + '?tab=saldos';
-    } catch {
+      if (data.exito) {
+        window.location.href = `${window.location.pathname}?tab=saldos`;
+      }
+    } catch (err) {
       if (typeof showToast === 'function') {
-        showToast({ title: 'Error', message: 'No se pudo procesar el retiro.', type: 'error' });
+        showToast({
+          title: 'Error',
+          message: err?.message || 'No se pudo procesar el retiro.',
+          type: 'error'
+        });
       }
     } finally {
       confirmRetiroBtn.disabled = false;
@@ -132,11 +171,12 @@
   document.querySelectorAll('.btn-retractar-retiro').forEach(btn => {
     btn.addEventListener('click', async () => {
       const movimientoId = btn.dataset.movimientoId;
+      const cfg = getFinancieroCfg();
       if (!movimientoId || !cfg.retractarRetiroUrl) return;
       btn.disabled = true;
       try {
         const body = new URLSearchParams();
-        body.append('__RequestVerificationToken', cfg.token || '');
+        body.append('__RequestVerificationToken', getAntiforgeryToken());
         body.append('movimientoId', movimientoId);
         const res = await fetch(cfg.retractarRetiroUrl, {
           method: 'POST',
