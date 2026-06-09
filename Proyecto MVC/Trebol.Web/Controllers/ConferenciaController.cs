@@ -1,14 +1,19 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Trebol.Constants.Messages;
 using Trebol.Domain.Interfaces;
 using Trebol.Web.Helpers;
+using Trebol.Web.Hubs;
 
 namespace Trebol.Web.Controllers;
 
 [Authorize(Roles = "Usuario,Profesional")]
-public class ConferenciaController(ISalaRepository salaRepo, ISaldoUsuarioRepository saldoRepo) : Controller
+public class ConferenciaController(
+    ISalaRepository salaRepo,
+    ISaldoUsuarioRepository saldoRepo,
+    IHubContext<ConferenciaHub> conferenciaHub) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Asistente(int id, CancellationToken ct)
@@ -81,5 +86,40 @@ public class ConferenciaController(ISalaRepository salaRepo, ISaldoUsuarioReposi
     {
         var presencia = await salaRepo.ConsultarPresenciaProfesionalAsync(salaId, ct);
         return Json(new { profesionalPresente = presencia.ProfesionalPresente });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EstadoTiempo(int salaId, CancellationToken ct)
+    {
+        var estado = await salaRepo.ObtenerEstadoTiempoConferenciaAsync(salaId, ct);
+        if (estado is null)
+            return Json(new { fase = "Cerrada" });
+
+        if (estado.Fase == "Cerrada")
+        {
+            await conferenciaHub.Clients.Group(ConferenciaHub.GrupoSala(salaId))
+                .SendAsync("SalaCerradaPorTiempo", new
+                {
+                    estado.ProfesionalId,
+                    estado.NombreProfesional,
+                    mensaje = SalaConstant.SalaCerradaPorTiempo
+                }, ct);
+        }
+        else if (estado.Fase == "GraciaChat")
+        {
+            await conferenciaHub.Clients.Group(ConferenciaHub.GrupoSala(salaId))
+                .SendAsync("FaseConferenciaCambio", new { fase = estado.Fase, estado.SegundosRestantesGracia }, ct);
+        }
+
+        return Json(new
+        {
+            fase = estado.Fase,
+            finEfectivo = estado.FinEfectivo?.ToString("o"),
+            minutosExtra = estado.MinutosExtra,
+            valorMinuto = estado.ValorMinuto,
+            segundosRestantesGracia = estado.SegundosRestantesGracia,
+            profesionalId = estado.ProfesionalId,
+            nombreProfesional = estado.NombreProfesional
+        });
     }
 }

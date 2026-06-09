@@ -14,6 +14,7 @@ public class SalaConferenciaAsistenteDto
     public int        TotalInscritos    { get; set; }
     public DateTime?  FechaInicio       { get; set; }
     public DateTime?  FechaFin          { get; set; }
+    public int        MinutosExtra      { get; set; }
     public string     NombreProfesional { get; set; } = string.Empty;
     public string     AliasParticipante { get; set; } = string.Empty;
     public bool       ChatHabilitado    { get; set; }

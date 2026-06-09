@@ -7,7 +7,9 @@ using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Sala;
 using Trebol.Model.Enums;
 using Trebol.Web.Helpers;
+using Trebol.Model.DTOs.Pago;
 using Trebol.Web.Hubs;
+using Trebol.Web.Services;
 
 namespace Trebol.Web.Controllers;
 
@@ -16,6 +18,7 @@ public class SalasController(
     ISalaRepository salaRepo,
     ICitaRepository citaRepo,
     ISaldoUsuarioRepository saldoRepo,
+    IPagoSimuladoService pagoSimulado,
     IHubContext<ConferenciaHub> conferenciaHub) : Controller
 {
     public async Task<IActionResult> Index()
@@ -231,6 +234,45 @@ public class SalasController(
         }
 
         return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ComprarMinutosExtension(int salaId, int minutos, TarjetaPagoDto tarjeta)
+    {
+        var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var sala = await salaRepo.ObtenerConferenciaProfesionalAsync(salaId, profesionalId);
+        if (sala is null)
+            return Json(new { exito = false, mensaje = SalaConstant.SinPermisoConferencia });
+
+        if (minutos < 3)
+            return Json(new { exito = false, mensaje = SalaConstant.ExtensionMinimoMinutos });
+
+        var validacion = pagoSimulado.ValidarPago(tarjeta);
+        if (!validacion.Exito)
+            return Json(new { exito = false, mensaje = validacion.Mensaje ?? SalaConstant.ExtensionRequiereTarjeta });
+
+        var resultado = await salaRepo.ComprarMinutosExtensionAsync(
+            salaId, profesionalId, minutos, tarjeta.MetodoPago, HttpContext.RequestAborted);
+
+        if (resultado.Exito)
+        {
+            await conferenciaHub.Clients.Group(ConferenciaHub.GrupoSala(salaId))
+                .SendAsync("TiempoConferenciaExtendido", new
+                {
+                    finEfectivo = resultado.FinEfectivo?.ToString("o"),
+                    minutosExtra = resultado.MinutosExtra,
+                    minutosComprados = minutos
+                });
+        }
+
+        return Json(new
+        {
+            exito = resultado.Exito,
+            mensaje = resultado.Mensaje,
+            finEfectivo = resultado.FinEfectivo?.ToString("o"),
+            minutosExtra = resultado.MinutosExtra
+        });
     }
 
     private static bool PuedeIngresarCita(SalaCitaProfesionalDto cita)

@@ -13,4 +13,9 @@ public static class SalaConstant
     public const string IngresoMuyTemprano    = "El evento aún no está habilitado para el ingreso. Podrás entrar 3 minutos antes de la hora de inicio.";
     public const string IngresoEventoFinalizado = "Este evento ya finalizó.";
     public const string IngresoNoInscrito     = "Debes estar inscrito para ingresar al evento.";
+    public const string ExtensionMinimoMinutos = "Debes comprar al menos 3 minutos.";
+    public const string ExtensionRequiereTarjeta = "Necesitas una tarjeta de crédito o débito para comprar minutos adicionales.";
+    public const string ExtensionComprada       = "Minutos agregados correctamente a la conferencia.";
+    public const string TiempoAgotadoGracia     = "El tiempo programado terminó. Tienes 1 minuto de chat antes de que la sala se cierre.";
+    public const string SalaCerradaPorTiempo    = "La conferencia finalizó por tiempo agotado.";
 }

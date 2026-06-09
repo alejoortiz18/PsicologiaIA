@@ -77,10 +77,11 @@
 
         @if (Model.MovimientosEnTransito.Any())
         {
-            <div class="table-wrapper" style="margin-top:var(--sp-5);">
-                <h3 class="perfil-usuario-card__subtitle">Retiros en tránsito</h3>
-                <div style="overflow-x:auto;">
-                    <table aria-label="Dinero en tránsito">
+            <div class="mis-saldos-table-section">
+                <h3 class="mis-saldos-table-section__title">Retiros en tránsito</h3>
+                <div class="table-wrapper">
+                    <div class="table-scroll">
+                        <table class="mis-saldos-table" aria-label="Dinero en tránsito">
                         <thead>
                             <tr>
                                 <th scope="col">Fecha</th>
@@ -117,12 +118,14 @@
                     </table>
                 </div>
             </div>
+        </div>
         }
 
-        <div class="table-wrapper" style="margin-top:var(--sp-6);">
-            <h3 class="perfil-usuario-card__subtitle">Pagos por profesional</h3>
-            <div style="overflow-x:auto;">
-                <table aria-label="Pagos agrupados por profesional">
+        <div class="mis-saldos-table-section">
+            <h3 class="mis-saldos-table-section__title">Pagos por profesional</h3>
+            <div class="table-wrapper">
+                <div class="table-scroll">
+                    <table class="mis-saldos-table" aria-label="Pagos agrupados por profesional">
                     <thead>
                         <tr>
                             <th scope="col">Profesional</th>
@@ -137,8 +140,8 @@
                             {
                                 <tr>
                                     <td>@p.NombreProfesional</td>
-                                    <td>@p.TotalTransacciones</td>
-                                    <td>@p.TotalPagado.ToString("C0", cultura)</td>
+                                    <td class="mis-saldos-table__num">@p.TotalTransacciones</td>
+                                    <td class="mis-saldos-table__money">@p.TotalPagado.ToString("C0", cultura)</td>
                                 </tr>
                             }
                         }
@@ -155,7 +158,7 @@
             </div>
             @if (pag.TotalRegistros > 0)
             {
-                <div class="perfil-usuario-pagination">
+                <div class="perfil-usuario-pagination mis-saldos-table-section__footer">
                     <span class="text-meta">
                         Mostrando @pag.Desde–@pag.Hasta de @pag.TotalRegistros registros
                     </span>
@@ -195,5 +198,6 @@
                 </div>
             }
         </div>
+    </div>
     </section>
 </div>

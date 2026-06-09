@@ -404,17 +404,21 @@
 
 
 
-    connection.start()
-
-      .then(function () { return connection.invoke('UnirseSala', salaId); })
-
-      .catch(function (err) { console.error('[conf-sala-hub]', err); });
-
-
-
     window.confSalaHubConnection = connection;
-
+    window.confSalaConnectionReady = connection.start()
+      .then(function () { return connection.invoke('UnirseSala', salaId); })
+      .then(function () { return connection; })
+      .catch(function (err) { console.error('[conf-sala-hub]', err); return null; });
   }
+
+  window.confForzarChatHabilitado = function (habilitado) {
+    if (rol === 'profesional' && typeof window.confProfesionalForzarChat === 'function') {
+      window.confProfesionalForzarChat(!!habilitado);
+      return;
+    }
+    chatHabilitado = !!habilitado;
+    aplicarEstadoChat(chatHabilitado, false);
+  };
 
 
 

@@ -25,6 +25,13 @@ public static class EventoIngresoHelper
         });
     }
 
+    public static DateTime? FinEfectivoConExtra(DateTime? fechaInicio, DateTime? fechaFin, int minutosExtra)
+    {
+        var fin = FinEfectivo(fechaInicio, fechaFin);
+        if (!fin.HasValue) return null;
+        return fin.Value.AddMinutes(Math.Max(0, minutosExtra));
+    }
+
     public static bool EventoFinalizado(DateTime? fechaInicio, DateTime? fechaFin, string? estadoSala)
     {
         if (string.Equals(estadoSala, "Cerrada", StringComparison.OrdinalIgnoreCase))

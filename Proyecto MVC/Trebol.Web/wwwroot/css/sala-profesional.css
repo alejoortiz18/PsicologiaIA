@@ -192,7 +192,7 @@
   font-size: 1.15rem; font-weight: 700; text-decoration: none; flex-shrink: 0;
 }
 
-.conf-header__title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.conf-header__title { flex: 0 1 auto; min-width: 0; max-width: 38%; display: flex; flex-direction: column; gap: 2px; }
 
 .conf-header__event-name {
   font-weight: 700; color: white; font-size: .9375rem;
@@ -220,6 +220,99 @@
   font-variant-numeric: tabular-nums; font-size: 1rem;
   font-weight: 700; color: white; font-family: monospace;
   margin-left: auto; flex-shrink: 0;
+}
+
+.conf-header__horario {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 var(--sp-3);
+  text-align: center;
+}
+
+.conf-header__horario-rango {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  font-size: .72rem;
+  color: rgba(255,255,255,.5);
+  white-space: nowrap;
+}
+
+.conf-header__horario-rango strong {
+  color: rgba(255,255,255,.85);
+  font-weight: 600;
+}
+
+.conf-header__horario-sep { opacity: .45; }
+
+.conf-header__horario-countdown-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.conf-header__horario-countdown-label {
+  font-size: .62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.35);
+}
+
+.conf-header__horario-countdown {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+  letter-spacing: .04em;
+}
+
+.conf-header__horario-countdown--urgente {
+  color: #FF6B6B !important;
+  animation: conf-countdown-pulse 1s ease-in-out infinite;
+}
+
+@@keyframes conf-countdown-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .65; }
+}
+
+.conf-header__comprar-tiempo {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.conf-header__comprar-tiempo .btn {
+  white-space: nowrap;
+  font-size: .75rem;
+  padding: 6px 12px;
+}
+
+.conf-header__comprar-precio {
+  font-size: .65rem;
+  color: rgba(255,255,255,.45);
+}
+
+.conf-cierre-backdrop.open .modal-close,
+.conf-cierre-backdrop.open [data-close-modal] {
+  display: none;
+}
+
+.conf-cierre-footer {
+  flex-wrap: wrap;
+  gap: var(--sp-2);
 }
 
 .conf-stream {
@@ -383,7 +476,11 @@
 @media (max-width: 768px) {
   .cita-layout { grid-template-columns: 1fr; grid-template-rows: 64px 1fr 280px; }
   .cita-side-panel { grid-column: 1; }
-  .conf-layout { grid-template-columns: 1fr; grid-template-rows: 60px 1fr 72px 240px; }
+  .conf-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr 72px 240px; }
+  .conf-header { flex-wrap: wrap; min-height: 60px; height: auto; padding: var(--sp-2) var(--sp-4); }
+  .conf-header__title { max-width: 100%; flex: 1 1 100%; order: 2; }
+  .conf-header__horario { flex: 1 1 100%; order: 3; padding: var(--sp-1) 0 var(--sp-2); }
+  .conf-alias-chip { order: 1; margin-left: auto; }
   .conf-side { grid-column: 1; grid-row: 4; }
 }
 

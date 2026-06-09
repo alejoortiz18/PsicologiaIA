@@ -1,4 +1,5 @@
 @model Trebol.Model.DTOs.Sala.SalaConferenciaProfesionalDto
+@using Trebol.Web.Helpers
 @{
     Layout = "~/Views/Shared/_LayoutSala.cshtml";
     ViewData["Title"] = $"Conferencia · {Model.Titulo}";
@@ -8,6 +9,7 @@
     if (string.IsNullOrEmpty(proIni)) proIni = "PR";
     var fechaTxt = Model.FechaInicio?.ToString("dd MMM yyyy") ?? "Por definir";
     var horaTxt = Model.FechaInicio?.ToString("h:mm tt") ?? "—";
+    var finEfectivo = EventoIngresoHelper.FinEfectivoConExtra(Model.FechaInicio, Model.FechaFin, Model.MinutosExtra);
 }
 
 <div class="conf-layout" role="main">
@@ -20,7 +22,11 @@
                 <span class="conf-attendee-count">👥 @Model.TotalInscritos / @Model.Capacidad conectados</span>
             </div>
         </div>
-        <div class="conf-timer" id="conf-timer" role="timer" aria-label="Tiempo en vivo">00:00:00</div>
+        @await Html.PartialAsync("_ConfHeaderHorario", (Model.FechaInicio, finEfectivo))
+        <div class="conf-header__comprar-tiempo">
+            <button type="button" class="btn btn-sm btn-primary" id="conf-btn-comprar-minutos">Comprar más tiempo</button>
+            <span class="conf-header__comprar-precio" id="conf-comprar-precio-label">$2.500 / min</span>
+        </div>
     </header>
 
     <div class="conf-stream">
@@ -113,6 +119,8 @@
     </aside>
 </div>
 
+@await Html.PartialAsync("_ModalComprarMinutosConferencia")
+
 <div id="end-conf-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="end-conf-title">
     <div class="modal">
         <div class="modal-header">
@@ -155,10 +163,31 @@ window.confSalaHub = {
   chatHabilitado: @(Model.ChatHabilitado ? "true" : "false"),
   rol: 'profesional'
 };
+window.confTiempoConferencia = {
+  salaId: @Model.SalaId,
+  rol: 'profesional',
+  profesionalId: @Model.ProfesionalId,
+  nombreProfesional: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.NombreProfesional)),
+  fechaFinEfectiva: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(finEfectivo?.ToString("o"))),
+  valorMinuto: 2500,
+  estadoTiempoUrl: '/Conferencia/EstadoTiempo',
+  comprarMinutosUrl: '/Salas/ComprarMinutosExtension',
+  redirectProfesional: '/MisEventos',
+  homeUrl: '/HomeUsuario'
+};
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="~/js/conf-sala-hub.js" asp-append-version="true"></script>
+<script src="~/js/conf-tiempo-conferencia.js" asp-append-version="true"></script>
 <script>
 let chatEnabled = @(Model.ChatHabilitado ? "true" : "false");
+
+window.confProfesionalForzarChat = function (habilitado) {
+  chatEnabled = habilitado;
+  const check = document.getElementById('chat-toggle-check');
+  if (check) check.checked = habilitado;
+  persistChatToggle(habilitado).then(ok => { if (ok) updateChatUI(false); });
+};
 
 async function persistChatToggle(habilitado) {
   const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';

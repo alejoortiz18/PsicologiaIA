@@ -1,0 +1,46 @@
+@using Trebol.Constants.Pagos
+<div id="comprar-minutos-conf-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="comprar-minutos-conf-title" aria-hidden="true">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon warning">⏱</div>
+            <div>
+                <div class="modal-title" id="comprar-minutos-conf-title">Comprar más tiempo</div>
+                <div class="modal-subtitle">Valor por minuto: <span id="conf-valor-minuto">—</span></div>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="comprar-minutos-conf" aria-label="Cerrar">✕</button>
+        </div>
+        <form id="form-comprar-minutos-conf" class="modal-body" style="display:flex;flex-direction:column;gap:var(--sp-4);">
+            <p style="margin:0;color:var(--color-text-secondary);font-size:.875rem;">
+                Para extender la charla necesitas una tarjeta de crédito o débito. El pago se procesará de inmediato
+                y los minutos se sumarán al tiempo de la sala.
+            </p>
+            <div class="form-group">
+                <label class="form-label" for="conf-minutos-compra">Minutos a comprar (mínimo 3)</label>
+                <input type="number" class="form-control" id="conf-minutos-compra" min="3" step="1" value="3" required />
+            </div>
+            <p style="margin:0;font-weight:600;">Total: <span id="conf-compra-total">—</span></p>
+            <div class="form-group">
+                <label class="form-label" for="conf-tarjeta-numero">Número de tarjeta</label>
+                <input type="text" class="form-control" id="conf-tarjeta-numero" autocomplete="cc-number" placeholder="4242 4242 4242 4242" required />
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);">
+                <div class="form-group">
+                    <label class="form-label" for="conf-tarjeta-venc">Vencimiento</label>
+                    <input type="text" class="form-control" id="conf-tarjeta-venc" autocomplete="cc-exp" placeholder="@TarjetaPruebaConstant.VencimientoValido" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="conf-tarjeta-cvv">CVV</label>
+                    <input type="text" class="form-control" id="conf-tarjeta-cvv" autocomplete="cc-csc" placeholder="@TarjetaPruebaConstant.CvvValido" required />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="conf-tarjeta-nombre">Nombre en la tarjeta</label>
+                <input type="text" class="form-control" id="conf-tarjeta-nombre" autocomplete="cc-name" placeholder="@TarjetaPruebaConstant.NombreValido" required />
+            </div>
+            <div class="modal-footer" style="padding:0;margin-top:var(--sp-2);">
+                <button type="button" class="btn btn-secondary" data-close-modal="comprar-minutos-conf">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="conf-btn-confirmar-compra">Pagar y extender</button>
+            </div>
+        </form>
+    </div>
+</div>

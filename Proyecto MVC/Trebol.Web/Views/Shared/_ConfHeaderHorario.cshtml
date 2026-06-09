@@ -1,0 +1,18 @@
+@model (DateTime? FechaInicio, DateTime? FinEfectivo)
+@using System.Globalization
+@{
+    var cultura = new CultureInfo("es-CO");
+    var horaInicio = Model.FechaInicio?.ToString("h:mm tt", cultura) ?? "—";
+    var horaFin = Model.FinEfectivo?.ToString("h:mm tt", cultura) ?? "—";
+}
+<div class="conf-header__horario" role="group" aria-label="Horario del evento">
+    <div class="conf-header__horario-rango">
+        <span>Inicio: <strong>@horaInicio</strong></span>
+        <span class="conf-header__horario-sep" aria-hidden="true">·</span>
+        <span>Fin: <strong>@horaFin</strong></span>
+    </div>
+    <div class="conf-header__horario-countdown-wrap">
+        <span class="conf-header__horario-countdown-label">Termina en</span>
+        <span class="conf-header__horario-countdown" id="conf-horario-countdown" role="timer" aria-live="polite">--:--:--</span>
+    </div>
+</div>

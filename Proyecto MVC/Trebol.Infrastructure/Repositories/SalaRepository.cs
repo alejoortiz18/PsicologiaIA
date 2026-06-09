@@ -226,6 +226,15 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
                       FROM   Evento e
                       WHERE  e.SalaId = s.SalaId
                       ORDER  BY e.FechaInicio DESC) AS FechaInicio,
+                     (SELECT TOP 1 e.FechaFin
+                      FROM   Evento e
+                      WHERE  e.SalaId = s.SalaId
+                      ORDER  BY e.FechaInicio DESC) AS FechaFin,
+                     ISNULL((
+                         SELECT TOP 1 e.MinutosExtra
+                         FROM   Evento e
+                         WHERE  e.SalaId = s.SalaId
+                         ORDER  BY e.FechaInicio DESC), 0) AS MinutosExtra,
                      p.NombreCompleto AS NombreProfesional
               FROM   Sala s
               JOIN   Profesional p ON p.ProfesionalId = s.ProfesionalId
@@ -397,5 +406,26 @@ public class SalaRepository(AppDbContext context, IConfiguration configuration) 
             "sp_CerrarSalasEventosVencidos",
             new { ProfesionalId = profesionalId },
             commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<ConferenciaTiempoEstadoDto?> ObtenerEstadoTiempoConferenciaAsync(
+        int salaId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        return await conn.QueryFirstOrDefaultAsync<ConferenciaTiempoEstadoDto>(
+            "sp_ObtenerEstadoTiempoConferencia",
+            new { SalaId = salaId },
+            commandType: CommandType.StoredProcedure);
+    }
+
+    public async Task<ComprarMinutosExtensionResultadoDto> ComprarMinutosExtensionAsync(
+        int salaId, int profesionalId, int minutos, string metodoPago, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var row = await conn.QueryFirstOrDefaultAsync<ComprarMinutosExtensionResultadoDto>(
+            "sp_ComprarMinutosExtensionConferencia",
+            new { SalaId = salaId, ProfesionalId = profesionalId, Minutos = minutos, MetodoPago = metodoPago },
+            commandType: CommandType.StoredProcedure);
+        return row ?? new ComprarMinutosExtensionResultadoDto { Exito = false, Mensaje = "Error al comprar minutos." };
     }
 }
