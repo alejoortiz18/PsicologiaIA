@@ -1,4 +1,3 @@
--- Alias: ejecutar 08_fix_recuperacion_email.sql
 -- Recuperación de contraseña: flag EnviarCorreo + búsqueda case-insensitive + admin en restablecer
 USE TrebolDB;
 GO

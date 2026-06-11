@@ -20,7 +20,7 @@ body { background: var(--color-surface); }
                 Recupera tu<br>acceso de forma<br><em>segura</em>
             </h1>
             <p class="auth-illustration__text">
-                Te enviaremos un enlace al correo registrado para que puedas crear una nueva contraseña. El enlace es válido por 1 hora.
+                Te enviaremos un enlace al correo registrado para que puedas crear una nueva contraseña. El enlace es válido por 2 horas.
             </p>
         </div>
     </div>
@@ -39,6 +39,10 @@ body { background: var(--color-surface); }
             @if (TempData["Mensaje"] != null)
             {
                 <div class="form-success" style="margin-bottom:var(--sp-4);">@TempData["Mensaje"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="form-error" style="margin-bottom:var(--sp-4);">@TempData["Error"]</div>
             }
 
             <form asp-action="SolicitarRecuperacion" method="post">
