@@ -28,7 +28,7 @@ public static class EmailConstant
         <p>Hola,</p>
         <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>Trébol</strong>.</p>
         <p><a href='{enlace}' style='background:#16a34a;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;'>Restablecer contraseña</a></p>
-        <p><strong>Vigencia: 2 horas.</strong> Si no solicitaste este cambio, ignora este mensaje.</p>
+        <p><strong>Vigencia: 1 hora.</strong> Si no solicitaste este cambio, ignora este mensaje.</p>
         <p>Atentamente,<br/><strong>Equipo Trébol</strong></p>";
     #endregion
 

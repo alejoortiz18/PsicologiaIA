@@ -31,12 +31,6 @@ public class LoginRepository(IConfiguration configuration, IPasswordHelper passw
     }
 
     private sealed class SpResult { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; }
-    private sealed class SpRecuperacionResult
-    {
-        public bool   Exito        { get; init; }
-        public bool   EnviarCorreo { get; init; }
-        public string Mensaje      { get; init; } = "";
-    }
 
     public async Task<UsuarioSesionDto?> ValidarLoginAsync(
         string correo, string password, CancellationToken ct = default)
@@ -87,18 +81,18 @@ public class LoginRepository(IConfiguration configuration, IPasswordHelper passw
         };
     }
 
-    public async Task<ResultadoOperacion<bool>> SolicitarRecuperacionAsync(
+    public async Task<ResultadoOperacion> SolicitarRecuperacionAsync(
         string correo, string token, CancellationToken ct = default)
     {
         using var conn = CrearConexion();
-        var result = await conn.QueryFirstOrDefaultAsync<SpRecuperacionResult>(
+        var result = await conn.QueryFirstOrDefaultAsync<SpResult>(
             "sp_SolicitarRecuperacion",
-            new { Correo = correo.Trim(), Token = token },
+            new { Correo = correo, Token = token },
             commandType: CommandType.StoredProcedure);
 
         return result?.Exito == true
-            ? ResultadoOperacion<bool>.Ok(result.EnviarCorreo, result.Mensaje)
-            : ResultadoOperacion<bool>.Fail(result?.Mensaje ?? "Error al solicitar recuperación.");
+            ? ResultadoOperacion.Ok(result.Mensaje)
+            : ResultadoOperacion.Fail(result?.Mensaje ?? "Error al solicitar recuperación.");
     }
 
     public async Task<ResultadoOperacion> RestablecerPasswordAsync(
