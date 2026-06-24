@@ -13,11 +13,13 @@
         EstadoCita.Movida => "Reprogramada",
         _ => Model.Estado.ToString()
     };
-    var notaKey = $"trebol-nota-usuario-cita-{Model.CitaId}";
-    var recomendKey = $"trebol-recomend-cita-{Model.CitaId}";
     var recomendTexto = Model.RecomendacionContenido ?? "";
     var recomendFecha = Model.RecomendacionFecha.HasValue
         ? Model.RecomendacionFecha.Value.ToString("d MMM yyyy · h:mm tt", cultura)
+        : "";
+    var notaTexto = Model.NotaPrivadaContenido ?? "";
+    var notaFecha = Model.NotaPrivadaFecha.HasValue
+        ? Model.NotaPrivadaFecha.Value.ToString("d MMM yyyy · h:mm tt", cultura)
         : "";
 }
 
@@ -66,7 +68,7 @@
         <div class="cita-controls" role="toolbar" aria-label="Controles de sesión">
             <button type="button" class="ctrl-btn ctrl-btn--normal" onclick="toggleSalaControl(this,'cam')" aria-label="Activar/desactivar cámara" aria-pressed="true" title="Cámara">📷</button>
             <button type="button" class="ctrl-btn ctrl-btn--normal" onclick="toggleSalaControl(this,'mic')" aria-label="Silenciar/activar micrófono" aria-pressed="true" title="Micrófono">🎤</button>
-            <button type="button" class="ctrl-btn ctrl-btn--normal" data-open-modal="chat-modal" aria-label="Abrir chat de sesión" title="Mensajes">💬</button>
+            <button type="button" class="ctrl-btn ctrl-btn--normal" data-activar-tab="panel-chat" aria-label="Abrir chat de sesión" title="Mensajes">💬</button>
         </div>
     </div>
 
@@ -75,103 +77,99 @@
             <div class="cita-panel-title">Sesión activa</div>
             <div class="cita-panel-value">@tipoLabel</div>
         </div>
-        <div class="cita-panel-body cita-panel-body--stack">
-            <div>
-                <div class="cita-section-title">Información de la cita</div>
-                <div class="cita-info-grid" style="margin-bottom:0;">
-                    <div class="cita-info-row">
-                        <span class="cita-info-label">📅 Fecha</span>
-                        <span class="cita-info-value">@Model.FechaHora.ToString("d MMM yyyy", cultura)</span>
-                    </div>
-                    <div class="cita-info-row">
-                        <span class="cita-info-label">🕒 Hora</span>
-                        <span class="cita-info-value">@Model.FechaHora.ToString("h:mm tt", cultura) – @Model.FechaHoraFin.ToString("h:mm tt", cultura)</span>
-                    </div>
-                    <div class="cita-info-row">
-                        <span class="cita-info-label">🔒 Estado</span>
-                        <span class="cita-info-value" style="color:#4CAF50;">@estadoLabel</span>
-                    </div>
-                    <div class="cita-info-row">
-                        <span class="cita-info-label">⏱ Duración</span>
-                        <span class="cita-info-value">@Model.DuracionMinutos minutos</span>
-                    </div>
+        <div class="cita-panel-tabs" role="tablist">
+            <button type="button" class="cita-panel-tab active" data-panel-tab="panel-sesion" role="tab" aria-selected="true">Sesión</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-chat" role="tab" aria-selected="false">Chat</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-recomend" role="tab" aria-selected="false">Recomend.</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-nota" role="tab" aria-selected="false">Nota</button>
+        </div>
+
+        <div id="panel-sesion" data-panel-content class="cita-panel-body cita-tab-content active" role="tabpanel">
+            <div class="cita-section-title">Información de la cita</div>
+            <div class="cita-info-grid" style="margin-bottom:var(--sp-5);">
+                <div class="cita-info-row">
+                    <span class="cita-info-label">📅 Fecha</span>
+                    <span class="cita-info-value">@Model.FechaHora.ToString("d MMM yyyy", cultura)</span>
+                </div>
+                <div class="cita-info-row">
+                    <span class="cita-info-label">🕒 Hora</span>
+                    <span class="cita-info-value">@Model.FechaHora.ToString("h:mm tt", cultura) – @Model.FechaHoraFin.ToString("h:mm tt", cultura)</span>
+                </div>
+                <div class="cita-info-row">
+                    <span class="cita-info-label">🔒 Estado</span>
+                    <span class="cita-info-value" style="color:#4CAF50;">@estadoLabel</span>
+                </div>
+                <div class="cita-info-row">
+                    <span class="cita-info-label">⏱ Duración</span>
+                    <span class="cita-info-value">@Model.DuracionMinutos minutos</span>
                 </div>
             </div>
 
-            <div>
-                <div class="cita-section-title">Privacidad</div>
-                <label class="anon-toggle">
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="anon-toggle" @(Model.MostrarAlias ? "checked" : "")
-                               aria-label="Usar alias en lugar de mi nombre real" />
-                        <span class="toggle-slider"></span>
-                    </div>
-                    <div>
-                        Mostrar alias <strong style="color:white;">@Model.AliasUsuario</strong>
-                        <div style="font-size:0.75rem;margin-top:2px;color:rgba(255,255,255,0.4);">El profesional verá tu alias</div>
-                    </div>
-                </label>
-            </div>
-
-            <div>
-                <div class="cita-section-title">Recomendaciones del profesional</div>
-                <textarea class="cita-textarea" id="recomendaciones-pro" readonly
-                          aria-label="Recomendaciones del profesional (solo lectura)" aria-readonly="true"
-                          placeholder="El profesional aún no ha registrado recomendaciones para esta sesión.">@recomendTexto</textarea>
-                <div id="recomend-pro-meta" style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:6px;">
-                    @(string.IsNullOrEmpty(recomendFecha) ? "Sin recomendaciones registradas aún." : $"Actualizado el {recomendFecha}")
+            <div class="cita-section-title">Privacidad</div>
+            <label class="anon-toggle">
+                <div class="toggle-switch">
+                    <input type="checkbox" id="anon-toggle" @(Model.MostrarAlias ? "checked" : "")
+                           aria-label="Usar alias en lugar de mi nombre real" />
+                    <span class="toggle-slider"></span>
                 </div>
-            </div>
+                <div>
+                    Mostrar alias <strong style="color:white;">@Model.AliasUsuario</strong>
+                    <div style="font-size:0.75rem;margin-top:2px;color:rgba(255,255,255,0.4);">El profesional verá tu alias en el chat</div>
+                </div>
+            </label>
+        </div>
 
-            <div>
-                <div class="cita-section-title">Mi nota privada</div>
-                <textarea class="cita-textarea" id="nota-privada-txt" rows="4"
-                          placeholder="Escribe tus notas personales aquí... Solo tú las puedes ver."
-                          aria-label="Tu nota privada de la sesión (solo visible para ti)"></textarea>
-                <div style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:6px;">Solo tú puedes ver esta nota.</div>
-                <button type="button" class="btn btn-primary btn-sm" id="save-nota-btn" style="margin-top:var(--sp-3);width:100%;"
-                        aria-label="Guardar nota privada">
-                    Guardar nota
-                </button>
+        <div id="panel-chat" data-panel-content class="cita-tab-content cita-chat-panel" role="tabpanel">
+            <div id="cita-chat-feed" class="conf-chat-feed conf-msg-list" aria-live="polite">
+                <div class="cita-chat-welcome">Escribe al profesional durante la sesión.</div>
             </div>
+            <div class="conf-chat-input-row">
+                <input type="text" id="cita-chat-input" class="form-control" placeholder="Escribe un mensaje..." maxlength="500" aria-label="Escribe un mensaje de chat" />
+                <button type="button" id="cita-chat-send" class="btn btn-primary btn-sm" aria-label="Enviar mensaje">Enviar</button>
+            </div>
+        </div>
+
+        <div id="panel-recomend" data-panel-content class="cita-panel-body cita-tab-content" role="tabpanel">
+            <div class="cita-section-title">Recomendaciones del profesional</div>
+            <textarea class="cita-textarea" id="recomendaciones-pro" readonly
+                      aria-label="Recomendaciones del profesional (solo lectura)" aria-readonly="true"
+                      placeholder="El profesional aún no ha registrado recomendaciones para esta sesión.">@recomendTexto</textarea>
+            <div id="recomend-pro-meta" style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:6px;">
+                @(string.IsNullOrEmpty(recomendFecha) ? "Sin recomendaciones registradas aún." : $"Actualizado el {recomendFecha}")
+            </div>
+        </div>
+
+        <div id="panel-nota" data-panel-content class="cita-panel-body cita-tab-content" role="tabpanel">
+            <div class="cita-section-title">Mi nota privada</div>
+            <textarea class="cita-textarea" id="nota-privada-txt" rows="6"
+                      placeholder="Escribe tus notas personales aquí... Solo tú las puedes ver."
+                      aria-label="Tu nota privada de la sesión (solo visible para ti)">@notaTexto</textarea>
+            <div id="nota-privada-meta" style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:6px;">
+                @(string.IsNullOrEmpty(notaFecha) ? "Solo tú puedes ver esta nota." : $"Guardada el {notaFecha}")
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="save-nota-btn" style="margin-top:var(--sp-3);width:100%;"
+                    aria-label="Guardar nota privada">
+                Guardar nota
+            </button>
         </div>
     </aside>
-</div>
-
-<div id="chat-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="chat-modal-title">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title" id="chat-modal-title">Chat de sesión</div>
-            <button type="button" class="modal-close" data-close-modal="chat-modal" aria-label="Cerrar chat">✕</button>
-        </div>
-        <div class="modal-body">
-            <div style="display:flex;flex-direction:column;gap:var(--sp-3);margin-bottom:var(--sp-4);min-height:140px;">
-                <div style="align-self:flex-start;background:var(--color-surface-alt);border-radius:var(--radius-md);padding:var(--sp-2) var(--sp-3);font-size:0.875rem;max-width:80%;">
-                    <strong style="color:var(--color-primary);font-size:0.75rem;">@Model.NombreProfesional</strong>
-                    <p style="margin-top:2px;">Hola, ¿cómo te has sentido esta semana?</p>
-                </div>
-            </div>
-            <div class="d-flex gap-3">
-                <input type="text" class="form-control" placeholder="Escribe un mensaje..." aria-label="Escribe un mensaje de chat" />
-                <button type="button" class="btn btn-primary btn-sm" aria-label="Enviar mensaje">Enviar</button>
-            </div>
-        </div>
-    </div>
 </div>
 
 @await Html.PartialAsync("_ModalNovedadUsuario")
 
 @section Scripts {
 @Html.AntiForgeryToken()
+<script>
+  window.citaSalaHub = { citaId: @Model.CitaId, rol: 'usuario' };
+</script>
+<script src="~/js/sala-cita-hub.js" asp-append-version="true"></script>
 <script src="~/js/sala-usuario.js" asp-append-version="true"></script>
 <script src="~/js/novedad-usuario.js" asp-append-version="true"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  initPanelTabs('.cita-panel-tab', 'panelTab');
   initSalaUsuario({
     citaId: @Model.CitaId,
-    notaKey: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(notaKey)),
-    recomendKey: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(recomendKey)),
-    tieneRecomendBd: @(string.IsNullOrEmpty(recomendTexto) ? "false" : "true"),
     fechaHoraCita: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FechaHora.ToString("o")))
   });
 });

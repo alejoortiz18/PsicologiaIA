@@ -51,4 +51,20 @@ public interface ICitaRepository
         DateTime desde,
         DateTime hasta,
         CancellationToken ct = default);
+
+    Task<ResultadoOperacion> GuardarRecomendacionAsync(
+        int citaId, int profesionalId, string contenido, CancellationToken ct = default);
+
+    Task<ResultadoOperacion> GuardarNotaPrivadaAsync(
+        int citaId, int usuarioId, string contenido, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CitaMensajeDto>> ListarMensajesCitaAsync(
+        int citaId, CancellationToken ct = default);
+
+    Task<ResultadoOperacion<CitaMensajeDto>> GuardarMensajeCitaAsync(
+        int citaId, string remitenteTipo, int remitenteId, string aliasRemitente,
+        string contenido, CancellationToken ct = default);
+
+    Task<string?> ObtenerAliasEmisorCitaAsync(
+        int citaId, int remitenteId, string remitenteTipo, CancellationToken ct = default);
 }

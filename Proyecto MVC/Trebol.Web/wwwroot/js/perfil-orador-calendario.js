@@ -31,6 +31,10 @@
 
   const ES_PROPIETARIO = !!cfg.esVistaPropietario;
   const ES_USUARIO = !!cfg.esVistaUsuario;
+
+  function esVisitanteAgenda() {
+    return !!cfg.usuarioId && !ES_PROPIETARIO && !ES_USUARIO;
+  }
   const slotMeta = {};
   const SLOT_RANK = { owner: 4, mine: 3, public: 2, busy: 1 };
 
@@ -75,7 +79,9 @@
 
   function slotKind(c) {
     if (ES_USUARIO) {
-      return c.tipoSlot === 'EventoPublico' ? 'public' : 'mine';
+      if (c.tipoSlot === 'EventoPublico') return 'public';
+      if (c.esDetalleVisible) return 'mine';
+      return 'busy';
     }
     if (ES_PROPIETARIO) {
       if (c.tipoSlot === 'EventoPublico') return 'public';
@@ -106,6 +112,7 @@
     if (Number.isNaN(d.getTime())) return;
     const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
     const h0 = d.getHours();
+    const startMin = h0 * 60 + d.getMinutes();
     const durRaw = c.duracionMinutos || 60;
     const dur = (c.tipoSlot === 'EventoPublico' && durRaw > 480) ? 60 : Math.min(durRaw, 480);
     const kind = slotKind(c);
@@ -119,15 +126,16 @@
       duracionMinutos: c.duracionMinutos || 60,
       estadoCita: c.estadoCita || '',
       nombreCliente: c.nombreCliente || '',
-      tipoCita: c.tipoCita || ''
+      tipoCita: c.tipoCita || '',
+      salaId: c.salaId || null
     };
-    for (let i = 0; i < dur / 60; i++) {
-      setSlotMeta(`${key}|${h0 + i}`, meta);
+    for (let m = startMin; m < startMin + dur; m += 60) {
+      setSlotMeta(`${key}|${Math.floor(m / 60)}`, meta);
     }
   });
 
   if (ES_USUARIO) initUsuarioWorkHours();
-  else if (ES_PROPIETARIO) expandirHorarioPorAgenda();
+  else if (ES_PROPIETARIO || esVisitanteAgenda()) expandirHorarioPorAgenda();
 
   const blockedDays = new Set();
   (cfg.bloqueos || []).forEach(b => {
@@ -164,6 +172,10 @@
 
   function fmt2(n) {
     return String(n).padStart(2, '0');
+  }
+
+  function fmtLocalDateTimeParam(y, m, d, h, min) {
+    return `${y}-${fmt2(m + 1)}-${fmt2(d)}T${fmt2(h)}:${fmt2(min || 0)}`;
   }
 
   function fmtTime(h) {
@@ -223,7 +235,8 @@
       const meta = slotMeta[`${dateKey(y, m, d)}|${h}`];
       if (meta) {
         if (meta.kind === 'public') return 'public-event';
-        return 'my-booking';
+        if (meta.kind === 'mine') return 'my-booking';
+        return 'booked';
       }
       if (isSlotPast(y, m, d, h)) return 'past';
       return 'off';
@@ -244,11 +257,6 @@
     }
     const dow = new Date(y, m, d).getDay();
     const w = work[dow];
-    if (!w || h < w.from || h >= w.to) return 'off';
-    const date = new Date(y, m, d);
-    if (date < TODAY) return 'past';
-    if (isSlotPast(y, m, d, h)) return 'past';
-    if (blockedDays.has(dateKey(y, m, d))) return 'off';
     const meta = slotMeta[`${dateKey(y, m, d)}|${h}`];
     if (meta) {
       if (meta.kind === 'owner') return 'owner-booking';
@@ -256,7 +264,104 @@
       if (meta.kind === 'public') return 'public-event';
       return 'booked';
     }
+    if (!w || h < w.from || h >= w.to) return 'off';
+    const date = new Date(y, m, d);
+    if (date < TODAY) return 'past';
+    if (isSlotPast(y, m, d, h)) return 'past';
+    if (blockedDays.has(dateKey(y, m, d))) return 'off';
     return 'free';
+  }
+
+  function hourIsOccupied(y, m, d, h) {
+    const st = getSlotStatus(y, m, d, h);
+    return st === 'owner-booking' || st === 'my-booking' || st === 'public-event'
+      || st === 'booked' || st === 'busy';
+  }
+
+  function getDayBlockMetas(y, m, d) {
+    const keyPrefix = `${dateKey(y, m, d)}|`;
+    const seen = new Set();
+    const blocks = [];
+    Object.keys(slotMeta).forEach(k => {
+      if (!k.startsWith(keyPrefix)) return;
+      const meta = slotMeta[k];
+      const refKey = `${meta.refId}|${meta.tipoSlot}|${meta.fechaHora}`;
+      if (seen.has(refKey)) return;
+      seen.add(refKey);
+      const start = parseSlotDate(meta.fechaHora);
+      if (Number.isNaN(start.getTime())) return;
+      blocks.push({
+        meta,
+        startH: start.getHours(),
+        startM: start.getMinutes(),
+        durMin: meta.duracionMinutos || 60
+      });
+    });
+    blocks.sort((a, b) => (a.startH * 60 + a.startM) - (b.startH * 60 + b.startM));
+    return blocks;
+  }
+
+  function semanaTieneActividad(weekStart) {
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart);
+      d.setDate(d.getDate() + i);
+      if (dayHasEvents(d.getFullYear(), d.getMonth(), d.getDate())) return true;
+    }
+    return false;
+  }
+
+  function irASemanaConActividad() {
+    if (currentView !== 'semanal' || semanaTieneActividad(viewWeekStart)) return;
+    const citas = cfg.citas || [];
+    if (!citas.length) return;
+    const pickNearest = (list) => {
+      let nearest = null;
+      let minDist = Infinity;
+      list.forEach(c => {
+        const d = parseSlotDate(c.fechaHora);
+        if (Number.isNaN(d.getTime())) return;
+        const day = startOfDay(d);
+        const dist = Math.abs(day.getTime() - TODAY.getTime());
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = day;
+        }
+      });
+      return nearest;
+    };
+    const privadas = citas.filter(c => c.tipoSlot === 'CitaPrivada');
+    const pool = ES_PROPIETARIO && privadas.length ? privadas : citas;
+    const nearest = pickNearest(pool);
+    if (nearest) {
+      viewWeekStart = mondayOf(nearest);
+      viewDay = new Date(nearest);
+    }
+  }
+
+  function esVisitanteUsuarioLogueado() {
+    return !!cfg.usuarioId && !ES_PROPIETARIO;
+  }
+
+  function slotEsClicable(meta) {
+    if (!meta || !meta.refId) return false;
+    if (ES_PROPIETARIO) return meta.kind === 'owner' || meta.kind === 'public';
+    if (esVisitanteUsuarioLogueado()) return meta.kind === 'mine' || meta.kind === 'public';
+    return false;
+  }
+
+  function abrirDetalleCalendario(tipo, refId, meta) {
+    if (tipo === 'cita' && typeof window.abrirDetalleCita === 'function') {
+      window.abrirDetalleCita(refId);
+      return;
+    }
+    if (tipo === 'evento') {
+      const salaId = meta?.salaId;
+      if (salaId && typeof window.abrirDetalleEventoSala === 'function') {
+        window.abrirDetalleEventoSala(salaId);
+      } else if (typeof window.abrirDetalleEventoCalendario === 'function' && meta) {
+        window.abrirDetalleEventoCalendario(meta);
+      }
+    }
   }
 
   function renderOccupiedBlock(meta, top, height, extraCls) {
@@ -268,10 +373,10 @@
       ? `<div class="tcw-b-time">${escHtml(meta.subtitulo)}</div>`
       : '';
     const disabled = meta.kind === 'busy' ? ' aria-disabled="true"' : '';
-    const clickable = ES_PROPIETARIO && meta.refId && (meta.kind === 'owner' || meta.kind === 'public');
+    const clickable = slotEsClicable(meta);
     const clickCls = clickable ? ' tcw-block--clickable' : '';
     const clickAttrs = clickable
-      ? ` tabindex="0" role="button" data-cal-slot="1" data-tipo-slot="${meta.tipoSlot === 'EventoPublico' ? 'evento' : 'cita'}" data-ref-id="${meta.refId}" aria-label="Ver detalle"`
+      ? ` tabindex="0" role="button" data-cal-slot="1" data-tipo-slot="${meta.tipoSlot === 'EventoPublico' ? 'evento' : 'cita'}" data-ref-id="${meta.refId}" data-sala-id="${meta.salaId || ''}" aria-label="Ver detalle"`
       : '';
     return `<div class="${cls}${clickCls}" style="top:${top + 2}px;height:${height - 4}px;"${disabled}${clickAttrs}>
       <span class="tcw-b-icon">${icon}</span>
@@ -279,22 +384,21 @@
   }
 
   function bindCalendarioDetalle(root) {
-    if (!ES_PROPIETARIO || !root) return;
+    const activo = ES_PROPIETARIO || esVisitanteUsuarioLogueado();
+    if (!activo || !root) return;
     root.querySelectorAll('[data-cal-slot]').forEach(el => {
       const open = () => {
         const tipo = el.getAttribute('data-tipo-slot');
         const refId = parseInt(el.getAttribute('data-ref-id') || '0', 10);
         if (!refId) return;
+        const salaIdAttr = el.getAttribute('data-sala-id');
         const key = Object.keys(slotMeta).find(k => {
           const m = slotMeta[k];
           return m && m.refId === refId;
         });
-        const meta = key ? slotMeta[key] : null;
-        if (tipo === 'cita' && typeof window.abrirDetalleCita === 'function') {
-          window.abrirDetalleCita(refId);
-        } else if (tipo === 'evento' && typeof window.abrirDetalleEventoCalendario === 'function' && meta) {
-          window.abrirDetalleEventoCalendario(meta);
-        }
+        const meta = key ? { ...slotMeta[key] } : null;
+        if (meta && salaIdAttr) meta.salaId = parseInt(salaIdAttr, 10) || meta.salaId;
+        abrirDetalleCalendario(tipo, refId, meta);
       };
       el.addEventListener('click', open);
       el.addEventListener('keydown', e => {
@@ -325,8 +429,7 @@
       }
       return;
     }
-    const dt = new Date(y, m, d, h, 0, 0);
-    const iso = dt.toISOString().slice(0, 16);
+    const iso = fmtLocalDateTimeParam(y, m, d, h, 0);
     const sep = cfg.nuevaCitaUrl.includes('?') ? '&' : '?';
     window.location.href = `${cfg.nuevaCitaUrl}${sep}fechaHora=${encodeURIComponent(iso)}`;
   }
@@ -484,22 +587,20 @@
       }
 
       if (ES_USUARIO) {
-        for (let h = H_START; h < H_END; h++) {
-          const st = getSlotStatus(y, m, dd, h);
-          if (st === 'my-booking' || st === 'public-event') {
-            const top = (h - H_START) * HOUR_H;
-            const meta = slotMeta[`${dateKey(y, m, dd)}|${h}`];
-            html += renderOccupiedBlock(meta, top, HOUR_H);
-          }
-        }
+        getDayBlockMetas(y, m, dd).forEach(({ meta, startH, startM, durMin }) => {
+          const top = (startH - H_START) * HOUR_H + startM * PX_MIN;
+          html += renderOccupiedBlock(meta, top, durMin * PX_MIN);
+        });
       } else if (ES_PROPIETARIO) {
+        getDayBlockMetas(y, m, dd).forEach(({ meta, startH, startM, durMin }) => {
+          const top = (startH - H_START) * HOUR_H + startM * PX_MIN;
+          html += renderOccupiedBlock(meta, top, durMin * PX_MIN);
+        });
         for (let h = H_START; h < H_END; h++) {
           const st = getSlotStatus(y, m, dd, h);
+          if (hourIsOccupied(y, m, dd, h)) continue;
           const top = (h - H_START) * HOUR_H;
-          const meta = slotMeta[`${dateKey(y, m, dd)}|${h}`];
-          if (st === 'owner-booking' || st === 'public-event') {
-            html += renderOccupiedBlock(meta, top, HOUR_H);
-          } else if (st === 'free') {
+          if (st === 'free') {
             html += `<div class="tcw-free-slot" style="top:${top}px;height:${HOUR_H}px;" tabindex="0" role="button" data-y="${y}" data-m="${m}" data-d="${dd}" data-h="${h}" aria-label="Disponible ${fmtTime(h)}">
               <div class="tcw-free-hint"><div class="tcw-free-hint-pill">＋ ${fmtTime(h)}</div></div></div>`;
           } else if (st === 'past') {
@@ -507,19 +608,27 @@
           }
         }
       } else if (isPast) {
+        getDayBlockMetas(y, m, dd).forEach(({ meta, startH, startM, durMin }) => {
+          const top = (startH - H_START) * HOUR_H + startM * PX_MIN;
+          html += renderOccupiedBlock(meta, top, durMin * PX_MIN);
+        });
         html += `<div class="tcw-past-overlay" style="height:${TOTAL_H * HOUR_H}px;"></div>`;
-      } else if (w && dayStatus !== 'off') {
-        for (let h = w.from; h < w.to; h++) {
-          const st = getSlotStatus(y, m, dd, h);
-          const top = (h - H_START) * HOUR_H;
-          const meta = slotMeta[`${dateKey(y, m, dd)}|${h}`];
-          if (st === 'booked' || st === 'my-booking' || st === 'public-event' || st === 'owner-booking') {
-            html += renderOccupiedBlock(meta, top, HOUR_H);
-          } else if (st === 'free') {
-            html += `<div class="tcw-free-slot" style="top:${top}px;height:${HOUR_H}px;" tabindex="0" role="button" data-y="${y}" data-m="${m}" data-d="${dd}" data-h="${h}" aria-label="Disponible ${fmtTime(h)}">
-              <div class="tcw-free-hint"><div class="tcw-free-hint-pill">＋ ${fmtTime(h)}</div></div></div>`;
-          } else if (st === 'past') {
-            html += `<div class="tcw-past-hour" style="top:${top}px;height:${HOUR_H}px;" aria-hidden="true"></div>`;
+      } else {
+        getDayBlockMetas(y, m, dd).forEach(({ meta, startH, startM, durMin }) => {
+          const top = (startH - H_START) * HOUR_H + startM * PX_MIN;
+          html += renderOccupiedBlock(meta, top, durMin * PX_MIN);
+        });
+        if (w && dayStatus !== 'off') {
+          for (let h = H_START; h < H_END; h++) {
+            if (hourIsOccupied(y, m, dd, h)) continue;
+            const st = getSlotStatus(y, m, dd, h);
+            const top = (h - H_START) * HOUR_H;
+            if (st === 'free') {
+              html += `<div class="tcw-free-slot" style="top:${top}px;height:${HOUR_H}px;" tabindex="0" role="button" data-y="${y}" data-m="${m}" data-d="${dd}" data-h="${h}" aria-label="Disponible ${fmtTime(h)}">
+                <div class="tcw-free-hint"><div class="tcw-free-hint-pill">＋ ${fmtTime(h)}</div></div></div>`;
+            } else if (st === 'past') {
+              html += `<div class="tcw-past-hour" style="top:${top}px;height:${HOUR_H}px;" aria-hidden="true"></div>`;
+            }
           }
         }
       }
@@ -665,9 +774,9 @@
         attrs = `data-y="${y}" data-m="${m}" data-d="${d}" data-h="${h}" tabindex="0" role="button" class="tcal-drow-book"`;
       } else if (status === 'owner-booking' || status === 'my-booking' || status === 'public-event' || status === 'booked') {
         const meta = slotMeta[`${dateKey(y, m, d)}|${h}`] || { kind: 'busy', etiqueta: 'Ocupado', subtitulo: '' };
-        const clickDaily = ES_PROPIETARIO && meta.refId && (status === 'owner-booking' || status === 'public-event');
+        const clickDaily = slotEsClicable(meta);
         if (clickDaily) {
-          attrs = ` tabindex="0" role="button" data-cal-slot="1" data-tipo-slot="${meta.tipoSlot === 'EventoPublico' ? 'evento' : 'cita'}" data-ref-id="${meta.refId}" class="tcal-drow-cal-slot"`;
+          attrs = ` tabindex="0" role="button" data-cal-slot="1" data-tipo-slot="${meta.tipoSlot === 'EventoPublico' ? 'evento' : 'cita'}" data-ref-id="${meta.refId}" data-sala-id="${meta.salaId || ''}" class="tcal-drow-cal-slot"`;
         }
         if (status === 'owner-booking') {
           cellCls += ' owner-booking-cell';
@@ -714,5 +823,6 @@
   document.getElementById('tcal-next')?.addEventListener('click', () => navigate(1));
   document.getElementById('tcal-hoy')?.addEventListener('click', goToday);
 
+  irASemanaConActividad();
   render();
 })();

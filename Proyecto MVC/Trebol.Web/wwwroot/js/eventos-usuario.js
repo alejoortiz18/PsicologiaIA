@@ -241,4 +241,5 @@
   });
 
   if (typeof GlobalPM !== 'undefined' && GlobalPM.init) GlobalPM.init();
+  window.abrirDetalleEventoSala = openDetalle;
 })();

@@ -28,5 +28,6 @@ app.MapControllerRoute(
 
 app.MapHub<Trebol.Web.Hubs.ChatHub>("/hubs/chat");
 app.MapHub<Trebol.Web.Hubs.ConferenciaHub>("/hubs/conferencia");
+app.MapHub<Trebol.Web.Hubs.CitaSalaHub>("/hubs/cita-sala");
 
 app.Run();

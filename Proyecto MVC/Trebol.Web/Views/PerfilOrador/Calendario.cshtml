@@ -73,12 +73,14 @@
 </div>
 
 @section PerfilScripts {
+    <script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
     <script>
         window.perfilOradorCal = {
             profesionalId: @p.ProfesionalId,
             usuarioId: @(ViewBag.UsuarioActualId?.ToString() ?? "null"),
             miProfesionalId: @(ViewBag.MiProfesionalId?.ToString() ?? "null"),
             esVistaPropietario: @(ViewBag.EsVistaPropietario == true ? "true" : "false"),
+            esVistaUsuario: false,
             puedeAgendar: @((User.IsInRole("Usuario") || (User.IsInRole("Profesional") && ViewBag.EsVistaPropietario != true)) ? "true" : "false"),
             nuevaCitaUrl: '@Url.Action("SeleccionarTipo", "PagoCita", new { profesionalId = p.ProfesionalId })',
             disponibilidad: @Html.Raw(ViewBag.DisponibilidadJson ?? "[]"),

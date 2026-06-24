@@ -18,4 +18,6 @@ public class CalendarioSlotDto
     public string?  NombreCliente   { get; set; }
     public string?  EstadoCita      { get; set; }
     public int?     CitaId          { get; set; }
+    /// <summary>Sala asociada (solo eventos públicos).</summary>
+    public int?     SalaId          { get; set; }
 }

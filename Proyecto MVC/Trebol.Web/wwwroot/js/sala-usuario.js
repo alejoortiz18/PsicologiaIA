@@ -1,7 +1,7 @@
-/** Sala de cita — usuario: alias, nota privada, recomendaciones locales, evaluación inasistencia */
+/** Sala de cita — usuario: alias, nota privada en BD, evaluación inasistencia */
 
 function initSalaUsuario(opts) {
-  const { citaId, notaKey, recomendKey, tieneRecomendBd, fechaHoraCita } = opts;
+  const { citaId, fechaHoraCita } = opts;
   const token = () => document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
   let pollInasistencia = null;
 
@@ -22,26 +22,40 @@ function initSalaUsuario(opts) {
     }
   });
 
-  const notaTxt = document.getElementById('nota-privada-txt');
-  loadRecomendLocal(notaKey, 'nota-privada-txt');
-
-  document.getElementById('save-nota-btn')?.addEventListener('click', () => {
+  document.getElementById('save-nota-btn')?.addEventListener('click', async () => {
+    const notaTxt = document.getElementById('nota-privada-txt');
     if (!notaTxt) return;
-    localStorage.setItem(notaKey, notaTxt.value);
+
+    const body = new URLSearchParams();
+    body.append('citaId', String(citaId));
+    body.append('contenido', notaTxt.value);
+    body.append('__RequestVerificationToken', token());
+
+    const res = await fetch('/Citas/GuardarNotaPrivada', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    const d = await res.json();
+
+    if (d.exito) {
+      const meta = document.getElementById('nota-privada-meta');
+      const now = new Date();
+      if (meta) {
+        meta.textContent = 'Guardada el ' + now.toLocaleDateString('es-CO') + ' · ' +
+          now.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' });
+      }
+    }
+
     if (typeof showToast === 'function') {
-      showToast({ title: 'Nota guardada', type: 'success', duration: 3000 });
+      showToast({
+        title: d.exito ? 'Nota guardada' : 'Error',
+        message: d.mensaje || '',
+        type: d.exito ? 'success' : 'error',
+        duration: 3000
+      });
     }
   });
-
-  if (!tieneRecomendBd) {
-    const recTxt = document.getElementById('recomendaciones-pro');
-    const saved = localStorage.getItem(recomendKey);
-    if (recTxt && saved) {
-      recTxt.value = saved;
-      const meta = document.getElementById('recomend-pro-meta');
-      if (meta) meta.textContent = 'Recomendaciones de la sesión (dispositivo local)';
-    }
-  }
 
   async function evaluarInasistencia() {
     try {

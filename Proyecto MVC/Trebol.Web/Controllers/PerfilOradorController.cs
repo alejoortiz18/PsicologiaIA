@@ -77,11 +77,17 @@ public class PerfilOradorController(
             int? viewerProfesionalId = User.IsInRole("Profesional")
                 ? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
                 : null;
-            var slots = CalendarioSlotPresentacion.Formatear(
-                await citaRepo.ObtenerSlotsCalendarioPublicoAsync(
-                    id, desde, hasta, viewerUsuarioId, viewerProfesionalId, HttpContext.RequestAborted),
-                CalendarioSlotPresentacion.ModoVista.Publico);
-            ViewBag.EsVistaPropietario = false;
+            var esAgendaPropietario = viewerProfesionalId == id;
+            var slots = esAgendaPropietario
+                ? CalendarioSlotPresentacion.Formatear(
+                    await citaRepo.ObtenerSlotsCalendarioPropietarioAsync(
+                        id, desde, hasta, HttpContext.RequestAborted),
+                    CalendarioSlotPresentacion.ModoVista.Propietario)
+                : CalendarioSlotPresentacion.Formatear(
+                    await citaRepo.ObtenerSlotsCalendarioPublicoAsync(
+                        id, desde, hasta, viewerUsuarioId, viewerProfesionalId, HttpContext.RequestAborted),
+                    CalendarioSlotPresentacion.ModoVista.Publico);
+            ViewBag.EsVistaPropietario = esAgendaPropietario;
             ViewBag.CitasSlotsJson = JsonSerializer.Serialize(slots, JsonCamel);
             ViewBag.BloqueosJson = JsonSerializer.Serialize(
                 vm.Bloqueos.Select(b => new { inicio = b.FechaHoraInicio, fin = b.FechaHoraFin }), JsonCamel);

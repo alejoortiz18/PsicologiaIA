@@ -7,7 +7,11 @@
     var tipoLabel = Model.Tipo == TipoCita.Seguimiento ? "Seguimiento psicológico" : "Asesoría";
     var esAsesoria = Model.Tipo == TipoCita.Asesoria;
     var horaFin = Model.FechaHora.AddMinutes(Model.DuracionMinutos);
-    var storageKey = $"trebol-recomend-cita-{Model.CitaId}";
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var recomendTexto = Model.RecomendacionContenido ?? "";
+    var recomendFecha = Model.RecomendacionFecha.HasValue
+        ? Model.RecomendacionFecha.Value.ToString("d MMM yyyy · h:mm tt", cultura)
+        : "";
 }
 
 <div class="cita-layout" role="main">
@@ -45,7 +49,7 @@
         <div class="cita-controls" role="toolbar" aria-label="Controles de sesión">
             <button type="button" class="ctrl-btn ctrl-btn--normal" onclick="toggleSalaControl(this,'cam')" aria-label="Activar/desactivar cámara" aria-pressed="true" title="Cámara">📷</button>
             <button type="button" class="ctrl-btn ctrl-btn--normal" onclick="toggleSalaControl(this,'mic')" aria-label="Silenciar/activar micrófono" aria-pressed="true" title="Micrófono">🎤</button>
-            <button type="button" class="ctrl-btn ctrl-btn--normal" data-open-modal="chat-modal" aria-label="Chat de sesión" title="Chat">💬</button>
+            <button type="button" class="ctrl-btn ctrl-btn--normal" data-activar-tab="panel-chat" aria-label="Abrir chat de sesión" title="Chat">💬</button>
             <button type="button" class="ctrl-btn ctrl-btn--danger" data-open-modal="end-call-modal" aria-label="Terminar sesión" title="Terminar sesión">📵</button>
         </div>
     </div>
@@ -56,8 +60,9 @@
             <div class="cita-panel-value">@tipoLabel · @Model.AliasUsuario · Sesión #@Model.NumeroSesion</div>
         </div>
         <div class="cita-panel-tabs" role="tablist">
-            <button type="button" class="cita-panel-tab active" data-panel-tab="panel-sesion" data-panel-content="panelTab" role="tab" aria-selected="true">Sesión</button>
-            <button type="button" class="cita-panel-tab" data-panel-tab="panel-recomend" data-panel-content="panelTab" role="tab" aria-selected="false">Recomend.</button>
+            <button type="button" class="cita-panel-tab active" data-panel-tab="panel-sesion" role="tab" aria-selected="true">Sesión</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-chat" role="tab" aria-selected="false">Chat</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-recomend" role="tab" aria-selected="false">Recomend.</button>
         </div>
         <div id="panel-sesion" data-panel-content class="cita-panel-body cita-tab-content active" role="tabpanel">
             <div class="cita-info-grid">
@@ -76,7 +81,7 @@
             <div>
                 <div class="cita-section-title">Contactar al paciente</div>
                 <button type="button" class="btn btn-secondary btn-sm" style="width:100%;background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:white;"
-                        data-open-modal="chat-modal" aria-label="Abrir chat con el paciente">
+                        data-activar-tab="panel-chat" aria-label="Abrir chat con el paciente">
                     💬 Abrir chat
                 </button>
             </div>
@@ -91,17 +96,28 @@
                 </button>
             </div>
         </div>
+        <div id="panel-chat" data-panel-content class="cita-tab-content cita-chat-panel" role="tabpanel">
+            <div id="cita-chat-feed" class="conf-chat-feed conf-msg-list" aria-live="polite">
+                <div class="cita-chat-welcome">Los mensajes de esta sesión son visibles para ti y el paciente.</div>
+            </div>
+            <div class="conf-chat-input-row">
+                <input type="text" id="cita-chat-input" class="form-control" placeholder="Escribe un mensaje..." maxlength="500" aria-label="Escribe un mensaje de chat" />
+                <button type="button" id="cita-chat-send" class="btn btn-primary btn-sm" aria-label="Enviar mensaje">Enviar</button>
+            </div>
+        </div>
         <div id="panel-recomend" data-panel-content class="cita-panel-body cita-tab-content" role="tabpanel">
             <div class="cita-section-title">Recomendaciones para el paciente</div>
             <p style="font-size:0.8125rem;color:rgba(255,255,255,0.5);margin-bottom:var(--sp-3);">
-                Escribe recomendaciones o tareas. Se guardan automáticamente en este dispositivo.
+                El paciente verá estas recomendaciones en su sala de cita.
             </p>
             <textarea class="cita-textarea" id="recomendaciones-txt" rows="7"
                       aria-label="Recomendaciones para el paciente"
-                      placeholder="Ej: Practica 5 minutos de respiración diafragmática cada mañana..."></textarea>
+                      placeholder="Ej: Practica 5 minutos de respiración diafragmática cada mañana...">@recomendTexto</textarea>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--sp-3);">
-                <div id="recomend-timestamp" style="font-size:0.75rem;color:rgba(255,255,255,0.35);">Sin guardar aún</div>
-                <button type="button" class="btn btn-primary btn-sm" onclick="saveRecomendLocal('@storageKey','recomendaciones-txt','recomend-timestamp')" aria-label="Guardar recomendaciones">Guardar</button>
+                <div id="recomend-timestamp" style="font-size:0.75rem;color:rgba(255,255,255,0.35);">
+                    @(string.IsNullOrEmpty(recomendFecha) ? "Sin guardar aún" : $"Guardado el {recomendFecha}")
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-guardar-recomend" aria-label="Guardar recomendaciones">Guardar</button>
             </div>
         </div>
     </aside>
@@ -150,46 +166,19 @@
     </div>
 </div>
 
-<div id="chat-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="chat-modal-title">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title" id="chat-modal-title">Chat de sesión</div>
-            <button type="button" class="modal-close" data-close-modal="chat-modal" aria-label="Cerrar chat">✕</button>
-        </div>
-        <div class="modal-body">
-            <div style="display:flex;flex-direction:column;gap:var(--sp-3);margin-bottom:var(--sp-4);min-height:120px;">
-                <div style="align-self:flex-start;background:var(--color-surface-alt);border-radius:var(--radius-md);padding:var(--sp-2) var(--sp-3);font-size:0.875rem;max-width:80%;">
-                    <strong style="color:var(--color-primary);font-size:0.75rem;">@Model.AliasUsuario</strong>
-                    <p style="margin-top:2px;">Hola, ya estoy lista para la sesión.</p>
-                </div>
-            </div>
-            <div class="d-flex gap-3">
-                <input type="text" class="form-control" placeholder="Escribe un mensaje..." aria-label="Escribe un mensaje" />
-                <button type="button" class="btn btn-primary btn-sm" aria-label="Enviar mensaje">Enviar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
 @Html.AntiForgeryToken()
 <script>
+  window.citaSalaHub = { citaId: @Model.CitaId, rol: 'profesional' };
+</script>
+<script src="~/js/sala-cita-hub.js" asp-append-version="true"></script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.cita-panel-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.cita-panel-tab').forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      document.querySelectorAll('.cita-tab-content').forEach(c => c.classList.remove('active'));
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-      const target = document.getElementById(tab.dataset.panelTab);
-      if (target) target.classList.add('active');
-    });
+  initPanelTabs('.cita-panel-tab', 'panelTab');
+
+  document.getElementById('btn-guardar-recomend')?.addEventListener('click', () => {
+    guardarRecomendacionCita(@Model.CitaId, 'recomendaciones-txt', 'recomend-timestamp');
   });
-  loadRecomendLocal('@storageKey', 'recomendaciones-txt');
-  setupAutoSave('@storageKey', 'recomendaciones-txt');
 
   fetch('/Citas/RegistrarIngresoProfesional', {
     method: 'POST',

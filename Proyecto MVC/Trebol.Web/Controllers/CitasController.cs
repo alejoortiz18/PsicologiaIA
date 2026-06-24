@@ -1,16 +1,21 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Trebol.Constants.Messages;
 using Trebol.Domain.Interfaces;
 using Trebol.Model.DTOs.Cita;
 using Trebol.Model.DTOs.Common;
 using Trebol.Web.Helpers;
+using Trebol.Web.Hubs;
 
 namespace Trebol.Web.Controllers;
 
 [Authorize(Roles = "Usuario,Profesional")]
-public class CitasController(ICitaRepository citaRepo, ISaldoUsuarioRepository saldoRepo) : Controller
+public class CitasController(
+    ICitaRepository citaRepo,
+    ISaldoUsuarioRepository saldoRepo,
+    IHubContext<CitaSalaHub> citaSalaHub) : Controller
 {
     private const int TamanoPagina = 10;
 
@@ -190,6 +195,57 @@ public class CitasController(ICitaRepository citaRepo, ISaldoUsuarioRepository s
         return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
     }
 
+    [Authorize(Roles = "Profesional")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GuardarRecomendacion(int citaId, string contenido, CancellationToken ct)
+    {
+        var profesionalId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var resultado = await citaRepo.GuardarRecomendacionAsync(citaId, profesionalId, contenido, ct);
+        if (resultado.Exito)
+        {
+            await citaSalaHub.Clients.Group(CitaSalaHub.GrupoCita(citaId))
+                .SendAsync("RecomendacionActualizada", new
+                {
+                    contenido = (contenido ?? string.Empty).Trim(),
+                    fecha = DateTime.UtcNow
+                }, ct);
+        }
+
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
+    }
+
+    [Authorize(Roles = "Usuario")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GuardarNotaPrivada(int citaId, string contenido, CancellationToken ct)
+    {
+        var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var cita = await citaRepo.ObtenerParaSalaUsuarioAsync(citaId, usuarioId, ct);
+        if (cita is null)
+            return Json(new { exito = false, mensaje = CitaConstant.CitaNoEncontrada });
+
+        var resultado = await citaRepo.GuardarNotaPrivadaAsync(citaId, usuarioId, contenido, ct);
+        return Json(new { exito = resultado.Exito, mensaje = resultado.Mensaje });
+    }
+
+    [Authorize(Roles = "Usuario,Profesional")]
+    [HttpGet]
+    public async Task<IActionResult> MensajesSala(int citaId, CancellationToken ct)
+    {
+        if (!await PuedeAccederSalaCitaAsync(citaId, ct))
+            return NotFound();
+
+        var mensajes = await citaRepo.ListarMensajesCitaAsync(citaId, ct);
+        return Json(mensajes.Select(m => new
+        {
+            alias = m.AliasRemitente,
+            contenido = m.Contenido,
+            enviadoEn = m.Fecha,
+            remitenteTipo = m.RemitenteTipo
+        }));
+    }
+
     /// <summary>Fragmento HTML del detalle para modal (usuario dueño o profesional de la cita).</summary>
     [Authorize(Roles = "Usuario,Profesional")]
     [HttpGet]
@@ -220,5 +276,14 @@ public class CitasController(ICitaRepository citaRepo, ISaldoUsuarioRepository s
         }
 
         return await citaRepo.ObtenerDetalleAsync(citaId);
+    }
+
+    private async Task<bool> PuedeAccederSalaCitaAsync(int citaId, CancellationToken ct)
+    {
+        var id = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (User.IsInRole("Profesional"))
+            return await citaRepo.ObtenerParaSalaProfesionalAsync(citaId, id, ct) is not null;
+
+        return await citaRepo.ObtenerParaSalaUsuarioAsync(citaId, id, ct) is not null;
     }
 }

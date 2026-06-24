@@ -48,8 +48,11 @@ public static class CalendarioSlotPresentacion
                 string.Equals(s.TipoCita, "Seguimiento", StringComparison.OrdinalIgnoreCase)
                     ? TipoCita.Seguimiento
                     : TipoCita.Asesoria);
-            s.Etiqueta = string.IsNullOrWhiteSpace(s.NombreCliente) ? tipo : s.NombreCliente.Trim();
-            s.Subtitulo = $"{tipo} · {FormatearHora12(s.FechaHora)} - {FormatearHora12(fin)} · {FormatearEstado(s.EstadoCita)}";
+            var cliente = string.IsNullOrWhiteSpace(s.NombreCliente) ? null : s.NombreCliente.Trim();
+            s.Etiqueta = tipo;
+            s.Subtitulo = cliente is not null
+                ? $"{cliente} · {FormatearHora12(s.FechaHora)} - {FormatearHora12(fin)} · {FormatearEstado(s.EstadoCita)}"
+                : $"{FormatearHora12(s.FechaHora)} - {FormatearHora12(fin)} · {FormatearEstado(s.EstadoCita)}";
             s.EsDetalleVisible = true;
             return;
         }
@@ -75,10 +78,10 @@ public static class CalendarioSlotPresentacion
         var hint = s.Subtitulo ?? string.Empty;
         var esCharla = hint.Contains("charla", StringComparison.OrdinalIgnoreCase);
         var tipoEvento = esCharla ? "Charla" : "Evento público";
+        var fin = s.FechaHora.AddMinutes(s.DuracionMinutos);
 
         if (modo == ModoVista.Usuario)
         {
-            var fin = s.FechaHora.AddMinutes(s.DuracionMinutos);
             if (string.IsNullOrWhiteSpace(s.Etiqueta))
                 s.Etiqueta = "Evento inscrito";
             var tipoEv = esCharla ? "Charla" : "Evento inscrito";
@@ -88,7 +91,6 @@ public static class CalendarioSlotPresentacion
 
         if (modo == ModoVista.Propietario)
         {
-            var fin = s.FechaHora.AddMinutes(s.DuracionMinutos);
             if (string.IsNullOrWhiteSpace(s.Etiqueta))
                 s.Etiqueta = tipoEvento;
             s.Subtitulo = $"{tipoEvento} · {FormatearHora12(s.FechaHora)} - {FormatearHora12(fin)} · {FormatearEstado(s.EstadoCita)}";
@@ -97,7 +99,7 @@ public static class CalendarioSlotPresentacion
 
         if (string.IsNullOrWhiteSpace(s.Etiqueta))
             s.Etiqueta = tipoEvento;
-        s.Subtitulo = tipoEvento;
+        s.Subtitulo = $"{tipoEvento} · {FormatearHora12(s.FechaHora)} - {FormatearHora12(fin)} · {FormatearEstado(s.EstadoCita)}";
     }
 
     private static string FormatearEstado(string? estado)

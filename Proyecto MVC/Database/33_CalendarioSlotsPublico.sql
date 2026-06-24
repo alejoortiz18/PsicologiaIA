@@ -30,7 +30,11 @@ BEGIN
                WHEN (@ViewerUsuarioId IS NOT NULL AND c.UsuarioId = @ViewerUsuarioId)
                  OR (@ViewerProfesionalId IS NOT NULL AND c.ProfesionalClienteId = @ViewerProfesionalId)
                THEN 1 ELSE 0
-           END AS EsDetalleVisible
+           END AS EsDetalleVisible,
+           CAST(NULL AS NVARCHAR(200)) AS NombreCliente,
+           c.Estado AS EstadoCita,
+           c.CitaId,
+           CAST(NULL AS INT) AS SalaId
     FROM   Cita c
     WHERE  c.ProfesionalId = @ProfesionalId
       AND  c.FechaHora < @Hasta
@@ -55,16 +59,18 @@ BEGIN
                THEN N'Charla'
                ELSE N'Evento público'
            END AS Subtitulo,
-           1 AS EsDetalleVisible
+           1 AS EsDetalleVisible,
+           CAST(NULL AS NVARCHAR(200)) AS NombreCliente,
+           e.Estado AS EstadoCita,
+           e.EventoId AS CitaId,
+           s.SalaId AS SalaId
     FROM   Evento e
     INNER JOIN Sala s ON s.SalaId = e.SalaId
     LEFT JOIN Categoria cat ON cat.CategoriaId = s.CategoriaId
     WHERE  s.ProfesionalId = @ProfesionalId
       AND  s.Tipo = N'Publica'
-      AND  s.Estado = N'Abierta'
-      AND  e.Estado = N'Abierto'
-      AND  e.FechaInicio >= @Desde
       AND  e.FechaInicio < @Hasta
+      AND  e.FechaFin > @Desde
     ORDER  BY FechaHora;
 END
 GO

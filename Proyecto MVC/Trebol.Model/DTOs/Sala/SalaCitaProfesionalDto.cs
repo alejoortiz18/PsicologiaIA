@@ -13,6 +13,8 @@ public class SalaCitaProfesionalDto
     public int        DuracionMinutos { get; set; }
     public TipoCita   Tipo            { get; set; }
     public EstadoCita Estado          { get; set; }
-    public int        NumeroSesion    { get; set; }
-    public bool       EsHoy           { get; set; }
+    public int        NumeroSesion           { get; set; }
+    public bool       EsHoy                  { get; set; }
+    public string?    RecomendacionContenido { get; set; }
+    public DateTime?  RecomendacionFecha     { get; set; }
 }

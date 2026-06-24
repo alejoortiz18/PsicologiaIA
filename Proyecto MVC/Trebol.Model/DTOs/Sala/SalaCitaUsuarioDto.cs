@@ -19,4 +19,6 @@ public class SalaCitaUsuarioDto
     public bool       EsHoy                    { get; set; }
     public string?    RecomendacionContenido  { get; set; }
     public DateTime?  RecomendacionFecha     { get; set; }
+    public string?    NotaPrivadaContenido   { get; set; }
+    public DateTime?  NotaPrivadaFecha       { get; set; }
 }

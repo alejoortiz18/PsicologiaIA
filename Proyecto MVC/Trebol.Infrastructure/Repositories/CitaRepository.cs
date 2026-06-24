@@ -184,9 +184,17 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
                       WHERE  cx.UsuarioId = c.UsuarioId
                         AND  cx.ProfesionalId = c.ProfesionalId
                         AND  cx.Estado = 'Finalizada') + 1 AS NumeroSesion,
-                     CASE WHEN CAST(c.FechaHora AS DATE) = CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END AS EsHoy
+                     CASE WHEN CAST(c.FechaHora AS DATE) = CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END AS EsHoy,
+                     rec.Contenido AS RecomendacionContenido,
+                     rec.Fecha AS RecomendacionFecha
               FROM   Cita c
               JOIN   Usuario u ON u.UsuarioId = c.UsuarioId
+              OUTER APPLY (
+                  SELECT TOP 1 r.Contenido, r.Fecha
+                  FROM   Recomendacion r
+                  WHERE  r.CitaId = c.CitaId
+                  ORDER  BY r.Fecha DESC
+              ) rec
               WHERE  c.CitaId = @CitaId AND c.ProfesionalId = @ProfesionalId",
             new { CitaId = citaId, ProfesionalId = profesionalId });
     }
@@ -210,10 +218,13 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
                      c.Estado,
                      CASE WHEN CAST(c.FechaHora AS DATE) = CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END AS EsHoy,
                      rec.Contenido AS RecomendacionContenido,
-                     rec.Fecha AS RecomendacionFecha
+                     rec.Fecha AS RecomendacionFecha,
+                     np.Contenido AS NotaPrivadaContenido,
+                     np.FechaModificacion AS NotaPrivadaFecha
               FROM   Cita c
               JOIN   Usuario u ON u.UsuarioId = c.UsuarioId
               JOIN   Profesional p ON p.ProfesionalId = c.ProfesionalId
+              LEFT JOIN CitaNotaPrivada np ON np.CitaId = c.CitaId AND np.UsuarioId = c.UsuarioId
               OUTER APPLY (
                   SELECT TOP 1 r.Contenido, r.Fecha
                   FROM   Recomendacion r
@@ -333,6 +344,134 @@ public class CitaRepository(IConfiguration configuration) : ICitaRepository
             new { UsuarioId = usuarioId, Desde = desde, Hasta = hasta },
             commandType: CommandType.StoredProcedure);
         return result.AsList();
+    }
+
+    public async Task<ResultadoOperacion> GuardarRecomendacionAsync(
+        int citaId, int profesionalId, string contenido, CancellationToken ct = default)
+    {
+        contenido = (contenido ?? string.Empty).Trim();
+        if (contenido.Length == 0)
+            return ResultadoOperacion.Fail("Escribe al menos una recomendación.");
+
+        using var conn = CrearConexion();
+        var cita = await conn.QueryFirstOrDefaultAsync<(int UsuarioId, int ProfesionalId)?>(
+            @"SELECT c.UsuarioId, c.ProfesionalId
+              FROM   Cita c
+              WHERE  c.CitaId = @CitaId AND c.ProfesionalId = @ProfesionalId",
+            new { CitaId = citaId, ProfesionalId = profesionalId });
+        if (cita is null)
+            return ResultadoOperacion.Fail("La cita no fue encontrada.");
+
+        var existente = await conn.QueryFirstOrDefaultAsync<int?>(
+            @"SELECT TOP 1 RecomendacionId
+              FROM   Recomendacion
+              WHERE  CitaId = @CitaId
+              ORDER  BY Fecha DESC",
+            new { CitaId = citaId });
+
+        if (existente.HasValue)
+        {
+            await conn.ExecuteAsync(
+                @"UPDATE Recomendacion
+                  SET    Contenido = @Contenido, Fecha = GETDATE()
+                  WHERE  RecomendacionId = @RecomendacionId",
+                new { Contenido = contenido, RecomendacionId = existente.Value });
+        }
+        else
+        {
+            await conn.ExecuteAsync(
+                @"INSERT INTO Recomendacion (CitaId, ProfesionalId, UsuarioId, Contenido, Fecha)
+                  VALUES (@CitaId, @ProfesionalId, @UsuarioId, @Contenido, GETDATE())",
+                new { CitaId = citaId, ProfesionalId = profesionalId, UsuarioId = cita.Value.UsuarioId, Contenido = contenido });
+        }
+
+        return ResultadoOperacion.Ok("Recomendaciones guardadas.");
+    }
+
+    public async Task<ResultadoOperacion> GuardarNotaPrivadaAsync(
+        int citaId, int usuarioId, string contenido, CancellationToken ct = default)
+    {
+        contenido = contenido ?? string.Empty;
+
+        using var conn = CrearConexion();
+        var existe = await conn.QueryFirstOrDefaultAsync<int?>(
+            @"SELECT CitaId FROM Cita WHERE CitaId = @CitaId AND UsuarioId = @UsuarioId",
+            new { CitaId = citaId, UsuarioId = usuarioId });
+        if (!existe.HasValue)
+            return ResultadoOperacion.Fail("La cita no fue encontrada.");
+
+        var rows = await conn.ExecuteAsync(
+            @"MERGE CitaNotaPrivada AS target
+              USING (SELECT @CitaId AS CitaId) AS source
+              ON target.CitaId = source.CitaId
+              WHEN MATCHED THEN
+                  UPDATE SET Contenido = @Contenido, FechaModificacion = GETDATE(), UsuarioId = @UsuarioId
+              WHEN NOT MATCHED THEN
+                  INSERT (CitaId, UsuarioId, Contenido, FechaModificacion)
+                  VALUES (@CitaId, @UsuarioId, @Contenido, GETDATE());",
+            new { CitaId = citaId, UsuarioId = usuarioId, Contenido = contenido });
+
+        return rows > 0
+            ? ResultadoOperacion.Ok("Nota guardada.")
+            : ResultadoOperacion.Fail("No se pudo guardar la nota.");
+    }
+
+    public async Task<IReadOnlyList<CitaMensajeDto>> ListarMensajesCitaAsync(
+        int citaId, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        var result = await conn.QueryAsync<CitaMensajeDto>(
+            @"SELECT CitaMensajeId, CitaId, RemitenteTipo, AliasRemitente, Contenido, Fecha
+              FROM   CitaMensaje
+              WHERE  CitaId = @CitaId
+              ORDER  BY Fecha ASC",
+            new { CitaId = citaId });
+        return result.AsList();
+    }
+
+    public async Task<ResultadoOperacion<CitaMensajeDto>> GuardarMensajeCitaAsync(
+        int citaId, string remitenteTipo, int remitenteId, string aliasRemitente,
+        string contenido, CancellationToken ct = default)
+    {
+        contenido = (contenido ?? string.Empty).Trim();
+        if (contenido.Length == 0 || contenido.Length > 500)
+            return ResultadoOperacion<CitaMensajeDto>.Fail("El mensaje debe tener entre 1 y 500 caracteres.");
+
+        using var conn = CrearConexion();
+        var id = await conn.QuerySingleAsync<int>(
+            @"INSERT INTO CitaMensaje (CitaId, RemitenteTipo, RemitenteId, AliasRemitente, Contenido, Fecha)
+              OUTPUT INSERTED.CitaMensajeId
+              VALUES (@CitaId, @RemitenteTipo, @RemitenteId, @AliasRemitente, @Contenido, GETDATE())",
+            new { CitaId = citaId, RemitenteTipo = remitenteTipo, RemitenteId = remitenteId, AliasRemitente = aliasRemitente, Contenido = contenido });
+
+        var dto = await conn.QueryFirstAsync<CitaMensajeDto>(
+            @"SELECT CitaMensajeId, CitaId, RemitenteTipo, AliasRemitente, Contenido, Fecha
+              FROM   CitaMensaje WHERE CitaMensajeId = @Id",
+            new { Id = id });
+
+        return ResultadoOperacion<CitaMensajeDto>.Ok(dto);
+    }
+
+    public async Task<string?> ObtenerAliasEmisorCitaAsync(
+        int citaId, int remitenteId, string remitenteTipo, CancellationToken ct = default)
+    {
+        using var conn = CrearConexion();
+        if (remitenteTipo == "Profesional")
+        {
+            return await conn.QueryFirstOrDefaultAsync<string?>(
+                @"SELECT p.NombreCompleto
+                  FROM   Cita c
+                  JOIN   Profesional p ON p.ProfesionalId = c.ProfesionalId
+                  WHERE  c.CitaId = @CitaId AND c.ProfesionalId = @RemitenteId",
+                new { CitaId = citaId, RemitenteId = remitenteId });
+        }
+
+        return await conn.QueryFirstOrDefaultAsync<string?>(
+            @"SELECT CASE WHEN c.MostrarAlias = 1 THEN u.Alias ELSE u.NombreCompleto END
+              FROM   Cita c
+              JOIN   Usuario u ON u.UsuarioId = c.UsuarioId
+              WHERE  c.CitaId = @CitaId AND c.UsuarioId = @RemitenteId",
+            new { CitaId = citaId, RemitenteId = remitenteId });
     }
 
     private sealed class SpResult { public bool Exito { get; init; } public string Mensaje { get; init; } = ""; }
