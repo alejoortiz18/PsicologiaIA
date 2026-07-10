@@ -1,0 +1,307 @@
+@model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
+
+@{
+
+    var esProfesional = User.IsInRole("Profesional");
+    var esListaColegas = ViewData["EsListaColegas"] as bool? == true;
+    var mostrarResumenCitas = ViewData["MostrarResumenCitas"] as bool? == true;
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+
+    var avatarColors = new[] { "#2D4A8F", "#1A3C34", "#8E44AD", "#1A7A5C", "#D35400" };
+
+
+
+    string Iniciales(string nombre)
+
+    {
+
+        var partes = (nombre ?? "??").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        return string.Concat(partes.Take(2).Select(p => p.Length > 0 ? char.ToUpper(p[0]) : '?'));
+
+    }
+
+
+
+    string EspecialidadPrincipal(ProfesionalDirectorioDto p)
+
+    {
+
+        if (p.Especialidades.Count > 0) return p.Especialidades[0];
+
+        if (!string.IsNullOrWhiteSpace(p.Titulo)) return p.Titulo!;
+
+        return p.TipoProfesional == "Medico" ? "Médico" : "Psicología general";
+
+    }
+
+
+
+    string Estrellas(double? cal)
+
+    {
+
+        if (!cal.HasValue) return string.Empty;
+
+        var n = (int)Math.Round(cal.Value);
+
+        n = Math.Clamp(n, 0, 5);
+
+        return new string('★', n) + new string('☆', 5 - n);
+
+    }
+
+}
+
+
+
+@if (!Model.Any())
+
+{
+
+    @await Html.PartialAsync("_EmptyStateRegistros")
+
+}
+
+else
+
+{
+
+    <div class="prof-cards-list" id="prof-list" aria-live="polite" aria-label="Lista de profesionales">
+
+        @{ var idx = 0; }
+
+        @foreach (var p in Model)
+
+        {
+
+            var ini = Iniciales(p.NombreCompleto);
+
+            var color = avatarColors[idx % avatarColors.Length];
+
+            idx++;
+
+            var nombreBusqueda = (p.NombreCompleto ?? "").ToLowerInvariant();
+
+            var espTexto = string.Join(" ", p.Especialidades).ToLowerInvariant();
+
+            var espPrincipal = EspecialidadPrincipal(p);
+
+            var esPsicologo = string.Equals(p.TipoProfesional, "Psicologo", StringComparison.OrdinalIgnoreCase);
+
+            var bio = string.IsNullOrWhiteSpace(p.SobreMi) ? null : (p.SobreMi!.Length > 100 ? p.SobreMi[..100] + "..." : p.SobreMi);
+
+            var pmBg = $"linear-gradient(135deg, {color}, var(--color-primary-light))";
+
+
+
+            <article class="prof-card" data-nombre="@nombreBusqueda @espTexto @(p.Titulo?.ToLowerInvariant() ?? "")" data-prof-id="@p.ProfesionalId">
+
+                @if (!string.IsNullOrEmpty(p.FotoUrl))
+
+                {
+
+                    <img src="@p.FotoUrl" class="prof-card__avatar" style="object-fit:cover;" alt="" />
+
+                }
+
+                else
+
+                {
+
+                    <div class="prof-card__avatar" style="background:@color;">@ini</div>
+
+                }
+
+                <div class="prof-card__body">
+
+                    <div class="prof-card__header">
+
+                        <div>
+
+                            <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@p.ProfesionalId" class="prof-card__name prof-card__name-link">@p.NombreCompleto</a>
+
+                            <div class="prof-card__specialty">@espPrincipal</div>
+
+                        </div>
+
+                        <div class="prof-card__badges">
+
+                            @if (esPsicologo)
+
+                            {
+
+                                <span class="badge badge-accent">Psicólogo</span>
+
+                            }
+
+                            else
+
+                            {
+
+                                <span class="badge badge-warning">Médico</span>
+
+                            }
+
+                            <span class="badge badge-success" title="Verificado por Trébol">Verificado</span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="prof-card__meta">
+
+                        @if (!string.IsNullOrEmpty(p.Ciudad))
+
+                        {
+
+                            <span>📍 @p.Ciudad</span>
+
+                        }
+
+                        else
+
+                        {
+
+                            <span>📍 Colombia</span>
+
+                        }
+
+                        @if (p.Calificacion.HasValue)
+
+                        {
+
+                            <span>@Estrellas(p.Calificacion) @p.Calificacion.Value.ToString("F1")</span>
+
+                        }
+
+                        <span>👥 @p.TotalSeguidos seguidores</span>
+
+                        @if (mostrarResumenCitas && p.TotalCitas > 0)
+                        {
+                            <span>📅 @p.TotalCitas cita@(p.TotalCitas == 1 ? "" : "s")@(p.UltimaCita.HasValue ? $" · última " + p.UltimaCita.Value.ToString("d MMM yyyy", cultura) : "")</span>
+                        }
+
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(bio))
+
+                    {
+
+                        <p class="prof-card__bio">@bio</p>
+
+                    }
+
+                    <div class="prof-card__actions">
+
+                        <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@p.ProfesionalId"
+
+                           class="btn btn-secondary btn-sm">Ver perfil</a>
+
+                        @if (!esProfesional)
+
+                        {
+
+                            <button type="button"
+
+                                    class="btn btn-sm btn-seguir @(p.EsSeguido ? "btn-mentor-active" : "btn-primary")"
+
+                                    data-id="@p.ProfesionalId"
+
+                                    aria-pressed="@(p.EsSeguido ? "true" : "false")">
+
+                                @(p.EsSeguido ? "Siguiendo" : "+ Seguir")
+
+                            </button>
+
+                            <button type="button" class="btn btn-ghost btn-sm btn-enviar-mensaje"
+
+                                    data-pm-name="@p.NombreCompleto"
+
+                                    data-pm-avatar="@ini"
+
+                                    data-pm-bg="@pmBg"
+
+                                    data-pm-profesional-id="@p.ProfesionalId"
+
+                                    aria-label="Enviar mensaje a @p.NombreCompleto">
+
+                                Enviar mensaje
+
+                            </button>
+
+                        }
+
+                        else if (esListaColegas)
+
+                        {
+
+                            <button type="button" class="btn btn-ghost btn-sm btn-colega btn-desvincular"
+
+                                    data-id="@p.ProfesionalId" style="color:var(--color-danger);">
+
+                                Desvincular
+
+                            </button>
+
+                            <button type="button" class="btn btn-ghost btn-sm btn-enviar-mensaje"
+
+                                    data-pm-name="@p.NombreCompleto"
+
+                                    data-pm-avatar="@ini"
+
+                                    data-pm-bg="@pmBg"
+
+                                    data-pm-profesional-id="@p.ProfesionalId"
+
+                                    aria-label="Enviar mensaje a @p.NombreCompleto">
+
+                                Enviar mensaje
+
+                            </button>
+
+                        }
+
+                        else
+
+                        {
+
+                            <button type="button" class="btn btn-secondary btn-sm btn-colega"
+
+                                    data-id="@p.ProfesionalId">
+
+                                Agregar colega
+
+                            </button>
+
+                            <button type="button" class="btn btn-ghost btn-sm btn-enviar-mensaje"
+
+                                    data-pm-name="@p.NombreCompleto"
+
+                                    data-pm-avatar="@ini"
+
+                                    data-pm-bg="@pmBg"
+
+                                    data-pm-profesional-id="@p.ProfesionalId"
+
+                                    aria-label="Enviar mensaje a @p.NombreCompleto">
+
+                                Enviar mensaje
+
+                            </button>
+
+                        }
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        }
+
+    </div>
+
+}
+
+

@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Trebol.Constants/Trebol.Constants.csproj" />
+  <Project Path="Trebol.Domain/Trebol.Domain.csproj" />
+  <Project Path="Trebol.Helpers/Trebol.Helpers.csproj" />
+  <Project Path="Trebol.Infrastructure/Trebol.Infrastructure.csproj" />
+  <Project Path="Trebol.Model/Trebol.Model.csproj" />
+  <Project Path="Trebol.Web/Trebol.Web.csproj" />
+</Solution>

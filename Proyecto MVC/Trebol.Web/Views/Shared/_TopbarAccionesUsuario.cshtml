@@ -1,0 +1,9 @@
+@using System.Security.Claims
+@{
+    var nombre = User.FindFirst(ClaimTypes.Name)?.Value ?? User.Identity?.Name ?? "";
+    var iniciales = string.Join("", nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    if (string.IsNullOrEmpty(iniciales)) iniciales = "U";
+}
+@await Html.PartialAsync("_TopbarNotificaciones")
+<div class="avatar avatar-sm topbar__avatar" id="topbar-avatar" title="@nombre">@iniciales</div>

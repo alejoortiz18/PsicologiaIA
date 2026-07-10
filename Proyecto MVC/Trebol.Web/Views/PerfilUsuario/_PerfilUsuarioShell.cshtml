@@ -1,0 +1,94 @@
+@model Trebol.Model.DTOs.Usuario.PerfilUsuarioViewModel
+@{
+    var u = Model.Usuario;
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var initials = string.Join("", (u.NombreCompleto ?? "??").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    var activoDesde = u.FechaCreacion.ToString("MMMM yyyy", cultura);
+    if (!string.IsNullOrEmpty(activoDesde))
+        activoDesde = char.ToUpper(activoDesde[0]) + activoDesde[1..];
+    var totalEventos = Model.PaginacionEventos.TotalRegistros;
+    var citasProximas = Model.CitasProximas.Count;
+    var tab = ViewBag.TabActiva as string ?? "cuenta";
+    var novedadesPendientes = Model.TotalNovedadesPendientes;
+}
+
+<section class="perfil-usuario-header">
+    <div class="perfil-usuario-header__avatar-wrap">
+        @if (!string.IsNullOrEmpty(u.FotoPerfil))
+        {
+            <div class="avatar avatar-2xl perfil-usuario-header__avatar" id="profile-avatar"
+                 style="background-image:url('@u.FotoPerfil');background-size:cover;background-position:center;"></div>
+        }
+        else
+        {
+            <div class="avatar avatar-2xl perfil-usuario-header__avatar" id="profile-avatar">@initials</div>
+        }
+    </div>
+    <div class="perfil-usuario-header__info">
+        <h1 class="perfil-usuario-header__name">@u.NombreCompleto</h1>
+        <div class="text-meta perfil-usuario-header__meta">@@@u.Alias · Usuario activo desde @activoDesde</div>
+        <div class="perfil-usuario-header__stats">
+            <div class="perfil-usuario-header__stat">
+                <div class="perfil-usuario-header__stat-value">@totalEventos</div>
+                <div class="text-meta">Eventos inscritos</div>
+            </div>
+            <div class="perfil-usuario-header__stat">
+                <div class="perfil-usuario-header__stat-value">@citasProximas</div>
+                <div class="text-meta">Citas próximas</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<nav class="prof-tabs-bar perfil-usuario-tabs" aria-label="Secciones del perfil">
+    <ul class="prof-tabs-bar__list" role="tablist" id="perfil-usuario-tabs">
+        <li>
+            <button type="button" class="prof-tab-link @(tab == "cuenta" ? "active" : "")" role="tab"
+                    aria-selected="@(tab == "cuenta" ? "true" : "false")"
+                    data-tab="tab-cuenta" id="tab-btn-cuenta">
+                <span class="tab-icon" aria-hidden="true">👤</span>Información personal
+            </button>
+        </li>
+        <li>
+            <button type="button" class="prof-tab-link @(tab == "eventos" ? "active" : "")" role="tab"
+                    aria-selected="@(tab == "eventos" ? "true" : "false")"
+                    data-tab="tab-eventos" id="tab-btn-eventos">
+                <span class="tab-icon" aria-hidden="true">🎪</span>Eventos inscritos
+                @if (totalEventos > 0)
+                {
+                    <span class="tab-badge">@totalEventos</span>
+                }
+            </button>
+        </li>
+        <li>
+            <button type="button" class="prof-tab-link @(tab == "citas" ? "active" : "")" role="tab"
+                    aria-selected="@(tab == "citas" ? "true" : "false")"
+                    data-tab="tab-citas" id="tab-btn-citas">
+                <span class="tab-icon" aria-hidden="true">📅</span>Mi agenda
+                @if (citasProximas > 0)
+                {
+                    <span class="tab-badge">@citasProximas</span>
+                }
+            </button>
+        </li>
+        <li>
+            <button type="button" class="prof-tab-link @(tab == "saldos" ? "active" : "")" role="tab"
+                    aria-selected="@(tab == "saldos" ? "true" : "false")"
+                    data-tab="tab-saldos" id="tab-btn-saldos">
+                <span class="tab-icon" aria-hidden="true">💰</span>Mis saldos
+            </button>
+        </li>
+        <li>
+            <button type="button" class="prof-tab-link @(tab == "novedades" ? "active" : "")" role="tab"
+                    aria-selected="@(tab == "novedades" ? "true" : "false")"
+                    data-tab="tab-novedades" id="tab-btn-novedades">
+                <span class="tab-icon" aria-hidden="true">🔔</span>Novedades
+                @if (novedadesPendientes > 0)
+                {
+                    <span class="tab-badge">@novedadesPendientes</span>
+                }
+            </button>
+        </li>
+    </ul>
+</nav>

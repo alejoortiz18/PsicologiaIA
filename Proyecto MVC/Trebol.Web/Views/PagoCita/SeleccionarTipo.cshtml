@@ -1,0 +1,84 @@
+@model SeleccionarTipoCitaViewModel
+@using Trebol.Model.Enums
+@using Trebol.Web.Helpers
+@{
+    ViewData["Title"] = "Tipo de cita";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var fechaTxt = Model.FechaHora.ToString("dddd d 'de' MMMM · h:mm tt", cultura);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/checkout-pago.css" asp-append-version="true" />
+    <style>
+        .tipo-cita-opciones { display: flex; flex-direction: column; gap: var(--sp-4); margin-top: var(--sp-5); }
+        .tipo-cita-opcion {
+            display: block; cursor: pointer; border: 2px solid var(--color-border);
+            border-radius: var(--radius-lg); padding: var(--sp-5); transition: border-color .15s, background .15s;
+        }
+        .tipo-cita-opcion:has(input:checked) {
+            border-color: var(--color-primary); background: rgba(26, 60, 52, .04);
+        }
+        .tipo-cita-opcion input { position: absolute; opacity: 0; pointer-events: none; }
+        .tipo-cita-opcion__titulo { font-weight: 700; color: var(--color-primary); font-size: 1rem; margin-bottom: var(--sp-2); }
+        .tipo-cita-opcion__texto { font-size: .875rem; color: var(--color-text-secondary); line-height: 1.55; margin: 0; }
+        .tipo-cita-resumen {
+            background: var(--color-surface-alt); border-radius: var(--radius-md);
+            padding: var(--sp-4); margin-bottom: var(--sp-5); font-size: .875rem;
+        }
+    </style>
+}
+
+<header class="topbar" style="margin-bottom:var(--sp-6);">
+    <a asp-controller="PerfilOrador" asp-action="Calendario" asp-route-id="@Model.ProfesionalId" class="btn btn-ghost btn-sm">← Volver al calendario</a>
+    <span class="topbar__title">Agendar cita</span>
+    <div class="topbar__spacer"></div>
+</header>
+
+<div style="max-width:640px;margin:0 auto;">
+    <div class="card" style="padding:var(--sp-6);">
+        <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.35rem;margin:0 0 var(--sp-2);">
+            ¿Qué tipo de cita necesitas?
+        </h1>
+        <p class="text-meta" style="margin:0 0 var(--sp-4);">
+            Elige la opción que mejor describa lo que buscas con <strong>@Model.NombreProfesional</strong>.
+        </p>
+
+        <div class="tipo-cita-resumen">
+            <div><strong>Horario seleccionado:</strong> @fechaTxt</div>
+            <div style="margin-top:4px;"><strong>Duración:</strong> @Model.DuracionMinutos min</div>
+        </div>
+
+        <form asp-action="SeleccionarTipo" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ProfesionalId" />
+            <input type="hidden" asp-for="FechaHora" />
+            <input type="hidden" asp-for="DuracionMinutos" />
+            <input type="hidden" asp-for="NombreProfesional" />
+
+            <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+            <span asp-validation-for="Tipo" class="form-error"></span>
+
+            <div class="tipo-cita-opciones" role="radiogroup" aria-label="Tipo de cita">
+                <label class="tipo-cita-opcion">
+                    <input type="radio" name="Tipo" value="@((int)TipoCita.Asesoria)" @(Model.Tipo == TipoCita.Asesoria ? "checked" : "") required />
+                    <div class="tipo-cita-opcion__titulo">@CitaTipoHelper.Etiqueta(TipoCita.Asesoria)</div>
+                    <p class="tipo-cita-opcion__texto">@CitaTipoHelper.Descripcion(TipoCita.Asesoria)</p>
+                </label>
+                <label class="tipo-cita-opcion">
+                    <input type="radio" name="Tipo" value="@((int)TipoCita.Seguimiento)" @(Model.Tipo == TipoCita.Seguimiento ? "checked" : "") />
+                    <div class="tipo-cita-opcion__titulo">@CitaTipoHelper.Etiqueta(TipoCita.Seguimiento)</div>
+                    <p class="tipo-cita-opcion__texto">@CitaTipoHelper.Descripcion(TipoCita.Seguimiento)</p>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full" style="margin-top:var(--sp-6);">
+                Continuar con la reserva →
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

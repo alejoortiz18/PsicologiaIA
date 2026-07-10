@@ -1,0 +1,81 @@
+/* Mi perfil — formación académica e idiomas */
+.prof-estudios-list,
+.prof-idiomas-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.prof-estudio-entry {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-4);
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(140px, 1.2fr) minmax(140px, 1.2fr) 88px auto;
+  gap: var(--sp-3);
+  align-items: end;
+}
+
+.prof-estudio-entry .form-group {
+  margin-bottom: 0;
+}
+
+.prof-estudio-entry__actions {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  padding-bottom: 2px;
+}
+
+.prof-idioma-add {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--sp-3);
+  align-items: end;
+  margin-bottom: var(--sp-4);
+}
+
+.prof-idioma-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.prof-idioma-item__text {
+  font-size: 0.875rem;
+}
+
+.prof-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.prof-section-head h3 {
+  font-size: 1rem;
+  color: var(--color-primary);
+  font-weight: 700;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .prof-estudio-entry {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .prof-estudio-entry__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .prof-idioma-add {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,85 @@
+@model Trebol.Model.DTOs.PerfilOrador.PerfilOradorPublicoVm
+@{
+    Layout = "~/Views/PerfilOrador/_PerfilOradorLayout.cshtml";
+    var r = Model.Resumen;
+    var miProfesionalId = User.IsInRole("Profesional")
+        ? int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value)
+        : (int?)null;
+    var usarInscripcion = User.IsInRole("Usuario")
+        || (miProfesionalId.HasValue && miProfesionalId != Model.Perfil.ProfesionalId)
+        || Model.ModoVistaPublica;
+}
+
+<div id="tab-salas">
+    <div class="perfil-orador-stats">
+        <div class="perfil-orador-stat">
+            <div class="perfil-orador-stat__val">@r.TotalSalas</div>
+            <div class="text-meta">Salas totales</div>
+        </div>
+        <div class="perfil-orador-stat">
+            <div class="perfil-orador-stat__val perfil-orador-stat__val--accent">@r.SalasAbiertas</div>
+            <div class="text-meta">Abiertas</div>
+        </div>
+        <div class="perfil-orador-stat">
+            <div class="perfil-orador-stat__val perfil-orador-stat__val--muted">@r.SalasCerradas</div>
+            <div class="text-meta">Finalizadas</div>
+        </div>
+        <div class="perfil-orador-stat">
+            <div class="perfil-orador-stat__val perfil-orador-stat__val--warn">@r.SalasProximas</div>
+            <div class="text-meta">Próximas</div>
+        </div>
+    </div>
+
+    <div class="perfil-orador-toolbar">
+        <div class="perfil-orador-toolbar__search">
+            <span class="perfil-orador-toolbar__search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="search-salas" class="form-control" placeholder="Buscar sala…" aria-label="Buscar sala" />
+        </div>
+        <select class="form-control" id="filter-estado" style="width:180px;" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option value="abierta">Abierta</option>
+            <option value="proxima">Próxima</option>
+            <option value="finalizada">Finalizada</option>
+        </select>
+    </div>
+
+    @if (usarInscripcion ? !Model.SalasEventos.Any() : !Model.Salas.Any())
+    {
+        @await Html.PartialAsync("_EmptyStateRegistros", null, new ViewDataDictionary(ViewData)
+        {
+            { "EmptyTitulo", "No hay salas publicadas" },
+            { "EmptyTexto", "Este profesional aún no tiene salas activas en la plataforma." }
+        })
+    }
+    else
+    {
+        <div class="rooms-grid" id="salas-grid">
+            @if (usarInscripcion)
+            {
+                @foreach (var sala in Model.SalasEventos)
+                {
+                    @await Html.PartialAsync("_SalaRoomCardUsuario", sala)
+                }
+            }
+            else
+            {
+                @foreach (var sala in Model.Salas)
+                {
+                    @await Html.PartialAsync("_PerfilOradorSalaCard", sala)
+                }
+            }
+        </div>
+        <div id="salas-empty" class="perfil-orador-salas-empty" style="display:none;">
+            <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎪</div>
+            <p>No se encontraron salas con ese filtro.</p>
+        </div>
+    }
+</div>
+
+@section PerfilScripts {
+    <script src="~/js/perfil-orador.js" asp-append-version="true"></script>
+    @if (usarInscripcion)
+    {
+        <script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
+    }
+}

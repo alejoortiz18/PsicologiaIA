@@ -1,0 +1,32 @@
+<div id="ingreso-temprano-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ingreso-temprano-title" aria-hidden="true">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="ingreso-temprano-title">Evento no disponible aún</div>
+                <div class="modal-subtitle">El ingreso se habilita 3 minutos antes del inicio</div>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="ingreso-temprano" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+            <p id="ingreso-temprano-msg">El evento aún no está habilitado para el ingreso. Podrás entrar 3 minutos antes de la hora de inicio.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-close-modal="ingreso-temprano">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<div id="ingreso-countdown-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ingreso-countdown-title" aria-hidden="true">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="ingreso-countdown-title">Preparando ingreso</div>
+                <div class="modal-subtitle" id="ingreso-countdown-sub">El evento comenzará pronto</div>
+            </div>
+        </div>
+        <div class="modal-body" style="text-align:center;padding:var(--sp-8);">
+            <div id="ingreso-countdown-clock" class="ingreso-countdown-clock" aria-live="polite">00:00</div>
+            <p id="ingreso-countdown-msg" style="margin:var(--sp-4) 0 0;color:var(--color-text-secondary);">Este evento comenzará en unos momentos…</p>
+        </div>
+    </div>
+</div>

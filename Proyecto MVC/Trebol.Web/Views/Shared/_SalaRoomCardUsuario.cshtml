@@ -1,0 +1,111 @@
+@model Trebol.Model.DTOs.Publico.EventoPublicoDto
+@using Trebol.Web.Helpers
+@{
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var cuposRestantes = Math.Max(0, Model.Capacidad - Model.TotalInscritos);
+    var vigencia = EventoVigenciaHelper.Evaluar(Model.FechaInicio, Model.FechaFin, Model.Estado, Model.EsInscrito, cuposRestantes);
+    var finEfectivo = EventoIngresoHelper.FinEfectivo(Model.FechaInicio, Model.FechaFin);
+    var mostrarIngresar = EventoIngresoHelper.MostrarBotonIngresar(Model.EsInscrito, Model.FechaInicio, Model.FechaFin, Model.Estado);
+    var precioTxt = Model.Precio <= 0 ? "Entrada libre" : Model.Precio.ToString("C0", cultura);
+    var sinCupos = !Model.EsInscrito && cuposRestantes == 0;
+    var filtroEstado = vigencia.YaPaso ? "finalizada" : vigencia.EnVivo ? "envivo" : "abierta";
+    var gradients = new[]
+    {
+        "linear-gradient(135deg,#1A3C34,#2D6A4F)",
+        "linear-gradient(135deg,#1565C0,#1976D2)",
+        "linear-gradient(135deg,#6A1B4D,#8B2252)",
+        "linear-gradient(135deg,#4A148C,#6A1B9A)"
+    };
+    var bannerBg = gradients[Model.SalaId % gradients.Length];
+    var iniciales = string.Join("", (Model.NombreProfesional ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    var regClass = Model.EsInscrito
+        ? "btn btn-secondary btn-sm btn-reg-sala is-inscrito"
+        : (vigencia.YaPaso ? "btn btn-secondary btn-sm btn-reg-sala"
+            : (sinCupos ? "btn btn-secondary btn-sm btn-reg-sala"
+                : (cuposRestantes <= 10 ? "btn btn-danger btn-sm btn-reg-sala" : "btn btn-primary btn-sm btn-reg-sala")));
+    var regText = Model.EsInscrito
+        ? "Inscrito"
+        : (vigencia.YaPaso ? "Ya pasó"
+            : (sinCupos ? "Sin cupos"
+                : (Model.Precio > 0 ? "Inscribirse" : "Registrarse")));
+    var regAria = Model.EsInscrito
+        ? "Ya inscrito en este evento"
+        : (vigencia.YaPaso ? "Este evento ya finalizó"
+            : (sinCupos ? "Sin cupos disponibles"
+                : (Model.Precio > 0 ? "Inscribirse y pagar en este evento" : "Registrarse en este evento")));
+    var urlIngreso = Url.Action("Asistente", "Conferencia", new { id = Model.SalaId })!;
+}
+<article class="room-card@(vigencia.YaPaso ? " room-card--pasado" : "")" aria-label="Sala: @Model.Titulo"
+         data-sala-id="@Model.SalaId"
+         data-sala-titulo="@Model.Titulo"
+         data-profesional-id="@Model.ProfesionalId"
+         data-inscrito="@(Model.EsInscrito ? "1" : "0")"
+         data-nombre="@Model.Titulo.ToLowerInvariant()"
+         data-estado="@filtroEstado">
+    <div class="room-card__banner" style="background:@bannerBg;@(vigencia.YaPaso ? "opacity:.85;" : "")">
+        <div class="room-card__badge">
+            <span class="badge @vigencia.BadgeClass">
+                @if (vigencia.MostrarBadgeDot) { <span class="badge-dot" aria-hidden="true"></span> }
+                @vigencia.BadgeText
+            </span>
+        </div>
+        <div class="room-card__banner-row">
+            <div class="room-card__banner-text">@Model.Titulo</div>
+            @if (mostrarIngresar)
+            {
+                <button type="button"
+                        class="btn btn-sm room-card__btn-ingresar btn-ingresar-evento"
+                        data-sala-id="@Model.SalaId"
+                        data-fecha-inicio="@Model.FechaInicio?.ToString("o")"
+                        data-fecha-fin="@finEfectivo?.ToString("o")"
+                        data-url="@urlIngreso"
+                        aria-label="Ingresar al evento @Model.Titulo">
+                    ▶ Ingresar
+                </button>
+            }
+        </div>
+    </div>
+    <div class="room-card__body">
+        <div class="room-card__speaker">🎓 @Model.NombreProfesional</div>
+        <div class="room-card__meta">
+            @if (Model.FechaInicio.HasValue)
+            {
+                <span class="room-card__meta-item">📅 @Model.FechaInicio.Value.ToString("d MMM yyyy", cultura)</span>
+                <span class="room-card__meta-item">🕐 @Model.FechaInicio.Value.ToString("h:mm tt", cultura)</span>
+            }
+            <span class="room-card__meta-item">👥 @Model.TotalInscritos/@Model.Capacidad</span>
+        </div>
+        <div class="d-flex items-center justify-between">
+            <span class="room-card__price @(Model.Precio <= 0 ? "free" : "")">@precioTxt</span>
+            <span class="text-meta" style="@(vigencia.YaPaso ? "color:var(--color-text-muted);" : sinCupos ? "color:var(--color-danger);font-weight:600;" : "")">
+                @(vigencia.YaPaso ? "Evento finalizado" : sinCupos ? "Sin cupos" : $"{cuposRestantes} cupo{(cuposRestantes == 1 ? "" : "s")}")
+            </span>
+        </div>
+    </div>
+    <div class="room-card__footer room-card__footer--actions">
+        <div class="room-card__footer-primary">
+            <button type="button" class="btn btn-secondary btn-sm btn-ver-sala" data-sala-id="@Model.SalaId" aria-label="Ver detalle de @Model.Titulo">
+                Detalle
+            </button>
+            <button type="button" class="@regClass" data-sala-id="@Model.SalaId" data-sala-titulo="@Model.Titulo"
+                    @(vigencia.PuedeInscribirse ? null : "disabled") aria-label="@regAria">
+                @regText
+            </button>
+        </div>
+        <div class="room-card__footer-extra">
+            <button type="button" class="btn btn-ghost btn-sm btn-like-sala @(Model.EsSeguido ? "is-liked" : "")"
+                    data-liked="@(Model.EsSeguido ? "true" : "false")"
+                    data-profesional-id="@Model.ProfesionalId"
+                    aria-label="Seguir al orador">
+                @(Model.EsSeguido ? "💚" : "🤍") <span class="like-count">@Model.TotalSeguidos</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm"
+                    data-pm-name="@Model.NombreProfesional"
+                    data-pm-avatar="@iniciales"
+                    data-pm-profesional-id="@Model.ProfesionalId"
+                    data-pm-bg="@bannerBg"
+                    aria-label="Mensaje a @Model.NombreProfesional">Mensaje</button>
+        </div>
+    </div>
+</article>

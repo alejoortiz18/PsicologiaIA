@@ -1,0 +1,143 @@
+@model ConfirmarEmailViewModel
+@{
+    ViewData["Title"] = "Confirmar correo y crear contraseña";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+    var tokenValido = ViewBag.TokenValido as bool? ?? true;
+    var mensajeToken = ViewContext.ViewData.ModelState[string.Empty]?.Errors.FirstOrDefault()?.ErrorMessage;
+}
+
+@section Styles {
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+</style>
+}
+
+<div class="auth-layout">
+
+  <div class="auth-panel auth-panel--left" aria-hidden="true">
+    <div class="auth-illustration">
+      <div class="auth-illustration__tag">✅ Confirmar correo</div>
+      <h1 class="auth-illustration__title">
+        Casi estás<br>listo para el<br><em>bienestar</em>
+      </h1>
+      <p class="auth-illustration__text">
+        Confirma tu correo y crea una contraseña segura para tu cuenta de usuario en Trébol.
+      </p>
+      <div style="background:rgba(82,183,136,.15);border:1px solid rgba(82,183,136,.3);border-radius:var(--radius-lg);padding:var(--sp-5);margin-top:var(--sp-6);">
+        <div style="font-weight:600;color:white;margin-bottom:var(--sp-2);">🔒 Contraseña segura</div>
+        <p style="color:rgba(255,255,255,.7);font-size:.875rem;line-height:1.65;margin:0;">
+          Usa al menos 8 caracteres, combinando letras, números y símbolos.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  @if (tokenValido)
+  {
+    <div class="auth-panel auth-panel--right" id="formPanel">
+      <div class="auth-form">
+        <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
+          <div class="auth-form__logo-icon">🍀</div>
+          <span class="auth-form__logo-name">Trébol</span>
+        </a>
+
+        <h2 class="auth-form__title">Crea tu contraseña</h2>
+        <p class="auth-form__subtitle">Tu enlace es válido. Elige una contraseña para activar tu cuenta.</p>
+
+        <form asp-controller="Registro" asp-action="ConfirmarEmailUsuario" method="post">
+          @Html.AntiForgeryToken()
+          <div asp-validation-summary="ModelOnly" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+          <input type="hidden" asp-for="Token" />
+
+          <div class="form-group">
+            <label asp-for="Password" class="form-label">
+              Nueva contraseña <span class="required" aria-hidden="true">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input asp-for="Password" class="form-control" type="password"
+                     placeholder="Mínimo 8 caracteres"
+                     autocomplete="new-password" aria-required="true" id="pw1" />
+              <button type="button" class="input-toggle"
+                      onclick="var i=document.getElementById('pw1');i.type=i.type==='password'?'text':'password';"
+                      aria-label="Mostrar contraseña">👁</button>
+            </div>
+            <span asp-validation-for="Password" class="form-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label asp-for="ConfirmarPassword" class="form-label">
+              Confirmar contraseña <span class="required" aria-hidden="true">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input asp-for="ConfirmarPassword" class="form-control" type="password"
+                     placeholder="Repite tu contraseña"
+                     autocomplete="new-password" aria-required="true" id="pw2" />
+              <button type="button" class="input-toggle"
+                      onclick="var i=document.getElementById('pw2');i.type=i.type==='password'?'text':'password';"
+                      aria-label="Mostrar contraseña">👁</button>
+            </div>
+            <span asp-validation-for="ConfirmarPassword" class="form-error"></span>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-full">
+            <span class="btn-text">Guardar contraseña e ingresar →</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- Modal: enlace inválido o ya usado (reglas UI/UX §4) -->
+<div id="modal-token-invalido-backdrop" class="modal-backdrop@(tokenValido ? "" : " open")" role="dialog" aria-modal="true" aria-labelledby="modal-token-invalido-title">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon warning" aria-hidden="true">⚠️</div>
+            <div>
+                <div class="modal-title" id="modal-token-invalido-title">Enlace no disponible</div>
+                <div class="modal-subtitle">No es posible crear la contraseña con este enlace.</div>
+            </div>
+            <button type="button" class="modal-close" id="modal-token-invalido-close" aria-label="Cerrar modal">✕</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0;">
+                @(string.IsNullOrWhiteSpace(mensajeToken)
+                    ? "Este enlace ya fue utilizado, expiró o no es válido."
+                    : mensajeToken)
+            </p>
+            <p style="margin:var(--sp-3) 0 0;color:var(--color-text-muted);font-size:.875rem;">
+                Si ya activaste tu cuenta, inicia sesión. Si el enlace expiró, solicita uno nuevo.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <a asp-controller="Registro" asp-action="ReenviarConfirmacion" class="btn btn-primary">Reenviar confirmación</a>
+            <a asp-controller="Login" asp-action="Index" class="btn btn-secondary">Iniciar sesión</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+  <partial name="_ValidationScriptsPartial" />
+  <script>
+    const modalTokenBackdrop = document.getElementById('modal-token-invalido-backdrop');
+
+    function cerrarModalToken() {
+      if (typeof closeModal === 'function') closeModal('modal-token-invalido');
+      else modalTokenBackdrop?.classList.remove('open');
+    }
+
+    document.getElementById('modal-token-invalido-close')?.addEventListener('click', cerrarModalToken);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalTokenBackdrop?.classList.contains('open')) cerrarModalToken();
+    });
+
+    @if (!tokenValido)
+    {
+        @:document.body.style.overflow = 'hidden';
+    }
+  </script>
+}

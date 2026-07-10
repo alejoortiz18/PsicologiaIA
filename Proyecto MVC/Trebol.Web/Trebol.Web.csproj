@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Trebol.Domain\Trebol.Domain.csproj" />
+    <ProjectReference Include="..\Trebol.Model\Trebol.Model.csproj" />
+    <ProjectReference Include="..\Trebol.Constants\Trebol.Constants.csproj" />
+    <ProjectReference Include="..\Trebol.Helpers\Trebol.Helpers.csproj" />
+    <ProjectReference Include="..\Trebol.Infrastructure\Trebol.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.10" />
+    <PackageReference Include="QuestPDF" Version="2024.12.3" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

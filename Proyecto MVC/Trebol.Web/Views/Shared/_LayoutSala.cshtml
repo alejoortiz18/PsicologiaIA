@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Trébol</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/trebol.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/sala-profesional.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+</head>
+<body class="sala-body" data-es-usuario="true" data-check-novedad-on-load="false">
+@RenderBody()
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+<script src="~/js/trebol.js" asp-append-version="true"></script>
+<script src="~/js/sala-sesion.js" asp-append-version="true"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>

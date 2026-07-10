@@ -1,0 +1,22 @@
+@{
+    var titulo = ViewData["DirectorioTitulo"] as string ?? "";
+    var subtitulo = ViewData["DirectorioSubtitulo"] as string ?? "";
+    var paginaActual = ViewData["DirectorioPaginaActual"] as string ?? titulo;
+    var homeController = ViewData["DirectorioHomeController"] as string
+        ?? (User.IsInRole("Profesional") ? "HomeProfesional" : "HomeUsuario");
+}
+
+<div class="page-header mb-6">
+    <nav class="breadcrumb" aria-label="Ruta">
+        <a asp-controller="@homeController" asp-action="Index">Inicio</a>
+        <span class="breadcrumb__sep" aria-hidden="true">›</span>
+        <span>Profesionales</span>
+        <span class="breadcrumb__sep" aria-hidden="true">›</span>
+        <span>@paginaActual</span>
+    </nav>
+    <h1 style="color:var(--color-primary);">@titulo</h1>
+    @if (!string.IsNullOrEmpty(subtitulo))
+    {
+        <p style="color:var(--color-text-secondary);margin-top:4px;">@subtitulo</p>
+    }
+</div>

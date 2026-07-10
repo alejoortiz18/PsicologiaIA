@@ -1,0 +1,18 @@
+<div id="cita-detalle-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cita-detalle-title" aria-hidden="true">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="cita-detalle-title">Detalle de cita</div>
+                <div class="modal-subtitle" id="cita-detalle-subtitle"></div>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="cita-detalle" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body" id="cita-detalle-body">
+            <p class="text-meta" style="margin:0;">Cargando…</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="cita-detalle">Cerrar</button>
+            <a asp-controller="Citas" asp-action="Index" class="btn btn-ghost btn-sm">Ver todas mis citas</a>
+        </div>
+    </div>
+</div>

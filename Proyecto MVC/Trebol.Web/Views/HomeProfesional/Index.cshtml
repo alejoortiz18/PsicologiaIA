@@ -1,0 +1,333 @@
+@model Trebol.Model.DTOs.Dashboard.DashboardProfesionalDto
+@{
+    ViewData["Title"] = "Inicio";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+@section Styles {
+<style>
+  .home-pro-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-5);
+    margin-bottom: var(--sp-6);
+  }
+  @@media (max-width: 900px) {
+    .home-pro-two-col { grid-template-columns: 1fr; }
+  }
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--sp-3);
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+  }
+  .section-head h2 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+  .panel-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel-card__footer {
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--color-surface-alt);
+    border-top: 1px solid var(--color-border-light);
+    text-align: center;
+    font-size: .8rem;
+  }
+  .panel-card__footer a {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .citas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .855rem;
+  }
+  .citas-table th {
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .citas-table td {
+    padding: var(--sp-3);
+    border-bottom: 1px solid var(--color-border-light);
+    vertical-align: middle;
+  }
+  .citas-table tbody tr:last-child td { border-bottom: none; }
+  .citas-table tbody tr:hover { background: var(--color-surface-alt); }
+  .evento-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  .evento-item:last-child { border-bottom: none; }
+  .evento-item__icon {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+  .evento-item__info { flex: 1; min-width: 0; }
+  .evento-item__title {
+    font-weight: 700; font-size: .9rem;
+    color: var(--color-text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .evento-item__meta { font-size: .77rem; color: var(--color-text-muted); margin-top: 2px; }
+  .event-list-item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4) var(--sp-5);
+    border-bottom: 1px solid var(--color-border-light);
+    transition: background .12s;
+  }
+  .event-list-item:last-child { border-bottom: none; }
+  .event-list-item:hover { background: var(--color-surface-alt); }
+  .event-list-item__thumb {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+  }
+  .event-list-item__body { flex: 1; min-width: 0; }
+  .event-list-item__title {
+    font-weight: 700; font-size: .88rem;
+    color: var(--color-text-primary); line-height: 1.35;
+  }
+  .event-list-item__sub { font-size: .76rem; color: var(--color-text-muted); margin-top: 2px; }
+  .event-list-item__date {
+    text-align: center; flex-shrink: 0;
+    min-width: 36px;
+  }
+  .event-list-item__date-num {
+    font-size: 1.15rem; font-weight: 800;
+    color: var(--color-primary); line-height: 1;
+  }
+  .event-list-item__date-label {
+    font-size: .65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em;
+    color: var(--color-text-muted);
+  }
+  .event-list-item__aside {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .event-list-item__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+  }
+  @@media (max-width: 720px) {
+    .event-list-item { flex-wrap: wrap; }
+    .event-list-item__aside { width: 100%; justify-content: flex-start; }
+  }
+</style>
+}
+
+<!-- ── Stats row ─────────────────────────────────────────── -->
+<div class="stats-grid mb-6" role="region" aria-label="Resumen del día">
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">📅</div>
+        <div>
+            <div class="stat-card__label">Citas hoy</div>
+            <div class="stat-card__value">@(Model?.CitasHoy ?? 0)</div>
+            <div class="stat-card__sub">@(Model?.CitasHoy == 1 ? "1 pendiente de confirmar" : "Pendientes y confirmadas")</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">🎪</div>
+        <div>
+            <div class="stat-card__label">Mis eventos hoy</div>
+            <div class="stat-card__value">@(Model?.SalasActivas ?? 0)</div>
+            <div class="stat-card__sub">Salas activas hoy</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">👥</div>
+        <div>
+            <div class="stat-card__label">Citas próximas</div>
+            <div class="stat-card__value">@(Model?.TotalPacientes ?? 0)</div>
+            <div class="stat-card__sub">Esta semana</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon" aria-hidden="true">⭐</div>
+        <div>
+            <div class="stat-card__label">Ingresos del mes</div>
+            <div class="stat-card__value">@(Model?.IngresosMes.ToString("C0") ?? "$0")</div>
+            <div class="stat-card__sub">Este mes</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Fila: Citas hoy + Mis eventos hoy ────────────────── -->
+<div class="home-pro-two-col">
+
+    <!-- Mis citas de hoy -->
+    <section aria-labelledby="citas-hoy-heading">
+        <div class="section-head">
+            <h2 id="citas-hoy-heading" style="color:var(--color-primary);">
+                📅 Mis citas de hoy
+                <span style="font-size:.75rem;font-weight:600;background:var(--color-primary);color:#fff;padding:2px 10px;border-radius:99px;">@DateTime.Today.ToString("d MMM")</span>
+            </h2>
+            <a asp-controller="Citas" asp-action="ListaProfesional" class="btn btn-ghost btn-sm">Ver todas</a>
+        </div>
+        <div class="panel-card">
+            <table class="citas-table" role="table" aria-label="Citas de hoy">
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Hora</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model?.CitasHoyLista != null && Model.CitasHoyLista.Any())
+                    {
+                        foreach (var cita in Model.CitasHoyLista)
+                        {
+                            var iniciales = cita.AliasUsuario.Length >= 2
+                                ? cita.AliasUsuario[..2].ToUpper()
+                                : cita.AliasUsuario.ToUpper();
+                            var badgeClass = cita.Estado switch
+                            {
+                                "Programada" => "badge-success",
+                                "Movida" => "badge-warning",
+                                _ => "badge-muted"
+                            };
+                            <tr>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                                        <div class="avatar avatar-xs" style="background:var(--color-primary);flex-shrink:0;">@iniciales</div>
+                                        <span style="font-weight:600;color:var(--color-text-primary);">@cita.AliasUsuario</span>
+                                    </div>
+                                </td>
+                                <td style="white-space:nowrap;color:var(--color-text-secondary);">@cita.FechaHora.ToString("h:mm tt")</td>
+                                <td style="font-size:.78rem;color:var(--color-text-muted);">@cita.Tipo</td>
+                                <td><span class="badge @badgeClass">@cita.Estado</span></td>
+                                <td>
+                                    <a asp-controller="Salas" asp-action="SalaPrivadaProfesional" asp-route-citaId="@cita.CitaId"
+                                       class="btn btn-primary btn-sm" style="padding:2px 10px;font-size:.75rem;">▶ Ingresar</a>
+                                    <a asp-controller="Citas" asp-action="Detalle" asp-route-id="@cita.CitaId"
+                                       class="btn btn-ghost btn-sm" style="padding:2px 10px;font-size:.75rem;">Ver</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" style="text-align:center;padding:var(--sp-6);color:var(--color-text-muted);">
+                                <div style="font-size:1.6rem;margin-bottom:var(--sp-2);">📭</div>
+                                No hay citas programadas para hoy
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="panel-card__footer">
+                <a asp-controller="Calendario" asp-action="Index">Ver calendario completo →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mis eventos de hoy -->
+    <section aria-labelledby="eventos-hoy-heading">
+        <div class="section-head">
+            <h2 id="eventos-hoy-heading" style="color:var(--color-primary);">
+                🎪 Mis eventos hoy
+                @if ((Model?.SalasActivas ?? 0) > 0)
+                {
+                    <span style="font-size:.75rem;font-weight:600;background:var(--color-danger);color:#fff;padding:2px 10px;border-radius:99px;">En vivo</span>
+                }
+            </h2>
+            <a asp-controller="MisEventos" asp-action="Index" class="btn btn-ghost btn-sm">Ver todos</a>
+        </div>
+        <div class="panel-card">
+            @if (Model?.Salas != null && Model.Salas.Any())
+            {
+                foreach (var sala in Model.Salas.Take(2))
+                {
+                    <div class="evento-item">
+                        <div class="evento-item__icon" style="background:linear-gradient(135deg,var(--color-primary),#2D6A4F);">🎙️</div>
+                        <div class="evento-item__info">
+                            <div class="evento-item__title">@sala.Titulo</div>
+                            <div class="evento-item__meta">@sala.Asistentes asistentes · Sala activa</div>
+                        </div>
+                        <span class="badge badge-success"><span class="badge-dot"></span>Activa</span>
+                    </div>
+                }
+            }
+            else
+            {
+                <div style="padding:var(--sp-6);text-align:center;color:var(--color-text-muted);font-size:.855rem;">
+                    <div style="font-size:1.6rem;margin-bottom:var(--sp-2);">✅</div>
+                    No hay eventos activos hoy
+                </div>
+            }
+            <div style="padding:var(--sp-3) var(--sp-4);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-muted);margin-bottom:var(--sp-2);">Acciones rápidas</div>
+                <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;font-size:.82rem;">
+                        <span style="color:var(--color-text-secondary);">🎙️ Crear nueva sala</span>
+                        <button type="button" data-open-nueva-sala style="font-weight:600;color:var(--color-primary);background:none;border:none;padding:0;cursor:pointer;font-size:.8rem;">Crear →</button>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;font-size:.82rem;">
+                        <span style="color:var(--color-text-secondary);">📅 Ver disponibilidad</span>
+                        <a asp-controller="Calendario" asp-action="Index" style="font-weight:600;color:var(--color-primary);text-decoration:none;font-size:.8rem;">Ver →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-card__footer">
+                <a asp-controller="MisEventos" asp-action="Index">Ver todos mis eventos →</a>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ── Eventos de colegas ────────────────────────────────── -->
+<section aria-labelledby="otros-eventos-heading">
+    <div class="section-head" style="margin-bottom:var(--sp-4);">
+        <h2 id="otros-eventos-heading" style="font-family:var(--font-display);font-size:1.15rem;color:var(--color-primary);">
+            🌐 Eventos de colegas
+        </h2>
+        <a asp-controller="Directorio" asp-action="Medicos" class="btn btn-ghost btn-sm">Ver todos</a>
+    </div>
+
+    @await Html.PartialAsync("_EventosColegasLista", Model?.EventosColegas ?? [])
+</section>
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
+}
+

@@ -1,0 +1,141 @@
+@model IEnumerable<Trebol.Model.DTOs.Sala.SalaDto>
+@using Trebol.Model.DTOs.Common
+@using Trebol.Model.DTOs.Profesional
+@using Trebol.Model.Enums
+@{
+    ViewData["Title"] = "Mi perfil · Salas y eventos";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var prof = ViewBag.Profesional as Trebol.Model.Entities.TrebolEntities.Profesional;
+    var resumen = ViewBag.Resumen as PerfilProfesionalResumenDto ?? new PerfilProfesionalResumenDto();
+    var pag = ViewBag.Paginacion as PaginacionVm ?? new PaginacionVm();
+    var buscar = ViewBag.Buscar as string ?? "";
+    var estadoFiltro = ViewBag.EstadoFiltro as string ?? "";
+}
+
+@await Html.PartialAsync("_PerfilShell", prof)
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);margin-bottom:var(--sp-6);">
+    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);border:1px solid var(--color-border-light);text-align:center;">
+        <div style="font-size:1.75rem;font-weight:700;color:var(--color-primary);">@resumen.TotalSalas</div>
+        <div class="text-meta">Salas totales</div>
+    </div>
+    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);border:1px solid var(--color-border-light);text-align:center;">
+        <div style="font-size:1.75rem;font-weight:700;color:#2D6A4F;">@resumen.SalasAbiertas</div>
+        <div class="text-meta">Abiertas</div>
+    </div>
+    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);border:1px solid var(--color-border-light);text-align:center;">
+        <div style="font-size:1.75rem;font-weight:700;color:var(--color-text-secondary);">@resumen.SalasCerradas</div>
+        <div class="text-meta">Cerradas</div>
+    </div>
+    <div style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-5);border:1px solid var(--color-border-light);text-align:center;">
+        <div style="font-size:1.75rem;font-weight:700;color:var(--color-primary);">@resumen.SalasProximas</div>
+        <div class="text-meta">Próximas</div>
+    </div>
+</div>
+
+<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);flex-wrap:wrap;margin-bottom:var(--sp-5);">
+    <form method="get" asp-action="Salas" class="prof-filter-bar" style="flex:1;max-width:520px;display:flex;gap:var(--sp-3);">
+        <input type="search" name="buscar" class="form-control" placeholder="Buscar sala..." value="@buscar" />
+        <select name="estado" class="form-control" style="max-width:160px;" onchange="this.form.submit()">
+            <option value="">Todos los estados</option>
+            <option value="abierta" selected="@(estadoFiltro == "abierta")">Abierta</option>
+            <option value="proxima" selected="@(estadoFiltro == "proxima")">Próxima</option>
+            <option value="cerrada" selected="@(estadoFiltro == "cerrada")">Cerrada</option>
+        </select>
+        <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+    </form>
+    <button type="button" class="btn btn-primary" data-open-nueva-sala>+ Nueva sala</button>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card" style="padding:var(--sp-12);text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎪</div>
+        <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">No tienes salas en este filtro</div>
+        <button type="button" class="btn btn-primary" data-open-nueva-sala style="margin-top:var(--sp-4);">Crear sala</button>
+    </div>
+}
+else
+{
+    <div style="background:var(--color-surface);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);overflow:hidden;">
+        <div style="overflow-x:auto;">
+            <table aria-label="Mis salas y eventos" style="width:100%;border-collapse:collapse;font-size:.855rem;">
+                <thead style="background:var(--color-surface-alt);">
+                    <tr>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Sala</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Estado</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Fecha</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Asistentes</th>
+                        <th scope="col" style="padding:var(--sp-3) var(--sp-4);text-align:left;font-size:.72rem;text-transform:uppercase;color:var(--color-text-muted);">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var sala in Model)
+                    {
+                        var esProxima = sala.FechaInicio.HasValue && sala.FechaInicio > DateTime.Now;
+                        var estadoLabel = sala.Estado == EstadoSala.Cerrada ? "Cerrada" : esProxima ? "Próxima" : "Abierta";
+                        var badgeClass = sala.Estado == EstadoSala.Cerrada ? "badge-muted" : esProxima ? "badge-info" : "badge-success";
+                        var aliasIni = sala.Titulo.Length >= 2 ? sala.Titulo[..2] : sala.Titulo;
+                        <tr style="border-bottom:1px solid var(--color-border-light);">
+                            <td style="padding:var(--sp-4);">
+                                <div style="font-weight:600;color:var(--color-primary);">@sala.Titulo</div>
+                                <div class="text-meta" style="font-size:.8125rem;">@sala.Tipo · @(sala.Categoria ?? "General")</div>
+                            </td>
+                            <td style="padding:var(--sp-4);"><span class="badge @badgeClass">@estadoLabel</span></td>
+                            <td style="padding:var(--sp-4);">
+                                @if (sala.FechaInicio.HasValue)
+                                {
+                                    @sala.FechaInicio.Value.ToString("dd MMM yyyy")<br /><small class="text-meta">@sala.FechaInicio.Value.ToString("h:mm tt")</small>
+                                }
+                                else { <span class="text-meta">—</span> }
+                            </td>
+                            <td style="padding:var(--sp-4);">@sala.TotalInscritos / @sala.Capacidad</td>
+                            <td style="padding:var(--sp-4);">
+                                <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
+                                    @if (sala.Estado == EstadoSala.Abierta)
+                                    {
+                                        <a asp-controller="Salas" asp-action="SalaConferenciaProfesional" asp-route-id="@sala.SalaId" class="btn btn-primary btn-sm">▶ Gestionar</a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Salas" asp-action="Nueva" class="btn btn-ghost btn-sm">Duplicar</a>
+                                        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--color-danger);" data-sala-id="@sala.SalaId" data-sala-nombre="@sala.Titulo" onclick="confirmarEliminarSala(this)">🗑</button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @await Html.PartialAsync("_Paginacion", pag)
+    </div>
+}
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script>
+function confirmarEliminarSala(btn) {
+  const id = btn.dataset.salaId;
+  const nombre = btn.dataset.salaNombre;
+  if (typeof showConfirm !== 'function') return;
+  showConfirm({
+    title: 'Eliminar sala',
+    message: `¿Estás seguro de que deseas eliminar "${nombre}"? Esta acción no se puede deshacer.`,
+    confirmText: 'Eliminar',
+    destructive: true,
+    onConfirm: async () => {
+      const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+      const res = await fetch('/Salas/Eliminar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `salaId=${id}&__RequestVerificationToken=${encodeURIComponent(token)}`
+      });
+      const d = await res.json();
+      if (typeof showToast === 'function') showToast({ title: d.exito ? 'Sala eliminada' : 'Error', message: d.mensaje || '', type: d.exito ? 'success' : 'error' });
+      if (d.exito) setTimeout(() => location.reload(), 800);
+    }
+  });
+}
+</script>
+}

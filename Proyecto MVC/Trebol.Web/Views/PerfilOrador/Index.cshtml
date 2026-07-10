@@ -1,0 +1,83 @@
+@model Trebol.Model.DTOs.PerfilOrador.PerfilOradorPublicoVm
+@{
+    Layout = "~/Views/PerfilOrador/_PerfilOradorLayout.cshtml";
+    var p = Model.Perfil;
+    var comoTrabajo = !string.IsNullOrWhiteSpace(Model.TextoComoTrabajo)
+        ? Model.TextoComoTrabajo
+        : Trebol.Web.Helpers.PerfilOradorPresentacion.ConstruirComoTrabajo(p);
+    var lineasExp = Model.LineasExperiencia.Any()
+        ? Model.LineasExperiencia
+        : Trebol.Web.Helpers.PerfilOradorPresentacion.ConstruirLineasExperiencia(p, Model.Estudios);
+}
+
+<div id="tab-cuenta">
+    <div class="perfil-orador-panel">
+        <div class="perfil-orador-cuenta-grid">
+            <div>
+                <h3>Sobre mí</h3>
+                @if (!string.IsNullOrWhiteSpace(p.Descripcion))
+                {
+                    <p>@p.Descripcion</p>
+                }
+                else
+                {
+                    <p class="text-meta">Este profesional aún no ha completado su descripción.</p>
+                }
+            </div>
+            <div>
+                <h3>Cómo trabajo</h3>
+                <p>@comoTrabajo</p>
+            </div>
+            <div>
+                <h3>Idiomas</h3>
+                @if (p.Idiomas.Any())
+                {
+                    <div class="tag-list">
+                        @foreach (var idioma in p.Idiomas)
+                        {
+                            <span class="badge badge-muted">@idioma</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-meta">Sin idiomas registrados.</p>
+                }
+            </div>
+            <div>
+                <h3>Experiencia</h3>
+                <ul class="perfil-orador-exp-list">
+                    @foreach (var linea in lineasExp)
+                    {
+                        <li>@linea</li>
+                    }
+                </ul>
+            </div>
+            <div class="perfil-orador-cuenta-grid__full">
+                <h3>Formación académica</h3>
+                @if (Model.Estudios.Any())
+                {
+                    <div class="perfil-orador-estudios">
+                        @foreach (var est in Model.Estudios)
+                        {
+                            <div class="perfil-orador-estudio">
+                                <div class="perfil-orador-estudio__titulo">@est.Titulo</div>
+                                <div class="text-meta">
+                                    @est.Universidad
+                                    @if (est.AnoEgreso.HasValue)
+                                    {
+                                        <span> · @est.AnoEgreso</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-meta">Sin formación académica registrada.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

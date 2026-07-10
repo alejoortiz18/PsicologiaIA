@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+
+<!-- SPECKIT START -->
+# Trébol — contexto Spec Kit
+
+Lee antes de planificar o implementar:
+
+1. **Constitución**: `.specify/memory/constitution.md`
+2. **UI/UX (obligatorio)**: `Documentos/Requerimientos/reglas-ui-ux-frontend.md`
+3. **Prototipo visual**: carpeta `Prototipo/` — mapa rol profesional: `specs/001-profesional-vistas-prototipo/prototipo-mapa.md`
+4. **Regla persistente**: `.cursor/rules/trebol-prototipo-alineacion.mdc` (prototipo primero + decisiones autónomas)
+5. **Arquitectura backend**: `.agents/skills/dotnet-layered-architecture/SKILL.md`
+6. **Cuentas de prueba**: `Documentos/CuentasPrueba.md`
+7. **Requerimientos refinados**: `Documentos/Requerimientos/Refinados/`
+
+## Convenciones rápidas
+
+- App local: `https://localhost:7072` · BD: `TrebolDB` (SQL Server)
+- Español Colombia (UTF-8); sin `alert`/`prompt` nativos
+- Diff mínimo; no refactorizar fuera del alcance de la spec/tarea
+- **Prototipo prevalece** en layout y UX; refinar specs/mapas sin pedir permiso
+- E2E: scripts en `Test/` (Playwright)
+
+Flujo Spec Kit: `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → `/speckit-implement`
+<!-- SPECKIT END -->

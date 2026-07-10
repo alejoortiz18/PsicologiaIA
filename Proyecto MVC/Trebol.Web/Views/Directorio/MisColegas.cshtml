@@ -1,0 +1,99 @@
+@model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
+@{
+    ViewData["Title"] = "Mis colegas";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var items = Model.ToList();
+
+    ViewData["DirectorioTitulo"] = "Mis colegas";
+    ViewData["DirectorioSubtitulo"] =
+        "Profesionales vinculados — comparte pacientes, coordina derivaciones y trabaja en equipo.";
+    ViewData["DirectorioPaginaActual"] = "Mis colegas";
+    ViewData["DirectorioHomeController"] = "HomeProfesional";
+    ViewData["Stat1Icon"] = "🤝";
+    ViewData["Stat1Label"] = "Colegas vinculados";
+    ViewData["Stat1Value"] = items.Count.ToString();
+    ViewData["Stat2Icon"] = "⭐";
+    ViewData["Stat2Label"] = "Con calificación";
+    ViewData["Stat2Value"] = items.Count(p => p.Calificacion.HasValue).ToString();
+    ViewData["Stat3Icon"] = "📍";
+    ViewData["Stat3Label"] = "Con ciudad";
+    ViewData["Stat3Value"] = items.Count(p => !string.IsNullOrEmpty(p.Ciudad)).ToString();
+}
+
+@await Html.PartialAsync("_EncabezadoDirectorio")
+@await Html.PartialAsync("_StatsDirectorio")
+
+<div class="colega-tip">
+    <div class="colega-tip__icon" aria-hidden="true">💡</div>
+    <div class="colega-tip__text">
+        <strong>¿Qué son los colegas?</strong><br>
+        Son los profesionales con quienes tienes una colaboración activa dentro de Trébol — ya sea compartiendo
+        el seguimiento de un paciente, realizando derivaciones o coordinando sesiones conjuntas. Puedes vincular
+        a un colega desde su perfil público o desde Médicos y Psicólogos con «Agregar colega».
+    </div>
+</div>
+
+<div class="prof-filter-bar" role="search" style="margin-bottom:var(--sp-5);">
+    <div class="filter-search">
+        <input type="search" id="filter-search-colegas" placeholder="Buscar colega..."
+               aria-label="Buscar colegas" />
+    </div>
+</div>
+
+<div class="directorio-results-info" id="results-info-colegas"></div>
+
+@if (!items.Any())
+{
+    <div class="empty-state" id="colega-empty">
+        <div class="empty-state__icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="empty-state__title">Aún no tienes colegas vinculados</div>
+        <p class="empty-state__text">
+            Explora <a asp-controller="Directorio" asp-action="Medicos">Médicos</a> o
+            <a asp-controller="Directorio" asp-action="Psicologos">Psicólogos</a> y usa «Agregar colega» en su perfil.
+        </p>
+    </div>
+}
+else
+{
+    @await Html.PartialAsync("_ListaColegas", Model)
+}
+
+@section Scripts {
+@Html.AntiForgeryToken()
+@await Html.PartialAsync("_DirectorioScripts")
+<script>
+(function () {
+  const search = document.getElementById('filter-search-colegas');
+  const list = document.getElementById('prof-list');
+  const info = document.getElementById('results-info-colegas');
+  if (!search || !list) return;
+
+  function refreshInfo(visible, total) {
+    if (!info) return;
+    if (total === 0) {
+      info.textContent = '';
+      return;
+    }
+    info.textContent = 'Mostrando ' + visible + ' de ' + total + ' registros en esta página';
+  }
+
+  const total = list.querySelectorAll('.prof-card').length;
+  refreshInfo(total, total);
+
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    let visible = 0;
+    list.querySelectorAll('.prof-card').forEach(card => {
+      const n = card.getAttribute('data-nombre') || '';
+      const show = !q || n.includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    refreshInfo(visible, total);
+  });
+})();
+</script>
+}

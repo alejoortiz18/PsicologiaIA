@@ -1,0 +1,124 @@
+@using System.Security.Claims
+@{
+    var rol = User.FindFirstValue(ClaimTypes.Role);
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    bool Is(string c, string? a = null) =>
+        ctrl.Equals(c, StringComparison.OrdinalIgnoreCase) &&
+        (a == null || action.Equals(a, StringComparison.OrdinalIgnoreCase));
+}
+
+<nav class="sidebar__nav">
+
+@if (rol == "Usuario")
+{
+    <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a asp-controller="HomeUsuario" asp-action="Index"
+           class="nav-item @(Is("HomeUsuario") ? "active" : "")"
+           aria-current="@(Is("HomeUsuario") ? "page" : null)">
+            <span class="nav-item__icon">🏠</span> Inicio
+        </a>
+        <a asp-controller="Eventos" asp-action="Index"
+           class="nav-item @(Is("Eventos") ? "active" : "")"
+           aria-current="@(Is("Eventos") ? "page" : null)">
+            <span class="nav-item__icon">🎪</span> Eventos
+        </a>
+        <div class="nav-item @(ctrl is "Directorio" ? "open" : "")" data-submenu="submenu-pros" tabindex="0" role="button" aria-expanded="@(ctrl is "Directorio" ? "true" : "false")">
+            <span class="nav-item__icon">👥</span> Profesionales
+            <span class="nav-toggle">▾</span>
+        </div>
+        <div id="submenu-pros" class="nav-submenu @(ctrl is "Directorio" ? "is-open" : "")">
+            <a asp-controller="Directorio" asp-action="Medicos"
+               class="nav-item @(Is("Directorio","Medicos") || Is("Directorio","Especialistas") ? "active" : "")">Médicos</a>
+            <a asp-controller="Directorio" asp-action="Psicologos"
+               class="nav-item @(Is("Directorio","Psicologos") ? "active" : "")">Psicólogos</a>
+            <a asp-controller="Directorio" asp-action="MisMentores"
+               class="nav-item @(Is("Directorio","MisMentores") ? "active" : "")">Mis mentores</a>
+        </div>
+    </div>
+    <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a asp-controller="Citas" asp-action="Index"
+           class="nav-item @(Is("Citas") ? "active" : "")"
+           aria-current="@(Is("Citas") ? "page" : null)">
+            <span class="nav-item__icon">📅</span> Mis citas
+        </a>
+        <a asp-controller="MisEventos" asp-action="Index"
+           class="nav-item @(Is("MisEventos") ? "active" : "")">
+            <span class="nav-item__icon">🎪</span> Mis eventos
+        </a>
+        <a asp-controller="Mensajeria" asp-action="Index"
+           class="nav-item @(Is("Mensajeria") ? "active" : "")">
+            <span class="nav-item__icon">💬</span> Mensajes
+        </a>
+        <a asp-controller="PerfilUsuario" asp-action="Index"
+           class="nav-item @(Is("PerfilUsuario") ? "active" : "")"
+           aria-current="@(Is("PerfilUsuario") ? "page" : null)">
+            <span class="nav-item__icon">👤</span> Mi perfil
+        </a>
+    </div>
+}
+else if (rol == "Profesional")
+{
+    <div class="nav-section">
+        <div class="nav-section__label">Principal</div>
+        <a asp-controller="HomeProfesional" asp-action="Index"
+           class="nav-item @(Is("HomeProfesional") ? "active" : "")"
+           aria-current="@(Is("HomeProfesional") ? "page" : null)">
+            <span class="nav-item__icon">🏠</span> Inicio
+        </a>
+        <a asp-controller="MisEventos" asp-action="Index"
+           class="nav-item @(Is("MisEventos") ? "active" : "")">
+            <span class="nav-item__icon">🎪</span> Mis eventos
+        </a>
+        <a asp-controller="Eventos" asp-action="Index"
+           class="nav-item @(Is("Eventos") ? "active" : "")">
+            <span class="nav-item__icon">🎫</span> Eventos inscritos
+        </a>
+        <div class="nav-item @(ctrl is "Directorio" ? "open" : "")" data-submenu="submenu-colegas" tabindex="0" role="button" aria-expanded="@(ctrl is "Directorio" ? "true" : "false")">
+            <span class="nav-item__icon">👥</span> Profesionales
+            <span class="nav-toggle" aria-hidden="true">▾</span>
+        </div>
+        <div id="submenu-colegas" class="nav-submenu @(ctrl is "Directorio" ? "is-open" : "")">
+            <a asp-controller="Directorio" asp-action="Medicos"
+               class="nav-item @(Is("Directorio","Medicos") || Is("Directorio","Especialistas") ? "active" : "")">Médicos</a>
+            <a asp-controller="Directorio" asp-action="Psicologos"
+               class="nav-item @(Is("Directorio","Psicologos") ? "active" : "")">Psicólogos</a>
+            <a asp-controller="Directorio" asp-action="MisColegas"
+               class="nav-item @(Is("Directorio","MisColegas") ? "active" : "")">Mis colegas</a>
+        </div>
+    </div>
+    <div class="nav-section">
+        <div class="nav-section__label">Mi espacio</div>
+        <a asp-controller="PerfilProfesional" asp-action="Index"
+           class="nav-item @(Is("PerfilProfesional") ? "active" : "")">
+            <span class="nav-item__icon">👤</span> Mi perfil
+        </a>
+        <a asp-controller="PerfilProfesional" asp-action="Citas"
+           class="nav-item @(Is("PerfilProfesional","Citas") || Is("Citas") ? "active" : "")">
+            <span class="nav-item__icon">📅</span> Citas
+        </a>
+        <a asp-controller="Mensajeria" asp-action="Index"
+           class="nav-item @(Is("Mensajeria") ? "active" : "")">
+            <span class="nav-item__icon">💬</span> Mensajes
+        </a>
+    </div>
+}
+else if (rol == "Admin")
+{
+    <div class="nav-section">
+        <div class="nav-section__label">Administración</div>
+        <a asp-controller="Admin" asp-action="BandejaNotificaciones"
+           class="nav-item @(Is("Admin","BandejaNotificaciones") ? "active" : "")">
+            <span class="nav-item__icon">🔔</span> Bandeja
+        </a>
+        <a asp-controller="Admin" asp-action="Configuracion"
+           class="nav-item @(Is("Admin","Configuracion") ? "active" : "")">
+            <span class="nav-item__icon">⚙️</span> Configuración
+        </a>
+    </div>
+}
+
+</nav>

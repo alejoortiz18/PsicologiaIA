@@ -1,0 +1,36 @@
+@model ActivarCuentaViewModel
+@{
+    ViewData["Title"] = "Activar Cuenta";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <h2 class="text-success mb-2">Activar cuenta</h2>
+        <p class="text-muted small">Revisa tu correo y pega el token de activación.</p>
+
+        @if (TempData["Mensaje"] != null)
+        {
+            <div class="alert alert-info">@TempData["Mensaje"]</div>
+        }
+
+        <form asp-controller="Registro" asp-action="ActivarCuenta" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <input type="hidden" asp-for="UsuarioId" />
+            <div class="mb-3">
+                <label asp-for="Token" class="form-label">Token de activación</label>
+                <input asp-for="Token" class="form-control" />
+                <span asp-validation-for="Token" class="text-danger"></span>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-success">Activar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

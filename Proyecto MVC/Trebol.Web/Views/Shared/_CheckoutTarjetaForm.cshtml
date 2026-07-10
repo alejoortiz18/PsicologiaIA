@@ -1,0 +1,31 @@
+@{
+    dynamic? t = ViewData.Model;
+    var numero = t?.numero as string ?? "4242 4242 4242 4242";
+    var venc = t?.vencimiento as string ?? "12/30";
+    var cvv = t?.cvv as string ?? "123";
+    var nombre = t?.nombre as string ?? "MARIA GARCIA TEST";
+}
+<div class="checkout-card-form">
+    <div class="form-group">
+        <label for="tarjeta-numero" class="form-label">Número de tarjeta</label>
+        <input type="text" id="tarjeta-numero" name="tarjeta.Numero" class="form-control" value="@numero"
+               maxlength="19" autocomplete="cc-number" inputmode="numeric" required />
+    </div>
+    <div class="form-row form-row-2">
+        <div class="form-group">
+            <label for="tarjeta-venc" class="form-label">Vencimiento</label>
+            <input type="text" id="tarjeta-venc" name="tarjeta.Vencimiento" class="form-control" value="@venc"
+                   maxlength="5" placeholder="MM/AA" autocomplete="cc-exp" required />
+        </div>
+        <div class="form-group">
+            <label for="tarjeta-cvv" class="form-label">CVV</label>
+            <input type="password" id="tarjeta-cvv" name="tarjeta.Cvv" class="form-control" value="@cvv"
+                   maxlength="4" autocomplete="cc-csc" required />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="tarjeta-nombre" class="form-label">Nombre en la tarjeta</label>
+        <input type="text" id="tarjeta-nombre" name="tarjeta.Nombre" class="form-control" value="@nombre"
+               style="text-transform:uppercase;" autocomplete="cc-name" required />
+    </div>
+</div>

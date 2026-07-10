@@ -1,0 +1,96 @@
+@using Trebol.Model.Entities.TrebolEntities
+@model Profesional
+@{
+    var tab = ViewBag.TabActiva as string ?? "personal";
+    var totalSalas = (int)(ViewBag.TotalSalas ?? 0);
+    var citasProximas = (int)(ViewBag.CitasProximas ?? 0);
+    var totalSeguidores = (int)(ViewBag.TotalSeguidores ?? 0);
+    var initials = string.Concat((Model?.NombreCompleto ?? "??").Split(' ').Take(2).Select(p => p.Length > 0 ? p[0].ToString() : ""));
+    var verificado = string.Equals(Model?.Estado, "ACTIVO", StringComparison.OrdinalIgnoreCase);
+}
+
+<section style="background:var(--color-surface);border-radius:var(--radius-xl);padding:var(--sp-6) var(--sp-8);margin-bottom:var(--sp-5);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);display:flex;gap:var(--sp-6);align-items:center;flex-wrap:wrap;">
+    <div style="position:relative;display:inline-block;">
+        @if (!string.IsNullOrEmpty(Model?.FotoPerfil))
+        {
+            <img src="@Model.FotoPerfil" class="avatar avatar-2xl" id="pro-avatar" style="border:4px solid white;box-shadow:var(--shadow-md);object-fit:cover;" alt="Foto de perfil" />
+        }
+        else
+        {
+            <div class="avatar avatar-2xl" id="pro-avatar" style="background:var(--color-primary);border:4px solid white;box-shadow:var(--shadow-md);">@initials</div>
+        }
+    </div>
+    <div style="flex:1;min-width:200px;">
+        <div style="display:flex;align-items:baseline;gap:var(--sp-3);flex-wrap:wrap;margin-bottom:4px;">
+            <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.625rem;margin:0;">@Model?.NombreCompleto</h1>
+            @if (verificado)
+            {
+                <span class="badge badge-success" style="font-size:.75rem;">✓ Verificada</span>
+            }
+        </div>
+        <div class="text-meta" style="margin-bottom:var(--sp-4);">
+            @(string.IsNullOrWhiteSpace(Model?.Ocupacion) ? "Profesional de salud mental" : Model.Ocupacion)
+            @if (!string.IsNullOrWhiteSpace(Model?.NumerTarjetaProfesional))
+            {
+                <text> · Tarjeta: <strong>@Model.NumerTarjetaProfesional</strong></text>
+            }
+        </div>
+        <div style="display:flex;gap:var(--sp-8);flex-wrap:wrap;">
+            <div style="text-align:center;">
+                <div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">@totalSeguidores.ToString("N0")</div>
+                <div class="text-meta">Seguidores</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">@totalSalas</div>
+                <div class="text-meta">Salas</div>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:1.375rem;font-weight:700;color:var(--color-primary);">@citasProximas</div>
+                <div class="text-meta">Citas próximas</div>
+            </div>
+        </div>
+    </div>
+    <a asp-controller="PerfilOrador" asp-action="Index" asp-route-id="@Model?.ProfesionalId" asp-route-vistaPublica="true"
+       class="btn btn-secondary btn-sm">👁 Ver perfil público</a>
+</section>
+
+<nav class="prof-tabs-bar" aria-label="Secciones del perfil" style="margin-bottom:var(--sp-5);">
+    <ul class="prof-tabs-bar__list" role="tablist">
+        <li>
+            <a asp-action="Index" class="prof-tab-link @(tab == "personal" ? "active" : "")" aria-current="@(tab == "personal" ? "page" : null)">
+                <span class="tab-icon">👤</span>Información personal
+            </a>
+        </li>
+        <li>
+            <a asp-action="Salas" class="prof-tab-link @(tab == "salas" ? "active" : "")" aria-current="@(tab == "salas" ? "page" : null)">
+                <span class="tab-icon">🎪</span>Salas y eventos
+                @if (totalSalas > 0) { <span class="tab-badge">@totalSalas</span> }
+            </a>
+        </li>
+        <li>
+            <a asp-action="Calendario" class="prof-tab-link @(tab == "calendario" ? "active" : "")" aria-current="@(tab == "calendario" ? "page" : null)">
+                <span class="tab-icon">🗓</span>Calendario
+            </a>
+        </li>
+        <li>
+            <a asp-action="Citas" class="prof-tab-link @(tab == "citas" ? "active" : "")" aria-current="@(tab == "citas" ? "page" : null)">
+                <span class="tab-icon">📅</span>Citas
+                @if (citasProximas > 0) { <span class="tab-badge">@citasProximas</span> }
+            </a>
+        </li>
+        <li>
+            <a asp-action="Indicadores" class="prof-tab-link @(tab == "indicadores" ? "active" : "")" aria-current="@(tab == "indicadores" ? "page" : null)">
+                <span class="tab-icon">📊</span>Indicadores
+            </a>
+        </li>
+    </ul>
+</nav>
+
+@if (TempData["Mensaje"] is string msg)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof showToast === 'function') showToast({ title: '@msg', type: 'success' });
+        });
+    </script>
+}

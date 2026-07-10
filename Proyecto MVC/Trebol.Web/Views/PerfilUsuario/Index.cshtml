@@ -1,0 +1,352 @@
+@using Trebol.Constants.Messages
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@model Trebol.Model.DTOs.Usuario.PerfilUsuarioViewModel
+@{
+    ViewData["Title"] = "Mi perfil";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var u = Model.Usuario;
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var docMask = string.IsNullOrEmpty(u.NumeroDocumento) ? "—"
+        : u.NumeroDocumento.Length > 2
+            ? new string('•', Math.Max(8, u.NumeroDocumento.Length - 2)) + u.NumeroDocumento[^2..]
+            : u.NumeroDocumento;
+    var pag = Model.PaginacionEventos;
+    var tabActivo = ViewBag.TabActiva as string ?? (pag.PaginaActual > 1 ? "eventos" : "cuenta");
+    var cuenta = Model.CuentaBancaria;
+
+    string PrecioEvento(decimal precio) => precio <= 0 ? "Entrada libre" : precio.ToString("C0", cultura);
+    string BadgeEvento(bool finalizado) => finalizado ? "badge-muted" : "badge-success";
+    string TextoEvento(bool finalizado) => finalizado ? "Finalizado" : "Próximo";
+}
+
+<div class="perfil-usuario-page" data-tabs>
+@await Html.PartialAsync("_PerfilUsuarioShell", Model)
+
+<div class="perfil-usuario-tabs-panel">
+<!-- Tab: Información personal -->
+<div id="tab-cuenta" class="tab-content @(tabActivo == "cuenta" ? "active" : "")" role="tabpanel" aria-labelledby="tab-btn-cuenta">
+    <section class="perfil-usuario-card">
+        <h2 class="perfil-usuario-card__title">Información de la cuenta</h2>
+
+        <form asp-action="Actualizar" method="post" enctype="multipart/form-data" id="profile-form" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="UsuarioId" value="@u.UsuarioId" />
+
+            <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+            <div class="perfil-usuario-form-grid">
+                <div class="form-group">
+                    <label class="form-label">Nombre completo</label>
+                    <input type="text" class="form-control" value="@u.NombreCompleto" disabled aria-disabled="true"
+                           aria-label="Nombre completo (no editable)" />
+                    <div class="form-hint">No editable. Contacta soporte para cambios.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Correo electrónico</label>
+                    <input type="email" class="form-control" value="@u.Correo" disabled aria-disabled="true"
+                           aria-label="Correo electrónico (no editable)" />
+                    <div class="form-hint">No editable. Contacta soporte para cambios.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">N.° de identificación</label>
+                    <input type="text" class="form-control" value="@docMask" disabled aria-disabled="true"
+                           aria-label="Número de identificación (no editable)" />
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-alias" class="form-label">Alias / Seudónimo <span class="required">*</span></label>
+                    <input type="text" id="edit-alias" name="Alias" class="form-control" value="@u.Alias"
+                           required aria-required="true" data-original="@u.Alias" />
+                    <div class="form-hint">Visible en la plataforma cuando activas el anonimato.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-celular" class="form-label">Número de celular <span class="required">*</span></label>
+                    <input type="tel" id="edit-celular" name="Celular" class="form-control" value="@u.Celular"
+                           required aria-required="true" data-original="@u.Celular" />
+                </div>
+            </div>
+
+            <div style="margin-top:var(--sp-6);">
+                <button type="submit" class="btn btn-primary" id="save-btn" disabled aria-label="Guardar cambios del perfil">
+                    <span class="btn-text">Guardar cambios</span>
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="perfil-usuario-card" style="margin-top:var(--sp-5);">
+        <h2 class="perfil-usuario-card__title">Datos bancarios</h2>
+        <p class="text-meta" style="margin-bottom:var(--sp-5);">
+            Obligatorios para solicitar retiro de saldo a favor. La consignación se realizará a esta cuenta.
+        </p>
+        <form asp-action="GuardarCuentaBancaria" method="post" id="bank-form" novalidate>
+            @Html.AntiForgeryToken()
+            <div class="perfil-usuario-form-grid">
+                <div class="form-group">
+                    <label for="bank-banco" class="form-label">Banco <span class="required">*</span></label>
+                    <input type="text" id="bank-banco" name="Banco" class="form-control" required
+                           value="@cuenta?.Banco" aria-required="true" />
+                </div>
+                <div class="form-group">
+                    <label for="bank-tipo" class="form-label">Tipo de cuenta <span class="required">*</span></label>
+                    <select id="bank-tipo" name="TipoCuenta" class="form-control" required aria-required="true">
+                        <option value="">Seleccionar…</option>
+                        @if (cuenta?.TipoCuenta == "Ahorros")
+                        {
+                            <option value="Ahorros" selected>Ahorros</option>
+                            <option value="Corriente">Corriente</option>
+                        }
+                        else if (cuenta?.TipoCuenta == "Corriente")
+                        {
+                            <option value="Ahorros">Ahorros</option>
+                            <option value="Corriente" selected>Corriente</option>
+                        }
+                        else
+                        {
+                            <option value="Ahorros">Ahorros</option>
+                            <option value="Corriente">Corriente</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="bank-numero" class="form-label">Número de cuenta <span class="required">*</span></label>
+                    <input type="text" id="bank-numero" name="NumeroCuenta" class="form-control" required
+                           value="@cuenta?.NumeroCuenta" aria-required="true" inputmode="numeric" />
+                </div>
+                <div class="form-group">
+                    <label for="bank-titular" class="form-label">Titular de la cuenta <span class="required">*</span></label>
+                    <input type="text" id="bank-titular" name="Titular" class="form-control" required
+                           value="@(cuenta?.Titular ?? u.NombreCompleto)" aria-required="true" />
+                </div>
+                <div class="form-group">
+                    <label for="bank-documento" class="form-label">Documento del titular</label>
+                    <input type="text" id="bank-documento" name="DocumentoTitular" class="form-control"
+                           value="@cuenta?.DocumentoTitular" />
+                </div>
+            </div>
+            <div style="margin-top:var(--sp-6);">
+                <button type="submit" class="btn btn-primary">Guardar datos bancarios</button>
+            </div>
+        </form>
+    </section>
+</div>
+
+<!-- Tab: Eventos inscritos -->
+<div id="tab-eventos" class="tab-content @(tabActivo == "eventos" ? "active" : "")" role="tabpanel" aria-labelledby="tab-btn-eventos">
+    <section class="perfil-usuario-card perfil-usuario-card--flush">
+    <div class="table-wrapper">
+        @if (Model.EventosInscritos.Any())
+        {
+            <div class="table-toolbar">
+                <div class="table-search">
+                    <span aria-hidden="true">🔍</span>
+                    <input type="text" id="buscar-evento-perfil" placeholder="Buscar evento..." aria-label="Buscar evento inscrito" />
+                </div>
+            </div>
+        }
+        <div style="overflow-x:auto;">
+            <table aria-label="Eventos inscritos" id="tabla-eventos-perfil">
+                <thead>
+                    <tr>
+                        <th scope="col">Nombre del evento</th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Hora</th>
+                        <th scope="col">Orador</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Precio pagado</th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.EventosInscritos.Any())
+                    {
+                        foreach (var ev in Model.EventosInscritos)
+                        {
+                            <tr data-search="@($"{ev.Titulo} {ev.NombreProfesional}".ToLowerInvariant())">
+                                <td>@ev.Titulo</td>
+                                <td>@(ev.FechaInicio?.ToString("d MMM yyyy", cultura) ?? "—")</td>
+                                <td>@(ev.FechaInicio?.ToString("h:mm tt", cultura) ?? "—")</td>
+                                <td>@ev.NombreProfesional</td>
+                                <td><span class="badge @BadgeEvento(ev.Finalizado)">@TextoEvento(ev.Finalizado)</span></td>
+                                <td>@PrecioEvento(ev.Precio)</td>
+                                <td>
+                                    <button type="button" class="btn btn-secondary btn-sm btn-ver-sala"
+                                            data-sala-id="@ev.SalaId"
+                                            aria-label="Ver detalle de @ev.Titulo">Detalle</button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" style="text-align:center;padding:var(--sp-8);color:var(--color-text-muted);">
+                                No tienes eventos inscritos.
+                                <a asp-controller="Eventos" asp-action="Index" style="margin-left:var(--sp-2);">Explorar eventos</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (pag.TotalRegistros > 0)
+        {
+            <div class="perfil-usuario-pagination">
+                <span class="text-meta">
+                    Mostrando @pag.Desde–@pag.Hasta de @pag.TotalRegistros evento@(pag.TotalRegistros == 1 ? "" : "s")
+                </span>
+                @if (pag.TotalPaginas > 1)
+                {
+                    <nav class="pagination" role="navigation" aria-label="Paginación de eventos">
+                        @if (pag.PaginaActual > 1)
+                        {
+                            <a class="pagination__btn" asp-action="Index" asp-route-paginaEventos="@(pag.PaginaActual - 1)" aria-label="Anterior">‹</a>
+                        }
+                        else
+                        {
+                            <span class="pagination__btn" aria-disabled="true">‹</span>
+                        }
+                        @for (var p = 1; p <= pag.TotalPaginas; p++)
+                        {
+                            if (p == pag.PaginaActual)
+                            {
+                                <span class="pagination__btn active" aria-current="page">@p</span>
+                            }
+                            else
+                            {
+                                <a class="pagination__btn" asp-action="Index" asp-route-paginaEventos="@p">@p</a>
+                            }
+                        }
+                        @if (pag.PaginaActual < pag.TotalPaginas)
+                        {
+                            <a class="pagination__btn" asp-action="Index" asp-route-paginaEventos="@(pag.PaginaActual + 1)" aria-label="Siguiente">›</a>
+                        }
+                        else
+                        {
+                            <span class="pagination__btn" aria-disabled="true">›</span>
+                        }
+                    </nav>
+                }
+            </div>
+        }
+    </div>
+    </section>
+</div>
+
+<!-- Tab: Próximas citas -->
+<div id="tab-citas" class="tab-content @(tabActivo == "citas" ? "active" : "")" role="tabpanel" aria-labelledby="tab-btn-citas">
+    <section class="perfil-usuario-card perfil-usuario-card--calendario">
+        @await Html.PartialAsync("_CalendarioCitas")
+    </section>
+</div>
+
+@await Html.PartialAsync("_TabMisSaldos", Model)
+@await Html.PartialAsync("_TabNovedades", Model)
+</div>
+</div>
+
+<!-- Modal confirmación guardado -->
+<div id="save-confirm-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="save-confirm-title" aria-hidden="true">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon success">💾</div>
+            <div>
+                <div class="modal-title" id="save-confirm-title">¿Guardar cambios?</div>
+                <div class="modal-subtitle">Se actualizarán tus datos de perfil</div>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="save-confirm" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+            <p>Estás a punto de guardar los cambios en tu perfil. ¿Confirmas?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="save-confirm">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="confirm-save-btn">Sí, guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal retiro bancario -->
+<div id="retiro-confirm-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="retiro-confirm-title" aria-hidden="true">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon warning">🏦</div>
+            <div>
+                <div class="modal-title" id="retiro-confirm-title">Confirmar retiro bancario</div>
+                <div class="modal-subtitle">Verifica los montos antes de continuar</div>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="retiro-confirm" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+            <p>@SaldoConstant.ModalRetiroAdvertencia</p>
+            <dl class="mis-saldos-retiro-resumen">
+                <div><dt>Monto bruto</dt><dd id="retiro-monto-bruto">—</dd></div>
+                <div><dt>Comisión</dt><dd id="retiro-comision">—</dd></div>
+                <div><dt>Neto a consignar</dt><dd id="retiro-monto-neto">—</dd></div>
+            </dl>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="retiro-confirm">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="confirm-retiro-btn">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/perfil-usuario.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/perfil-orador-calendario.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="retiro-antiforgery-token" value="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+    <script>
+        window.perfilUsuarioFinanciero = {
+            solicitarRetiroUrl: '@Url.Action("SolicitarRetiro", "PerfilUsuario")',
+            retractarRetiroUrl: '@Url.Action("RetractarRetiro", "PerfilUsuario")',
+            token: document.getElementById('retiro-antiforgery-token')?.value
+                || document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                || ''
+        };
+    </script>
+    <script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
+    <script src="~/js/perfil-usuario.js" asp-append-version="true"></script>
+    <script>
+        window.perfilOradorCal = {
+            profesionalId: null,
+            usuarioId: @Model.Usuario.UsuarioId,
+            miProfesionalId: null,
+            esVistaPropietario: false,
+            esVistaUsuario: true,
+            puedeAgendar: false,
+            nuevaCitaUrl: '',
+            disponibilidad: [],
+            bloqueos: [],
+            citas: @Html.Raw(Model.CitasCalendarioJson)
+        };
+    </script>
+    <script src="~/js/perfil-orador-calendario.js" asp-append-version="true"></script>
+    @if (!string.IsNullOrEmpty(Model.MensajeExito))
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                if (typeof showToast === 'function') {
+                    showToast({ title: 'Perfil actualizado', message: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MensajeExito)), type: 'success' });
+                }
+            });
+        </script>
+    }
+    @if (TempData["Error"] is string errorMsg && !string.IsNullOrEmpty(errorMsg))
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                if (typeof showToast === 'function') {
+                    showToast({ title: 'Atención', message: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(errorMsg)), type: 'error' });
+                }
+            });
+        </script>
+    }
+}

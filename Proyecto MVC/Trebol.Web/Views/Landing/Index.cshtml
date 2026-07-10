@@ -1,0 +1,131 @@
+@model Trebol.Model.DTOs.Publico.LandingPageDto
+@{
+    ViewData["Title"] = "Bienvenido a Trébol";
+    ViewData["ShowTicker"] = true;
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+    string FormatearConteo(int n) => n >= 1000 ? $"{n / 1000}k+" : n.ToString("N0");
+}
+
+<section class="hero" aria-label="Bienvenido a Trébol">
+    <div class="hero__content fade-in-up">
+        <div class="hero__tag">🍀 Plataforma de Salud Mental</div>
+        <h1 class="hero__title">
+            Tu bienestar mental<br>
+            merece <em>atención real</em>
+        </h1>
+        <p class="hero__subtitle">
+            Conectamos personas con psicólogos y terapeutas certificados. Conferencias en vivo, sesiones privadas y una comunidad profesional comprometida con tu bienestar.
+        </p>
+        <div class="hero__actions">
+            <a asp-controller="Registro" asp-action="SeleccionPerfil" class="btn btn-accent btn-lg">Comenzar ahora</a>
+            <a asp-controller="Login" asp-action="Index" class="btn btn-secondary btn-lg" style="background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3);color:white;">Ya tengo cuenta</a>
+        </div>
+        <div class="hero__stats fade-in-up-2">
+            <div>
+                <div class="hero__stat-value">@Model.Estadisticas.ProfesionalesActivos</div>
+                <div class="hero__stat-label">Profesionales activos</div>
+            </div>
+            <div>
+                <div class="hero__stat-value">@Model.Estadisticas.EventosRealizados</div>
+                <div class="hero__stat-label">Eventos realizados</div>
+            </div>
+            <div>
+                <div class="hero__stat-value">@FormatearConteo(Model.Estadisticas.UsuariosRegistrados)</div>
+                <div class="hero__stat-label">Usuarios registrados</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="public-section alt" aria-label="Especialidades disponibles">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Especialidades</span>
+            <h2 class="section-title">Encuentra el apoyo que necesitas</h2>
+            <p class="section-subtitle">Profesionales certificados en múltiples áreas de la salud mental, listos para acompañarte.</p>
+        </div>
+        <div class="specialty-grid" role="list">
+            @foreach (var esp in Model.Especialidades.Where(e => e.TotalProfesionales > 0))
+            {
+                <div class="specialty-card" role="listitem">
+                    <div class="specialty-card__icon">🧠</div>
+                    <div class="specialty-card__name">@esp.Nombre</div>
+                    <div class="specialty-card__count">@esp.TotalProfesionales profesional@(esp.TotalProfesionales == 1 ? "" : "es")</div>
+                </div>
+            }
+            @if (!Model.Especialidades.Any(e => e.TotalProfesionales > 0))
+            {
+                <p class="text-secondary" style="grid-column:1/-1;text-align:center;">Aún no hay especialidades con profesionales registrados.</p>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="public-section" aria-label="Eventos más populares">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">🔥 Más solicitados</span>
+            <h2 class="section-title">Eventos destacados</h2>
+            <p class="section-subtitle">Los eventos con mayor número de inscritos activos en la plataforma.</p>
+        </div>
+        <div class="events-ribbon" role="list">
+            @if (Model.EventosDestacados.Any())
+            {
+                var rank = 1;
+                foreach (var ev in Model.EventosDestacados)
+                {
+                    var iniciales = string.Join("", ev.NombreProfesional.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+                    var precioTxt = ev.Precio <= 0 ? "Entrada libre" : ev.Precio.ToString("C0");
+                    var cuposRestantes = Math.Max(0, ev.Capacidad - ev.TotalInscritos);
+                    <article class="event-highlight-card" role="listitem">
+                        <div class="event-highlight-card__rank" aria-label="Posición @rank">@rank</div>
+                        <div class="event-highlight-card__cover" style="background:linear-gradient(135deg,var(--color-primary),#2D6A4F);">
+                            <div class="event-highlight-card__cover-text">@ev.Titulo</div>
+                        </div>
+                        <div class="event-highlight-card__body">
+                            <div class="d-flex items-center gap-2" style="margin-bottom:8px;">
+                                <div class="avatar avatar-sm" style="font-size:.65rem;">@iniciales</div>
+                                <span class="text-sm text-secondary">@ev.NombreProfesional</span>
+                                <span class="badge badge-success" style="margin-left:auto;">@ev.Estado</span>
+                            </div>
+                            <div class="event-highlight-card__meta">
+                                @if (ev.FechaInicio.HasValue)
+                                {
+                                    <span>📅 @ev.FechaInicio.Value.ToString("d MMM yyyy")</span>
+                                    <span>🕐 @ev.FechaInicio.Value.ToString("h:mm tt")</span>
+                                }
+                                <span>👥 @ev.TotalInscritos inscritos</span>
+                            </div>
+                            <div class="d-flex items-center justify-between">
+                                <span class="room-card__price @(ev.Precio <= 0 ? "free" : "")">@precioTxt</span>
+                                <span class="text-meta">@cuposRestantes cupo@(cuposRestantes == 1 ? "" : "s")</span>
+                            </div>
+                        </div>
+                        <div class="event-highlight-card__footer">
+                            <span class="text-meta">@(ev.Categoria ?? "General")</span>
+                            <a asp-controller="Login" asp-action="Index" class="btn btn-primary btn-sm">Ver evento</a>
+                        </div>
+                    </article>
+                    rank++;
+                }
+            }
+            else
+            {
+                <p class="text-secondary" style="padding:var(--sp-6);">No hay eventos públicos destacados por el momento.</p>
+            }
+        </div>
+    </div>
+</section>
+
+<section style="background:linear-gradient(135deg,var(--color-primary) 0%,var(--color-primary-light) 100%);padding:var(--sp-16) var(--sp-8);">
+    <div class="container text-center">
+        <h2 style="font-family:var(--font-display);font-size:clamp(1.5rem,3vw,2.25rem);color:white;margin-bottom:var(--sp-4);">
+            ¿Eres profesional de la salud mental?
+        </h2>
+        <p style="color:rgba(255,255,255,.75);font-size:1.0625rem;margin-bottom:var(--sp-8);max-width:560px;margin-left:auto;margin-right:auto;line-height:1.7;">
+            Únete a Trébol y llega a miles de personas que buscan apoyo profesional. Crea salas, dicta conferencias y gestiona tus citas privadas.
+        </p>
+        <a asp-controller="Registro" asp-action="SeleccionPerfil" class="btn btn-accent btn-lg">Registrarme como profesional</a>
+    </div>
+</section>

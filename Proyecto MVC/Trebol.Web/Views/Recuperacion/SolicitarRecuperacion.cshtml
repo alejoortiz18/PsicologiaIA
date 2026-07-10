@@ -1,0 +1,69 @@
+@model Trebol.Web.ViewModels.Auth.SolicitarRecuperacionViewModel
+@{
+    ViewData["Title"] = "Recuperar contraseña";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+}
+
+@section Styles {
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+</style>
+}
+
+<div class="auth-layout">
+
+    <div class="auth-panel auth-panel--left" aria-hidden="true">
+        <div class="auth-illustration">
+            <div class="auth-illustration__tag">🔑 Recuperación</div>
+            <h1 class="auth-illustration__title">
+                Recupera tu<br>acceso de forma<br><em>segura</em>
+            </h1>
+            <p class="auth-illustration__text">
+                Te enviaremos un enlace al correo registrado para que puedas crear una nueva contraseña. El enlace es válido por 1 hora.
+            </p>
+        </div>
+    </div>
+
+    <div class="auth-panel auth-panel--right">
+        <div class="auth-form">
+
+            <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
+                <div class="auth-form__logo-icon">🍀</div>
+                <span class="auth-form__logo-name">Trébol</span>
+            </a>
+
+            <h2 class="auth-form__title">Recuperar contraseña</h2>
+            <p class="auth-form__subtitle">Ingresa tu correo y te enviaremos un enlace para restablecer tu acceso.</p>
+
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="form-success" style="margin-bottom:var(--sp-4);">@TempData["Mensaje"]</div>
+            }
+
+            <form asp-action="SolicitarRecuperacion" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+                <div class="form-group">
+                    <label asp-for="Correo" class="form-label">
+                        Correo electrónico <span class="required" aria-hidden="true">*</span>
+                    </label>
+                    <input asp-for="Correo" type="email" class="form-control"
+                           placeholder="tu@correo.com"
+                           autocomplete="email" aria-required="true" />
+                    <span asp-validation-for="Correo" class="form-error"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">
+                    <span class="btn-text">Enviar enlace</span>
+                </button>
+            </form>
+
+            <div class="auth-footer-link" style="margin-top:var(--sp-5);">
+                <a asp-controller="Login" asp-action="Index" style="color:var(--color-text-muted);font-size:.8125rem;">← Volver al login</a>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Revisa tu correo";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+    var horas = ViewData["HorasEnlace"]?.ToString() ?? "1";
+    var horasLabel = horas == "1" ? "1 hora" : $"{horas} horas";
+    var correo = ViewData["CorreoRegistro"] as string ?? "";
+    var mensaje = ViewData["Mensaje"] as string;
+}
+
+@section Styles {
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+</style>
+}
+
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:var(--sp-8) var(--sp-4);">
+  <div class="card" style="max-width:520px;width:100%;padding:var(--sp-10);text-align:center;">
+
+    <div style="font-size:3.5rem;margin-bottom:var(--sp-5);">📧</div>
+    <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.6rem;margin-bottom:var(--sp-3);">
+      Revisa tu correo
+    </h1>
+
+    @if (!string.IsNullOrWhiteSpace(mensaje))
+    {
+      <p class="alert alert-success" style="text-align:left;margin-bottom:var(--sp-5);">@mensaje</p>
+    }
+
+    <p style="color:var(--color-text-secondary);line-height:1.7;margin-bottom:var(--sp-6);">
+      Te enviamos un enlace de confirmación. Haz clic en él para crear tu contraseña y activar tu cuenta.
+    </p>
+
+    <div style="background:rgba(82,183,136,.08);border:1px solid rgba(82,183,136,.3);border-radius:var(--radius-lg);padding:var(--sp-5);margin-bottom:var(--sp-6);">
+      <div style="font-size:.85rem;color:var(--color-text-muted);">⏱ El enlace es válido por <strong>@horasLabel</strong></div>
+    </div>
+
+    <p style="color:var(--color-text-muted);font-size:.85rem;margin-bottom:var(--sp-5);">
+      ¿No ves el correo o expiró el enlace?
+    </p>
+
+    <form asp-controller="Registro" asp-action="ReenviarConfirmacion" method="post" style="text-align:left;margin-bottom:var(--sp-6);">
+      @Html.AntiForgeryToken()
+      <div class="form-group">
+        <label class="form-label" for="CorreoReenvio">Tu correo</label>
+        <input type="email" name="Correo" id="CorreoReenvio" class="form-control" required
+               value="@correo" placeholder="usuario@correo.com" autocomplete="email" />
+      </div>
+      <button type="submit" class="btn btn-secondary w-full" style="margin-top:var(--sp-3);">
+        Reenviar correo de confirmación
+      </button>
+    </form>
+
+    <a asp-controller="Login" asp-action="Index" class="btn btn-primary" style="display:inline-block;">
+      ← Ir al inicio de sesión
+    </a>
+  </div>
+</div>

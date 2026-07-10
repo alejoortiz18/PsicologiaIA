@@ -1,0 +1,238 @@
+@model Trebol.Model.DTOs.Sala.SalaCitaProfesionalDto
+@using Trebol.Model.Enums
+@{
+    Layout = "~/Views/Shared/_LayoutSala.cshtml";
+    ViewData["Title"] = $"Sala de cita · {Model.AliasUsuario}";
+    var ini = Model.AliasUsuario.Length >= 2 ? Model.AliasUsuario[..2].ToUpper() : Model.AliasUsuario.ToUpper();
+    var tipoLabel = Model.Tipo == TipoCita.Seguimiento ? "Seguimiento psicológico" : "Asesoría";
+    var esAsesoria = Model.Tipo == TipoCita.Asesoria;
+    var horaFin = Model.FechaHora.AddMinutes(Model.DuracionMinutos);
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var recomendTexto = Model.RecomendacionContenido ?? "";
+    var recomendFecha = Model.RecomendacionFecha.HasValue
+        ? Model.RecomendacionFecha.Value.ToString("d MMM yyyy · h:mm tt", cultura)
+        : "";
+}
+
+<div class="cita-layout" role="main">
+    <header class="cita-header" role="banner">
+        <a asp-controller="PerfilProfesional" asp-action="Citas" class="cita-header__logo" aria-label="Volver a mis citas">
+            🍀 Trébol
+        </a>
+        <div class="cita-header__patient">
+            <div class="patient-avatar" aria-hidden="true">@ini</div>
+            <div>
+                <div class="patient-name">@Model.AliasUsuario</div>
+                <div class="online-indicator">
+                    <div class="online-dot" aria-hidden="true"></div>
+                    <span>En línea</span>
+                </div>
+            </div>
+        </div>
+        <div class="cita-timer" id="session-timer" role="timer" aria-label="Tiempo de sesión">00:00:00</div>
+    </header>
+
+    <div class="cita-video-area">
+        <div class="cita-main-video" aria-label="Video del paciente">
+            <div class="video-placeholder" role="img" aria-label="Video de @Model.AliasUsuario">
+                <div class="video-placeholder__avatar" aria-hidden="true">@ini</div>
+                <div class="video-placeholder__name">@Model.AliasUsuario</div>
+                <div style="font-size:0.8125rem;color:rgba(255,255,255,0.4);">Cámara desactivada</div>
+            </div>
+        </div>
+        <div class="cita-self-cam" aria-label="Tu cámara">
+            <div style="text-align:center;">
+                <div style="font-size:1.5rem;">👩‍⚕️</div>
+                <div style="margin-top:4px;">Tú</div>
+            </div>
+        </div>
+        <div class="cita-controls" role="toolbar" aria-label="Controles de sesión">
+            <button type="button" class="ctrl-btn ctrl-btn--normal" onclick="toggleSalaControl(this,'cam')" aria-label="Activar/desactivar cámara" aria-pressed="true" title="Cámara">📷</button>
+            <button type="button" class="ctrl-btn ctrl-btn--normal" onclick="toggleSalaControl(this,'mic')" aria-label="Silenciar/activar micrófono" aria-pressed="true" title="Micrófono">🎤</button>
+            <button type="button" class="ctrl-btn ctrl-btn--normal" data-activar-tab="panel-chat" aria-label="Abrir chat de sesión" title="Chat">💬</button>
+            <button type="button" class="ctrl-btn ctrl-btn--danger" data-open-modal="end-call-modal" aria-label="Terminar sesión" title="Terminar sesión">📵</button>
+        </div>
+    </div>
+
+    <aside class="cita-side-panel" aria-label="Panel clínico">
+        <div class="cita-panel-header">
+            <div class="cita-panel-title">Panel clínico</div>
+            <div class="cita-panel-value">@tipoLabel · @Model.AliasUsuario · Sesión #@Model.NumeroSesion</div>
+        </div>
+        <div class="cita-panel-tabs" role="tablist">
+            <button type="button" class="cita-panel-tab active" data-panel-tab="panel-sesion" role="tab" aria-selected="true">Sesión</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-chat" role="tab" aria-selected="false">Chat</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-recomend" role="tab" aria-selected="false">Recomend.</button>
+        </div>
+        <div id="panel-sesion" data-panel-content class="cita-panel-body cita-tab-content active" role="tabpanel">
+            <div class="cita-info-grid">
+                <div class="cita-info-row"><span class="cita-info-label">📅 Fecha</span><span class="cita-info-value">@Model.FechaHora.ToString("dd MMM yyyy")</span></div>
+                <div class="cita-info-row"><span class="cita-info-label">🕒 Hora</span><span class="cita-info-value">@Model.FechaHora.ToString("h:mm tt") – @horaFin.ToString("h:mm tt")</span></div>
+                <div class="cita-info-row"><span class="cita-info-label">🔖 Tipo</span><span class="cita-info-value">@tipoLabel</span></div>
+                <div class="cita-info-row"><span class="cita-info-label">🆔 Paciente</span><span class="cita-info-value">@Model.AliasUsuario (alias)</span></div>
+                <div class="cita-info-row"><span class="cita-info-label">⏱ Duración</span><span class="cita-info-value">@Model.DuracionMinutos minutos</span></div>
+            </div>
+            @if (esAsesoria)
+            {
+                <div style="background:rgba(255,193,7,0.12);border:1px solid rgba(255,193,7,0.3);border-radius:var(--radius-md);padding:var(--sp-3);font-size:0.8125rem;color:#FFD54F;margin-bottom:var(--sp-5);">
+                    ⚠️ Este es un tipo <strong>Asesoría</strong>. El historial clínico no aplica. La identidad del paciente es anónima.
+                </div>
+            }
+            <div>
+                <div class="cita-section-title">Contactar al paciente</div>
+                <button type="button" class="btn btn-secondary btn-sm" style="width:100%;background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:white;"
+                        data-activar-tab="panel-chat" aria-label="Abrir chat con el paciente">
+                    💬 Abrir chat
+                </button>
+            </div>
+            <div style="margin-top:var(--sp-5);">
+                <div class="cita-section-title">No podré asistir</div>
+                <p style="font-size:0.8125rem;color:rgba(255,255,255,0.5);margin-bottom:var(--sp-3);">
+                    Solo disponible en los últimos 5 minutos antes de la cita.
+                </p>
+                <button type="button" class="btn btn-ghost btn-sm" style="width:100%;color:#FFD54F;border-color:rgba(255,193,7,0.4);"
+                        id="btn-reportar-ausencia" aria-label="Reportar que no podré asistir">
+                    ⚠️ Reportar ausencia
+                </button>
+            </div>
+        </div>
+        <div id="panel-chat" data-panel-content class="cita-tab-content cita-chat-panel" role="tabpanel">
+            <div id="cita-chat-feed" class="conf-chat-feed conf-msg-list" aria-live="polite">
+                <div class="cita-chat-welcome">Los mensajes de esta sesión son visibles para ti y el paciente.</div>
+            </div>
+            <div class="conf-chat-input-row">
+                <input type="text" id="cita-chat-input" class="form-control" placeholder="Escribe un mensaje..." maxlength="500" aria-label="Escribe un mensaje de chat" />
+                <button type="button" id="cita-chat-send" class="btn btn-primary btn-sm" aria-label="Enviar mensaje">Enviar</button>
+            </div>
+        </div>
+        <div id="panel-recomend" data-panel-content class="cita-panel-body cita-tab-content" role="tabpanel">
+            <div class="cita-section-title">Recomendaciones para el paciente</div>
+            <p style="font-size:0.8125rem;color:rgba(255,255,255,0.5);margin-bottom:var(--sp-3);">
+                El paciente verá estas recomendaciones en su sala de cita.
+            </p>
+            <textarea class="cita-textarea" id="recomendaciones-txt" rows="7"
+                      aria-label="Recomendaciones para el paciente"
+                      placeholder="Ej: Practica 5 minutos de respiración diafragmática cada mañana...">@recomendTexto</textarea>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--sp-3);">
+                <div id="recomend-timestamp" style="font-size:0.75rem;color:rgba(255,255,255,0.35);">
+                    @(string.IsNullOrEmpty(recomendFecha) ? "Sin guardar aún" : $"Guardado el {recomendFecha}")
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-guardar-recomend" aria-label="Guardar recomendaciones">Guardar</button>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<div id="ausencia-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="ausencia-modal-title">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon warning" aria-hidden="true">⚠️</div>
+            <div>
+                <div class="modal-title" id="ausencia-modal-title">Reportar ausencia</div>
+                <div class="modal-subtitle">El paciente recibirá una novedad para decidir</div>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="ausencia-modal" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin:0;">
+                <label for="ausencia-mensaje" class="form-label">Mensaje para el paciente (opcional)</label>
+                <textarea class="form-control" id="ausencia-mensaje" rows="3"
+                          placeholder="Ej: Tengo una emergencia y no podré conectarme a la cita."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="ausencia-modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="confirm-ausencia-btn">Confirmar ausencia</button>
+        </div>
+    </div>
+</div>
+
+<div id="end-call-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="end-call-title">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-icon danger">📵</div>
+            <div>
+                <div class="modal-title" id="end-call-title">¿Terminar la sesión?</div>
+                <div class="modal-subtitle">Esta acción no se puede deshacer</div>
+            </div>
+        </div>
+        <div class="modal-body">
+            <p>¿Estás seguro de que deseas terminar la sesión con <strong>@Model.AliasUsuario</strong>? Se cerrará la llamada para ambos.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="end-call-modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="confirm-end-btn">Sí, terminar sesión</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script>
+  window.citaSalaHub = { citaId: @Model.CitaId, rol: 'profesional' };
+</script>
+<script src="~/js/sala-cita-hub.js" asp-append-version="true"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  initPanelTabs('.cita-panel-tab', 'panelTab');
+
+  document.getElementById('btn-guardar-recomend')?.addEventListener('click', () => {
+    guardarRecomendacionCita(@Model.CitaId, 'recomendaciones-txt', 'recomend-timestamp');
+  });
+
+  fetch('/Citas/RegistrarIngresoProfesional', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `citaId=@Model.CitaId&__RequestVerificationToken=${encodeURIComponent(document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '')}`
+  }).catch(() => {});
+
+  document.getElementById('btn-reportar-ausencia')?.addEventListener('click', () => {
+    if (typeof openModal === 'function') openModal('ausencia-modal');
+  });
+
+  document.getElementById('confirm-ausencia-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('confirm-ausencia-btn');
+    const mensaje = document.getElementById('ausencia-mensaje')?.value ?? '';
+    btn.disabled = true;
+    btn.classList.add('loading');
+    const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+    try {
+      const body = new URLSearchParams();
+      body.append('citaId', '@Model.CitaId');
+      body.append('mensaje', mensaje);
+      body.append('__RequestVerificationToken', token);
+      const res = await fetch('/Citas/ReportarAusencia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      });
+      const d = await res.json();
+      if (typeof closeModal === 'function') closeModal('ausencia-modal');
+      if (typeof showToast === 'function') {
+        showToast({ title: d.exito ? 'Ausencia reportada' : 'No se pudo reportar', message: d.mensaje || '', type: d.exito ? 'success' : 'error' });
+      }
+      if (d.exito) setTimeout(() => { window.location.href = '/PerfilProfesional/Citas'; }, 1500);
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }
+  });
+
+  document.getElementById('confirm-end-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('confirm-end-btn');
+    btn.disabled = true;
+    btn.textContent = 'Terminando...';
+    const token = document.querySelector('[name="__RequestVerificationToken"]')?.value ?? '';
+    const res = await fetch('/Salas/TerminarSesionCita', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `citaId=@Model.CitaId&__RequestVerificationToken=${encodeURIComponent(token)}`
+    });
+    const d = await res.json();
+    if (typeof showToast === 'function') showToast({ title: d.exito ? 'Sesión finalizada' : 'Error', message: d.mensaje || '', type: d.exito ? 'success' : 'error' });
+    if (d.exito) window.location.href = '/PerfilProfesional/Citas';
+    else { btn.disabled = false; btn.textContent = 'Sí, terminar sesión'; }
+  });
+});
+</script>
+}

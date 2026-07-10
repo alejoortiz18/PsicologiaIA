@@ -1,0 +1,60 @@
+@model Trebol.Model.DTOs.Cita.MisCitasUsuarioVm
+@{
+    ViewData["Title"] = "Mis citas";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var pagActivas = Model.PaginacionActivas;
+    var pagPasadas = Model.PaginacionPasadas;
+}
+
+<div class="page-header mb-6">
+    <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;">📅 Mis citas</h1>
+    <p class="text-meta" style="margin-top:4px;">Consulta tus citas activas y el historial de sesiones pasadas.</p>
+</div>
+
+<section class="mb-8" aria-labelledby="citas-activas-heading">
+    <div class="home-section-head">
+        <h2 id="citas-activas-heading" style="color:var(--color-primary);font-family:var(--font-display);">
+            🟢 Citas activas
+        </h2>
+        @if (pagActivas.TotalRegistros > 0)
+        {
+            <span class="text-meta">@pagActivas.TotalRegistros cita@(pagActivas.TotalRegistros == 1 ? "" : "s")</span>
+        }
+    </div>
+    @await Html.PartialAsync("_TablaCitasUsuario", Model.CitasActivas, new ViewDataDictionary(ViewData) { { "Paginacion", pagActivas }, { "EsActiva", true } })
+</section>
+
+<section class="mb-6" aria-labelledby="citas-pasadas-heading">
+    <div class="home-section-head">
+        <h2 id="citas-pasadas-heading" style="color:var(--color-primary);font-family:var(--font-display);">
+            🗂 Citas pasadas
+        </h2>
+        @if (pagPasadas.TotalRegistros > 0)
+        {
+            <span class="text-meta">@pagPasadas.TotalRegistros cita@(pagPasadas.TotalRegistros == 1 ? "" : "s")</span>
+        }
+    </div>
+    @await Html.PartialAsync("_TablaCitasUsuario", Model.CitasPasadas, new ViewDataDictionary(ViewData) { { "Paginacion", pagPasadas }, { "EsActiva", false } })
+</section>
+
+<p class="text-meta" style="font-size:.8125rem;">
+    Para ver tu agenda en calendario (citas y eventos inscritos), abre
+    <a asp-controller="PerfilUsuario" asp-action="Index" asp-route-tab="citas">Mi perfil → Mi agenda</a>.
+</p>
+
+@section Scripts {
+<script>
+function cancelarCita(citaId) {
+    if (!confirm('¿Deseas cancelar esta cita?')) return;
+    const token = document.querySelector('[name=__RequestVerificationToken]')?.value ?? '';
+    fetch('/Citas/Cancelar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+        body: `citaId=${citaId}`
+    })
+    .then(r => r.json())
+    .then(d => { alert(d.mensaje); if (d.exito) location.reload(); });
+}
+</script>
+@Html.AntiForgeryToken()
+}

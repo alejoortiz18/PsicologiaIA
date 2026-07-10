@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Trébol</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/trebol.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+
+@* Ticker bar (solo en landing) *@
+@if (ViewData["ShowTicker"] as bool? == true)
+{
+    var ticker = ViewData["TickerProfesionales"] as IEnumerable<Trebol.Model.DTOs.Publico.ProfesionalTickerDto>;
+    if (ticker != null && ticker.Any())
+    {
+<div class="ticker-bar" aria-label="Profesionales destacados">
+    <div class="ticker-track" aria-live="off">
+        @foreach (var _ in Enumerable.Range(0, 2))
+        {
+            foreach (var pro in ticker)
+            {
+                var exp = pro.AnosExperiencia.HasValue ? $"{pro.AnosExperiencia} años de experiencia" : "";
+                var esp = pro.Especialidad ?? "Profesional de salud mental";
+                <div class="ticker-item">🍀 <strong>@pro.NombreCompleto</strong> · @esp@(string.IsNullOrEmpty(exp) ? "" : $" · {exp}") <span class="ticker-sep">|</span></div>
+            }
+        }
+    </div>
+</div>
+    }
+}
+
+<nav class="public-nav" role="navigation" aria-label="Navegación principal">
+    <a asp-controller="Landing" asp-action="Index" class="public-nav__brand" aria-label="Trébol — Inicio">
+        <div class="public-nav__logo" aria-hidden="true">🍀</div>
+        <span class="public-nav__name">Trébol</span>
+    </a>
+    <div class="public-nav__spacer"></div>
+    <nav class="public-nav__actions">
+        <a asp-controller="Login" asp-action="Index" class="btn btn-secondary btn-sm">Iniciar sesión</a>
+        <a asp-controller="Registro" asp-action="SeleccionPerfil" class="btn btn-primary btn-sm">Registrarse</a>
+    </nav>
+</nav>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div style="background:var(--color-success-pale);border:1px solid var(--color-accent);color:var(--color-success);padding:12px 24px;font-size:.875rem;font-weight:600;text-align:center;">
+        @TempData["Mensaje"]
+    </div>
+}
+
+@RenderBody()
+
+<footer class="public-footer" role="contentinfo">
+    <div class="footer-grid">
+        <div>
+            <div class="footer-brand-name">🍀 Trébol</div>
+            <p style="font-size:.875rem;line-height:1.7;max-width:300px;">Plataforma de salud mental que conecta personas con psicólogos y terapeutas certificados.</p>
+        </div>
+        <div>
+            <div class="footer-col-title">Plataforma</div>
+            <a asp-controller="Landing" asp-action="Index" class="footer-link">Inicio</a>
+            <a asp-controller="Directorio" asp-action="Index" class="footer-link">Especialistas</a>
+            <a asp-controller="Registro" asp-action="SeleccionPerfil" class="footer-link">Registrarse</a>
+        </div>
+        <div>
+            <div class="footer-col-title">Acceso</div>
+            <a asp-controller="Login" asp-action="Index" class="footer-link">Iniciar sesión</a>
+            <a asp-controller="Recuperacion" asp-action="SolicitarRecuperacion" class="footer-link">Recuperar contraseña</a>
+        </div>
+        <div>
+            <div class="footer-col-title">Legal</div>
+            <a href="#" class="footer-link">Términos de uso</a>
+            <a href="#" class="footer-link">Política de privacidad</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>&copy; @DateTime.Now.Year Trébol — Plataforma de Salud Mental</span>
+        <span>Hecho con 🍀 en Colombia</span>
+    </div>
+</footer>
+
+<script src="~/js/trebol.js" asp-append-version="true"></script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>

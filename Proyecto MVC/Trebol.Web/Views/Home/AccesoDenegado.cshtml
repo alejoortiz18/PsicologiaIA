@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Acceso denegado";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+<div class="card" style="max-width:520px;margin:var(--sp-8) auto;padding:var(--sp-8);text-align:center;">
+    <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;">Acceso no permitido</h1>
+    <p class="text-meta" style="margin:var(--sp-4) 0 var(--sp-6);">
+        Esta acción solo está disponible para cuentas de <strong>usuario</strong>.
+        Si eres profesional, inicia sesión con una cuenta de usuario para inscribirte a eventos.
+    </p>
+    @if (User.IsInRole("Usuario"))
+    {
+        <a asp-controller="HomeUsuario" asp-action="Index" class="btn btn-primary">Ir al inicio</a>
+    }
+    else
+    {
+        <a asp-controller="HomeProfesional" asp-action="Index" class="btn btn-primary">Ir al inicio</a>
+    }
+</div>

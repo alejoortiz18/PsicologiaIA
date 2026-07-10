@@ -62,6 +62,8 @@ Utilizar [Shape Up (Basecamp)](https://basecamp.com/shapeup) para organizar el t
 2. El documento refinado debe estar libre de errores gramaticales y ortográficos.
 3. El documento refinado debe ser conciso y directo, evitando redundancias e información innecesaria.
 4. El documento refinado debe mantener el contenido original, mejorando únicamente su calidad y claridad.
+5. **Cuando exista un prototipo funcional**, el prototipo es la fuente de verdad. El refinamiento debe reflejar lo que el prototipo implementa, no solo lo que el documento original describe. Las discrepancias entre el documento y el prototipo se resuelven a favor del prototipo, salvo indicación explícita del usuario.
+6. **Versiones `-v2`**: Si un documento ya tiene una versión refinada y el prototipo ha evolucionado significativamente, se crea una nueva versión con sufijo `-v2` (o superior) en lugar de sobreescribir el archivo existente. Esto preserva el historial de refinamientos.
 
 ## Comportamiento del Agente ante Ambigüedades
 El agente nunca debe suponer. Si existe cualquier duda sobre:

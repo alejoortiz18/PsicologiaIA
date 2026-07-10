@@ -1,0 +1,65 @@
+@model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
+@using Trebol.Model.DTOs.Directorio
+@using Trebol.Model.DTOs.Common
+@{
+    ViewData["Title"] = "Psicólogos";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var items = Model.ToList();
+    var filtro = ViewBag.Filtro as FiltroDirectorioDto ?? new FiltroDirectorioDto();
+    var pag = ViewBag.Paginacion as PaginacionVm ?? new PaginacionVm();
+    var esPro = User.IsInRole("Profesional");
+
+    ViewData["DirectorioTitulo"] = "Psicólogos";
+    ViewData["DirectorioSubtitulo"] = "Psicólogos y profesionales de salud mental certificados.";
+    ViewData["DirectorioPaginaActual"] = "Psicólogos";
+    ViewData["Stat1Icon"] = "🧠";
+    ViewData["Stat1Label"] = "Psicólogos";
+    ViewData["Stat1Value"] = pag.TotalRegistros.ToString();
+    ViewData["Stat2Icon"] = "⭐";
+    ViewData["Stat2Label"] = "Con calificación";
+    ViewData["Stat2Value"] = items.Count(p => p.Calificacion.HasValue).ToString();
+    ViewData["Stat3Icon"] = esPro ? "📍" : "❤️";
+    ViewData["Stat3Label"] = esPro ? "Con ciudad registrada" : "Profesionales que sigues";
+    ViewData["Stat3Value"] = esPro
+        ? items.Count(p => !string.IsNullOrEmpty(p.Ciudad)).ToString()
+        : items.Count(p => p.EsSeguido).ToString();
+    ViewData["FiltroPlaceholder"] = "Buscar por nombre, especialidad u ocupación...";
+    ViewBag.Ciudades = items.Where(p => !string.IsNullOrWhiteSpace(p.Ciudad))
+        .Select(p => p.Ciudad!).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(c => c);
+}
+
+@await Html.PartialAsync("_EncabezadoDirectorio")
+@await Html.PartialAsync("_StatsDirectorio")
+@await Html.PartialAsync("_FiltrosDirectorio", filtro)
+
+<div class="directorio-results-info" id="results-info">
+    Mostrando @pag.Desde–@pag.Hasta de @pag.TotalRegistros registros
+</div>
+
+@await Html.PartialAsync("_ListaProfesionales", Model)
+
+@await Html.PartialAsync("_PaginacionDirectorio", pag)
+
+@section Scripts {
+@Html.AntiForgeryToken()
+@await Html.PartialAsync("_DirectorioScripts")
+<script>
+(function () {
+  const search = document.getElementById('filter-search');
+  const list = document.getElementById('prof-list');
+  const info = document.getElementById('results-info');
+  if (!search || !list) return;
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    let visible = 0;
+    list.querySelectorAll('.prof-card').forEach(card => {
+      const n = card.getAttribute('data-nombre') || '';
+      const show = !q || n.includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    if (info) info.textContent = 'Mostrando ' + visible + ' de ' + list.querySelectorAll('.prof-card').length + ' registros en esta página';
+  });
+})();
+</script>
+}

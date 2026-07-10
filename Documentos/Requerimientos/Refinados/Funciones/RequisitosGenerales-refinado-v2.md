@@ -47,15 +47,20 @@ Disponible tras iniciar sesión:
 
 | Módulo | Funcionalidades principales |
 |---|---|
-| Dashboard personal | Resumen de citas, eventos inscritos y salas próximas |
-| Buscar profesionales | Búsqueda por nombre, cédula y especialidad |
-| Agendar sesiones | Selección de horario en el calendario del profesional |
+| Dashboard personal | Tarjetas: Eventos inscritos, Próximas citas, Sala más próxima, Mis mentores. Tabla de próximas citas. Sección de eventos de hoy. Galeria de salas abiertas. |
+| Buscar profesionales | Búsqueda en directorios: Especialistas y Psicólogos (por nombre, especialidad, ciudad, orden) |
+| Mis mentores | Listado de profesionales seguidos con fecha de inicio y opción de dejar de seguir |
+| Agendar sesiones | Selección de horario en el calendario del profesional (vistas Mensual/Semanal/Diaria) |
+| Pago de cita privada | Checkout con Tarjeta / PSE / Nequi, vista previa de tarjeta en tiempo real |
+| Salas y eventos | Exploración, filtrado e inscripción a eventos públicos (wizard de 3 pasos) |
+| Sala de cita privada | Cámara, micrófono, chat, control de alias, nota privada, recomendaciones del profesional |
+| Sala de conferencia | Transmisión en vivo, preguntas anónimas, mensaje privado al ponente |
 | Historial de sesiones | Registro de citas anteriores y su estado |
-| Salas y eventos | Exploración, filtrado e inscripción a eventos |
 | Pagos | Historial de transacciones y comprobantes |
-| Opiniones | Comentarios sobre eventos y profesionales |
-| Configuración | Datos personales y preferencias |
-| Privacidad | Gestión de alias y anonimato |
+| Mensajería | Conversaciones con profesionales (no con otros usuarios) |
+| Calendario personal | Vistas Semanal/Diaria de citas y eventos inscritos con indicadores de color |
+| Configuración | Datos personales (alias y celular editables) y foto de perfil |
+| Privacidad | Gestión de alias y anonimato en citas de tipo asesoría |
 
 ---
 
@@ -63,28 +68,28 @@ Disponible tras iniciar sesión:
 
 | Módulo | Funcionalidades principales |
 |---|---|
-| **Dashboard profesional** | Panel con métricas: ingresos, seguidores, eventos, saldo pendiente |
-| **Agenda** | Calendario con disponibilidad configurable y citas programadas |
-| **Pacientes** | Listado de usuarios atendidos, historial y derivaciones |
-| **Historial clínico** | Registro de seguimiento, recomendaciones y medicamentos por sesión |
-| **Salas** | Creación, configuración y administración de salas |
-| **Conferencias** | Eventos públicos (pagos o gratuitos) asociados a salas |
+| **Dashboard profesional** | Tarjetas: Citas hoy, Mis eventos hoy, Citas próximas, Seguidores. Tabla de citas del día. Eventos de hoy con acceso directo. Eventos de colegas agrupados por proximidad. |
+| **Agenda** | Calendario propio (vistas Mensual/Semanal/Diaria) con disponibilidad configurable y citas programadas |
+| **Citas privadas** | Gestión de citas (Próximas / Historial), filtros, nueva cita, ingresar a sala en vivo |
+| **Sala de cita privada** | Cámara, micrófono, chat, panel clínico (Sesión / Recomendaciones), mover cita, finalizar |
+| **Salas** | Creación, configuración, administración y duplicación de salas |
+| **Sala de conferencia** | Transmisión en vivo, toggle de preguntas, lista de asistentes, mensajes privados, finalizar |
+| **Mis eventos** | Panel KPI (salas, inscritos, ingresos del mes), sección de eventos de hoy, tabla con filtros |
+| **Indicadores (KPI)** | Métricas de consultas, clientes, ingresos, saldo por pagar, salas y eventos por período |
+| **Mis colegas** | Colegas vinculados, pacientes compartidos, derivaciones activas, desvincular |
 | **Pagos e ingresos** | Control de ingresos, comisiones y configuración bancaria |
-| **Perfil profesional** | Información personal, estudios, experiencia y presentación pública |
-| **Mensajería** | Comunicación directa con otros profesionales |
+| **Perfil profesional** | 5 tabs: Información personal, Salas y eventos, Calendario, Citas, Indicadores |
+| **Mensajería** | Comunicación con usuarios y otros profesionales; etiquetas de rol por contacto |
 | **Derivaciones** | Traslado de pacientes a otros especialistas con compartición controlada de datos |
 
 **Métricas del dashboard profesional:**
 
 | Métrica | Descripción |
 |---|---|
-| Total de ingresos | Suma acumulada de pagos recibidos en la plataforma |
-| Eventos creados | Número total de salas y sesiones generadas |
+| Citas hoy | Número de citas del día actual |
+| Mis eventos hoy | Salas que se realizan hoy |
+| Citas próximas | Total de citas próximas agendadas |
 | Seguidores | Usuarios que siguen al profesional |
-| Me gusta | Total de reacciones recibidas |
-| Total cobrado por la plataforma | Comisión retenida acumulada |
-| Saldo a favor (próximo pago) | Monto pendiente de transferencia al profesional |
-| Próximos eventos | Cantidad y listado de los próximos eventos propios |
 
 ---
 
@@ -92,8 +97,9 @@ Disponible tras iniciar sesión:
 
 | Módulo | Responsabilidad |
 |---|---|
+| Bandeja de notificaciones | Interfaz tipo cliente de correo para gestionar solicitudes de registro profesional y alertas del sistema. Carpetas: Recibidos, Registros profesionales, Leídos. |
+| Verificación profesional | Aprobar (activa la cuenta y envía enlace de contraseña) o rechazar (con motivo obligatorio) solicitudes de registro |
 | Moderación | Gestión de contenido, reportes y bloqueos |
-| Verificación profesional | Revisión y aprobación de documentos de identidad y tarjeta profesional |
 | Finanzas | Comisiones, liquidaciones y pagos a profesionales |
 | Soporte | Atención de incidencias y resolución de problemas |
 | Auditoría | Trazabilidad de acciones críticas del sistema |

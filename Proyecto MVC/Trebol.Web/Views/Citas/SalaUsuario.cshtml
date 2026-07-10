@@ -1,0 +1,177 @@
+@model Trebol.Model.DTOs.Sala.SalaCitaUsuarioDto
+@using Trebol.Model.Enums
+@{
+    Layout = "~/Views/Shared/_LayoutSala.cshtml";
+    ViewData["Title"] = "Cita en curso";
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var iniPro = string.Join("", (Model.NombreProfesional ?? "??").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    var tipoLabel = Model.Tipo == TipoCita.Asesoria ? "Asesoría individual" : "Seguimiento psicológico";
+    var estadoLabel = Model.Estado switch
+    {
+        EstadoCita.Programada => "Confirmada",
+        EstadoCita.Movida => "Reprogramada",
+        _ => Model.Estado.ToString()
+    };
+    var recomendTexto = Model.RecomendacionContenido ?? "";
+    var recomendFecha = Model.RecomendacionFecha.HasValue
+        ? Model.RecomendacionFecha.Value.ToString("d MMM yyyy · h:mm tt", cultura)
+        : "";
+    var notaTexto = Model.NotaPrivadaContenido ?? "";
+    var notaFecha = Model.NotaPrivadaFecha.HasValue
+        ? Model.NotaPrivadaFecha.Value.ToString("d MMM yyyy · h:mm tt", cultura)
+        : "";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/sala-usuario.css" asp-append-version="true" />
+}
+
+<div class="cita-layout cita-layout--usuario" role="main">
+    <header class="cita-header" role="banner">
+        <a asp-controller="Citas" asp-action="Index" class="cita-header__logo" aria-label="Volver a mis citas">
+            🍀 Trébol
+        </a>
+        <div class="cita-header__info">
+            <div class="cita-header__session-name" aria-live="polite">
+                @(Model.Tipo == TipoCita.Asesoria ? "Asesoría" : "Sesión") con @Model.NombreProfesional
+            </div>
+            <div class="cita-header__badge">
+                <div class="live-dot" aria-hidden="true"></div>
+                En curso
+            </div>
+        </div>
+        <div class="cita-timer" id="session-timer" role="timer" aria-label="Tiempo de sesión">00:00:00</div>
+    </header>
+
+    <div class="cita-video-area">
+        <div class="cita-main-video" aria-label="Video del profesional">
+            <div class="video-placeholder" role="img" aria-label="Cámara de @Model.NombreProfesional desactivada">
+                @if (!string.IsNullOrEmpty(Model.FotoProfesional))
+                {
+                    <div class="video-placeholder__avatar" style="background-image:url('@Model.FotoProfesional');background-size:cover;background-position:center;" aria-hidden="true"></div>
+                }
+                else
+                {
+                    <div class="video-placeholder__avatar" aria-hidden="true">@iniPro</div>
+                }
+                <div class="video-placeholder__name">@Model.NombreProfesional</div>
+                <div style="font-size:0.8125rem;color:rgba(255,255,255,0.4);">Cámara desactivada</div>
+            </div>
+        </div>
+        <div class="cita-self-cam" aria-label="Tu cámara">
+            <div style="text-align:center;">
+                <div style="font-size:1.5rem;">📷</div>
+                <div style="margin-top:4px;">Tu cámara</div>
+            </div>
+        </div>
+        <div class="cita-controls" role="toolbar" aria-label="Controles de sesión">
+            <button type="button" class="ctrl-btn ctrl-btn--normal" onclick="toggleSalaControl(this,'cam')" aria-label="Activar/desactivar cámara" aria-pressed="true" title="Cámara">📷</button>
+            <button type="button" class="ctrl-btn ctrl-btn--normal" onclick="toggleSalaControl(this,'mic')" aria-label="Silenciar/activar micrófono" aria-pressed="true" title="Micrófono">🎤</button>
+            <button type="button" class="ctrl-btn ctrl-btn--normal" data-activar-tab="panel-chat" aria-label="Abrir chat de sesión" title="Mensajes">💬</button>
+        </div>
+    </div>
+
+    <aside class="cita-side-panel" aria-label="Panel de sesión">
+        <div class="cita-panel-header">
+            <div class="cita-panel-title">Sesión activa</div>
+            <div class="cita-panel-value">@tipoLabel</div>
+        </div>
+        <div class="cita-panel-tabs" role="tablist">
+            <button type="button" class="cita-panel-tab active" data-panel-tab="panel-sesion" role="tab" aria-selected="true">Sesión</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-chat" role="tab" aria-selected="false">Chat</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-recomend" role="tab" aria-selected="false">Recomend.</button>
+            <button type="button" class="cita-panel-tab" data-panel-tab="panel-nota" role="tab" aria-selected="false">Nota</button>
+        </div>
+
+        <div id="panel-sesion" data-panel-content class="cita-panel-body cita-tab-content active" role="tabpanel">
+            <div class="cita-section-title">Información de la cita</div>
+            <div class="cita-info-grid" style="margin-bottom:var(--sp-5);">
+                <div class="cita-info-row">
+                    <span class="cita-info-label">📅 Fecha</span>
+                    <span class="cita-info-value">@Model.FechaHora.ToString("d MMM yyyy", cultura)</span>
+                </div>
+                <div class="cita-info-row">
+                    <span class="cita-info-label">🕒 Hora</span>
+                    <span class="cita-info-value">@Model.FechaHora.ToString("h:mm tt", cultura) – @Model.FechaHoraFin.ToString("h:mm tt", cultura)</span>
+                </div>
+                <div class="cita-info-row">
+                    <span class="cita-info-label">🔒 Estado</span>
+                    <span class="cita-info-value" style="color:#4CAF50;">@estadoLabel</span>
+                </div>
+                <div class="cita-info-row">
+                    <span class="cita-info-label">⏱ Duración</span>
+                    <span class="cita-info-value">@Model.DuracionMinutos minutos</span>
+                </div>
+            </div>
+
+            <div class="cita-section-title">Privacidad</div>
+            <label class="anon-toggle">
+                <div class="toggle-switch">
+                    <input type="checkbox" id="anon-toggle" @(Model.MostrarAlias ? "checked" : "")
+                           aria-label="Usar alias en lugar de mi nombre real" />
+                    <span class="toggle-slider"></span>
+                </div>
+                <div>
+                    Mostrar alias <strong style="color:white;">@Model.AliasUsuario</strong>
+                    <div style="font-size:0.75rem;margin-top:2px;color:rgba(255,255,255,0.4);">El profesional verá tu alias en el chat</div>
+                </div>
+            </label>
+        </div>
+
+        <div id="panel-chat" data-panel-content class="cita-tab-content cita-chat-panel" role="tabpanel">
+            <div id="cita-chat-feed" class="conf-chat-feed conf-msg-list" aria-live="polite">
+                <div class="cita-chat-welcome">Escribe al profesional durante la sesión.</div>
+            </div>
+            <div class="conf-chat-input-row">
+                <input type="text" id="cita-chat-input" class="form-control" placeholder="Escribe un mensaje..." maxlength="500" aria-label="Escribe un mensaje de chat" />
+                <button type="button" id="cita-chat-send" class="btn btn-primary btn-sm" aria-label="Enviar mensaje">Enviar</button>
+            </div>
+        </div>
+
+        <div id="panel-recomend" data-panel-content class="cita-panel-body cita-tab-content" role="tabpanel">
+            <div class="cita-section-title">Recomendaciones del profesional</div>
+            <textarea class="cita-textarea" id="recomendaciones-pro" readonly
+                      aria-label="Recomendaciones del profesional (solo lectura)" aria-readonly="true"
+                      placeholder="El profesional aún no ha registrado recomendaciones para esta sesión.">@recomendTexto</textarea>
+            <div id="recomend-pro-meta" style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:6px;">
+                @(string.IsNullOrEmpty(recomendFecha) ? "Sin recomendaciones registradas aún." : $"Actualizado el {recomendFecha}")
+            </div>
+        </div>
+
+        <div id="panel-nota" data-panel-content class="cita-panel-body cita-tab-content" role="tabpanel">
+            <div class="cita-section-title">Mi nota privada</div>
+            <textarea class="cita-textarea" id="nota-privada-txt" rows="6"
+                      placeholder="Escribe tus notas personales aquí... Solo tú las puedes ver."
+                      aria-label="Tu nota privada de la sesión (solo visible para ti)">@notaTexto</textarea>
+            <div id="nota-privada-meta" style="font-size:0.75rem;color:rgba(255,255,255,0.35);margin-top:6px;">
+                @(string.IsNullOrEmpty(notaFecha) ? "Solo tú puedes ver esta nota." : $"Guardada el {notaFecha}")
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="save-nota-btn" style="margin-top:var(--sp-3);width:100%;"
+                    aria-label="Guardar nota privada">
+                Guardar nota
+            </button>
+        </div>
+    </aside>
+</div>
+
+@await Html.PartialAsync("_ModalNovedadUsuario")
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script>
+  window.citaSalaHub = { citaId: @Model.CitaId, rol: 'usuario' };
+</script>
+<script src="~/js/sala-cita-hub.js" asp-append-version="true"></script>
+<script src="~/js/sala-usuario.js" asp-append-version="true"></script>
+<script src="~/js/novedad-usuario.js" asp-append-version="true"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  initPanelTabs('.cita-panel-tab', 'panelTab');
+  initSalaUsuario({
+    citaId: @Model.CitaId,
+    fechaHoraCita: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FechaHora.ToString("o")))
+  });
+});
+</script>
+}

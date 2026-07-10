@@ -415,6 +415,11 @@ FodyWeavers.xsd
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
+# Cursor Agent (Spec Kit) — estado local y credenciales; sí versionar skills/rules del equipo
+.cursor/*
+!.cursor/skills/
+!.cursor/rules/
+
 # Local History for Visual Studio Code
 .history/
 

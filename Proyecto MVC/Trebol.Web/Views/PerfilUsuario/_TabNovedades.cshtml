@@ -1,0 +1,111 @@
+@model Trebol.Model.DTOs.Usuario.PerfilUsuarioViewModel
+@using Trebol.Constants.Messages
+@{
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var pag = Model.PaginacionNovedades;
+    var tabActivo = ViewBag.TabActiva as string ?? "novedades";
+
+    string BadgeNovedad(string tipo) => tipo switch
+    {
+        "EventoCancelado" or "EventoReprogramado" => "badge-warning",
+        "ProfesionalNoAsistio" or "ProfesionalReportoAusencia" or "ProfesionalNoIngresoEvento" => "badge-danger",
+        _ => "badge-muted"
+    };
+
+    string TextoNovedad(string tipo) => tipo switch
+    {
+        "EventoCancelado" => "Evento cancelado",
+        "EventoReprogramado" => "Evento reprogramado",
+        "ProfesionalNoAsistio" => "Profesional no asistió",
+        "ProfesionalReportoAusencia" => "Reporte de ausencia",
+        "ProfesionalNoIngresoEvento" => "Ponente no ingresó",
+        _ => tipo
+    };
+}
+
+<div id="tab-novedades" class="tab-content @(tabActivo == "novedades" ? "active" : "")" role="tabpanel" aria-labelledby="tab-btn-novedades">
+    <section class="perfil-usuario-card perfil-usuario-card--flush">
+        <div style="padding:var(--sp-5) var(--sp-6);">
+            <h2 class="perfil-usuario-card__title">Novedades</h2>
+            <p class="text-meta">Decisiones pendientes sobre eventos y citas.</p>
+        </div>
+
+        @if (Model.Novedades.Any())
+        {
+            <div style="overflow-x:auto;">
+                <table aria-label="Novedades pendientes">
+                    <thead>
+                        <tr>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Tipo</th>
+                            <th scope="col">Título</th>
+                            <th scope="col">Detalle</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var n in Model.Novedades)
+                        {
+                            <tr>
+                                <td>@n.FechaCreacion.ToString("d MMM yyyy", cultura)</td>
+                                <td><span class="badge @BadgeNovedad(n.TipoNovedad)">@TextoNovedad(n.TipoNovedad)</span></td>
+                                <td>@n.Titulo</td>
+                                <td>@n.Mensaje</td>
+                                <td><span class="badge badge-warning">Pendiente</span></td>
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm btn-resolver-novedad-tab"
+                                            data-novedad-id="@n.NovedadUsuarioId"
+                                            data-titulo="@n.Titulo"
+                                            data-mensaje="@n.Mensaje"
+                                            data-tipo="@n.TipoNovedad"
+                                            data-entidad-tipo="@n.EntidadTipo"
+                                            data-tiene-pago="@(n.TienePagoAprobado ? "true" : "false")">
+                                        Resolver
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="perfil-usuario-pagination">
+                <span class="text-meta">Mostrando @pag.Desde–@pag.Hasta de @pag.TotalRegistros registros</span>
+                @if (pag.TotalPaginas > 1)
+                {
+                    <nav class="pagination" role="navigation" aria-label="Paginación de novedades">
+                        @if (pag.PaginaActual > 1)
+                        {
+                            <a class="pagination__btn" asp-action="Index" asp-route-tab="novedades"
+                               asp-route-paginaNovedades="@(pag.PaginaActual - 1)">‹</a>
+                        }
+                        @for (var p = 1; p <= pag.TotalPaginas; p++)
+                        {
+                            if (p == pag.PaginaActual)
+                            {
+                                <span class="pagination__btn active" aria-current="page">@p</span>
+                            }
+                            else
+                            {
+                                <a class="pagination__btn" asp-action="Index" asp-route-tab="novedades"
+                                   asp-route-paginaNovedades="@p">@p</a>
+                            }
+                        }
+                        @if (pag.PaginaActual < pag.TotalPaginas)
+                        {
+                            <a class="pagination__btn" asp-action="Index" asp-route-tab="novedades"
+                               asp-route-paginaNovedades="@(pag.PaginaActual + 1)">›</a>
+                        }
+                    </nav>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="mis-saldos-empty-state">
+                <div class="mis-saldos-empty-state__icon" aria-hidden="true">🔔</div>
+                <p>No tienes novedades pendientes.</p>
+            </div>
+        }
+    </section>
+</div>

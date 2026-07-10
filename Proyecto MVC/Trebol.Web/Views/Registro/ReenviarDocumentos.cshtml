@@ -1,0 +1,138 @@
+@model ReenviarDocumentosViewModel
+@{
+    ViewData["Title"] = "Reenviar documentos";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+}
+
+@section Styles {
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+</style>
+}
+
+<div class="auth-layout">
+
+  <div class="auth-panel auth-panel--left" aria-hidden="true">
+    <div class="auth-illustration">
+      <div class="auth-illustration__tag">📎 Reenviar documentos</div>
+      <h1 class="auth-illustration__title">
+        Corrige y<br>vuelve a<br><em>intentarlo</em>
+      </h1>
+      <p class="auth-illustration__text">
+        Sube los documentos corregidos para que el equipo de Trébol pueda revisar tu solicitud nuevamente.
+      </p>
+      <div style="background:rgba(82,183,136,.15);border:1px solid rgba(82,183,136,.3);border-radius:var(--radius-lg);padding:var(--sp-5);margin-top:var(--sp-6);">
+        <div style="font-weight:600;color:white;margin-bottom:var(--sp-2);">📋 Requisitos</div>
+        <p style="color:rgba(255,255,255,.7);font-size:.875rem;line-height:1.65;margin:0;">
+          Asegúrate de que los documentos sean legibles, estén vigentes y en formato PDF (máximo 5 MB).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-panel auth-panel--right">
+    <div class="auth-form">
+      <a asp-controller="Landing" asp-action="Index" class="auth-form__logo">
+        <div class="auth-form__logo-icon">🍀</div>
+        <span class="auth-form__logo-name">Trébol</span>
+      </a>
+
+      <h2 class="auth-form__title">Reenviar documentos</h2>
+      <p class="auth-form__subtitle">Sube los documentos corregidos para nueva revisión.</p>
+
+      @if (TempData["Mensaje"] != null)
+      {
+        <div class="form-success" style="margin-bottom:var(--sp-4);">@TempData["Mensaje"]</div>
+      }
+
+      <form asp-controller="Registro" asp-action="ReenviarDocumentos" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+        <div class="form-group">
+          <label asp-for="Correo" class="form-label">
+            Correo electrónico registrado <span class="required" aria-hidden="true">*</span>
+          </label>
+          <input asp-for="Correo" class="form-control" type="email"
+                 placeholder="correo@ejemplo.com"
+                 autocomplete="email" aria-required="true" />
+          <div class="form-hint">Debe coincidir con el correo con que te registraste.</div>
+          <span asp-validation-for="Correo" class="form-error"></span>
+        </div>
+
+        <div style="background:rgba(82,183,136,.08);border:1px solid rgba(82,183,136,.25);border-radius:var(--radius-lg);padding:var(--sp-4) var(--sp-5);margin-bottom:var(--sp-5);">
+          <p style="margin:0;font-size:.8125rem;color:var(--color-text-muted);line-height:1.6;">
+              <strong style="color:var(--color-text);">📋 Documentos requeridos:</strong>
+              debes adjuntar fotocopia de tu <strong>cédula de ciudadanía</strong> y fotocopia de tu
+              <strong>tarjeta profesional</strong> vigente, ambos en formato PDF (máx. 5 MB cada uno).
+          </p>
+        </div>
+
+        <!-- Fotocopia cédula -->
+        <div class="form-group">
+          <label asp-for="FotocopiaCedula" class="form-label">
+            Fotocopia cédula de ciudadanía <span class="required" aria-hidden="true">*</span>
+          </label>
+          <div class="file-upload-area" id="area-cedula-r"
+               onclick="document.getElementById('file-cedula-r').click()"
+               role="button" tabindex="0" aria-label="Seleccionar PDF de cédula"
+               onkeydown="if(event.key==='Enter'||event.key===' ')this.click();">
+            <span class="file-upload-area__icon">🪪</span>
+            <div class="file-upload-area__text">Subir fotocopia de la cédula</div>
+            <div class="file-upload-area__hint">PDF · Máximo 5 MB</div>
+            <div class="file-upload-area__name" id="name-cedula-r" style="display:none;"></div>
+          </div>
+          <input asp-for="FotocopiaCedula" id="file-cedula-r" class="form-control" type="file"
+                 accept=".pdf" style="display:none;" aria-hidden="true"
+                 onchange="fileSelected(this,'name-cedula-r','area-cedula-r')" />
+          <span asp-validation-for="FotocopiaCedula" class="form-error"></span>
+        </div>
+
+        <!-- Fotocopia tarjeta profesional -->
+        <div class="form-group">
+          <label asp-for="FotocopiaTarjeta" class="form-label">
+            Fotocopia tarjeta profesional <span class="required" aria-hidden="true">*</span>
+          </label>
+          <div class="file-upload-area" id="area-tarjeta-r"
+               onclick="document.getElementById('file-tarjeta-r').click()"
+               role="button" tabindex="0" aria-label="Seleccionar PDF de tarjeta profesional"
+               onkeydown="if(event.key==='Enter'||event.key===' ')this.click();">
+            <span class="file-upload-area__icon">🏅</span>
+            <div class="file-upload-area__text">Subir fotocopia de la tarjeta profesional</div>
+            <div class="file-upload-area__hint">PDF · Máximo 5 MB</div>
+            <div class="file-upload-area__name" id="name-tarjeta-r" style="display:none;"></div>
+          </div>
+          <input asp-for="FotocopiaTarjeta" id="file-tarjeta-r" class="form-control" type="file"
+                 accept=".pdf" style="display:none;" aria-hidden="true"
+                 onchange="fileSelected(this,'name-tarjeta-r','area-tarjeta-r')" />
+          <span asp-validation-for="FotocopiaTarjeta" class="form-error"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full">
+          <span class="btn-text">Enviar documentos →</span>
+        </button>
+      </form>
+
+      <div class="auth-footer-link" style="margin-top:var(--sp-5);">
+        <a asp-controller="Login" asp-action="Index" style="color:var(--color-text-muted);font-size:.8125rem;">← Ir al inicio de sesión</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+@section Scripts {
+  <partial name="_ValidationScriptsPartial" />
+  <script>
+  function fileSelected(input, nameId, areaId) {
+      if (!input.files.length) return;
+      var name = document.getElementById(nameId);
+      var area = document.getElementById(areaId);
+      name.textContent = '📎 ' + input.files[0].name;
+      name.style.display = 'block';
+      area.style.borderColor = 'var(--color-primary)';
+      area.style.background  = 'rgba(82,183,136,.08)';
+  }
+  </script>
+}

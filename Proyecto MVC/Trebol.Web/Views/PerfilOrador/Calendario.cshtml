@@ -1,0 +1,92 @@
+@model Trebol.Model.DTOs.PerfilOrador.PerfilOradorPublicoVm
+@{
+    Layout = "~/Views/PerfilOrador/_PerfilOradorLayout.cshtml";
+    var p = Model.Perfil;
+    var cultura = new System.Globalization.CultureInfo("es-CO");
+    var tarifaTxt = p.TarifaCita.HasValue ? p.TarifaCita.Value.ToString("C0", cultura) : "consultar tarifa";
+    var nombresDia = new Dictionary<byte, string>
+    {
+        [0] = "Dom", [1] = "Lun", [2] = "Mar", [3] = "Mié", [4] = "Jue", [5] = "Vie", [6] = "Sáb"
+    };
+    var horarios = Model.Disponibilidad.Where(h => h.Estado).OrderBy(h => h.DiaSemana).ToList();
+    var partesHorario = horarios.Select(h =>
+        $"{nombresDia.GetValueOrDefault(h.DiaSemana, "?")} {h.HoraInicio:HH:mm}–{h.HoraFin:HH:mm}");
+    var resumenHorario = partesHorario.Any()
+        ? string.Join(" · ", partesHorario)
+        : "según disponibilidad del profesional";
+}
+
+@section PerfilStyles {
+    <link rel="stylesheet" href="~/css/perfil-orador-calendario.css" asp-append-version="true" />
+}
+
+<div id="tab-calendario">
+    <div class="perfil-orador-info-banner" id="info-banner">
+        <span style="font-size:1.2rem;flex-shrink:0;" aria-hidden="true">📋</span>
+        <div class="perfil-orador-info-banner__text">
+            <strong>Agenda una cita privada con @p.NombreCompleto</strong><br />
+            Selecciona un horario libre en el calendario. Verde/blanco = disponible · Morado = ocupado (sin detalle ajeno) · Rosa = tu cita · Teal = charla o evento público.<br />
+            Horario: <strong>@resumenHorario</strong> · Sesiones de 1 hora · Tarifa referencia: <strong>@tarifaTxt</strong>.
+        </div>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" style="flex-shrink:0;" onclick="document.getElementById('info-banner')?.remove()" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="perfil-orador-calendar-wrap">
+        <div class="tcal-toolbar">
+            <button type="button" class="btn btn-ghost btn-sm" id="tcal-hoy">Hoy</button>
+            <div class="tcal-nav-group">
+                <button type="button" class="tcal-nav-btn" id="tcal-prev" aria-label="Anterior">‹</button>
+                <button type="button" class="tcal-nav-btn" id="tcal-next" aria-label="Siguiente">›</button>
+            </div>
+            <div class="tcal-nav-title" id="tcal-nav-title">Cargando…</div>
+            <div style="flex:1;"></div>
+            <div class="tcal-view-pills" role="group" aria-label="Vista del calendario">
+                <button type="button" class="tcal-vpill" data-view="mensual" aria-pressed="false">Mes</button>
+                <button type="button" class="tcal-vpill active" data-view="semanal" aria-pressed="true">Semana</button>
+                <button type="button" class="tcal-vpill" data-view="diario" aria-pressed="false">Día</button>
+            </div>
+        </div>
+        <div class="tcal-legend" aria-label="Leyenda">
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--free"></div>
+                Disponible — clic para agendar
+            </div>
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--busy"></div>
+                Ocupado
+            </div>
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--mine"></div>
+                Mi cita (detalle visible)
+            </div>
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--public"></div>
+                Charla / evento público
+            </div>
+            <div class="tcal-legend-item">
+                <div class="tcal-lswatch tcal-lswatch--off"></div>
+                No disponible
+            </div>
+        </div>
+        <div id="tcal-content" role="region" aria-live="polite" aria-label="Calendario de disponibilidad"></div>
+    </div>
+</div>
+
+@section PerfilScripts {
+    <script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
+    <script>
+        window.perfilOradorCal = {
+            profesionalId: @p.ProfesionalId,
+            usuarioId: @(ViewBag.UsuarioActualId?.ToString() ?? "null"),
+            miProfesionalId: @(ViewBag.MiProfesionalId?.ToString() ?? "null"),
+            esVistaPropietario: @(ViewBag.EsVistaPropietario == true ? "true" : "false"),
+            esVistaUsuario: false,
+            puedeAgendar: @((User.IsInRole("Usuario") || (User.IsInRole("Profesional") && ViewBag.EsVistaPropietario != true)) ? "true" : "false"),
+            nuevaCitaUrl: '@Url.Action("SeleccionarTipo", "PagoCita", new { profesionalId = p.ProfesionalId })',
+            disponibilidad: @Html.Raw(ViewBag.DisponibilidadJson ?? "[]"),
+            bloqueos: @Html.Raw(ViewBag.BloqueosJson ?? "[]"),
+            citas: @Html.Raw(ViewBag.CitasSlotsJson ?? "[]")
+        };
+    </script>
+    <script src="~/js/perfil-orador-calendario.js" asp-append-version="true"></script>
+}

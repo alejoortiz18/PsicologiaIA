@@ -1,0 +1,335 @@
+-- Marca EsInscrito para usuario o profesional inscriptor en listados de eventos.
+USE TrebolDB;
+GO
+
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+GO
+
+CREATE OR ALTER PROCEDURE sp_ObtenerEventosColegas
+    @ProfesionalId INT,
+    @Limite        INT = 30
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT TOP (@Limite)
+           s.SalaId,
+           s.ProfesionalId,
+           COALESCE(ev.Nombre, s.Nombre) AS Titulo,
+           p.NombreCompleto AS NombreProfesional,
+           c.Nombre AS Categoria,
+           s.Estado,
+           s.CupoMaximo AS Capacidad,
+           s.Precio,
+           insc.TotalInscritos,
+           ev.FechaInicio,
+           ev.FechaFin,
+           CASE WHEN EXISTS (
+                SELECT 1 FROM Inscripcion i
+                WHERE i.SalaId = s.SalaId
+                  AND i.ProfesionalInscriptorId = @ProfesionalId
+                  AND i.Estado NOT IN (N'Cancelada', N'SinCupos'))
+                THEN 1 ELSE 0 END AS EsInscrito,
+           0 AS EsSeguido,
+           0 AS TotalSeguidos
+    FROM   Sala s
+    JOIN   Profesional p ON p.ProfesionalId = s.ProfesionalId AND p.Estado = N'ACTIVO'
+    LEFT JOIN Categoria c ON c.CategoriaId = s.CategoriaId
+    OUTER APPLY (
+        SELECT COUNT(*) AS TotalInscritos
+        FROM   Inscripcion i
+        WHERE  i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada')
+    ) insc
+    OUTER APPLY (
+        SELECT TOP 1 e.FechaInicio, e.FechaFin, e.Nombre
+        FROM   Evento e
+        WHERE  e.SalaId = s.SalaId AND e.Estado = N'Abierto' AND e.FechaFin >= GETDATE()
+        ORDER  BY e.FechaInicio ASC
+    ) ev
+    WHERE  s.Estado = N'Abierta'
+      AND  s.Tipo = N'Publica'
+      AND  s.ProfesionalId <> @ProfesionalId
+      AND  ev.FechaInicio IS NOT NULL
+    ORDER  BY
+        CASE WHEN CAST(ev.FechaInicio AS DATE) = CAST(GETDATE() AS DATE) THEN 0 ELSE 1 END,
+        ev.FechaInicio ASC,
+        insc.TotalInscritos DESC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_ObtenerSalasHoyPublicas
+    @Limite                  INT = 4,
+    @UsuarioId               INT = NULL,
+    @ProfesionalInscriptorId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT TOP (@Limite)
+           s.SalaId,
+           s.ProfesionalId,
+           COALESCE(ev.Nombre, s.Nombre) AS Titulo,
+           p.NombreCompleto AS NombreProfesional,
+           c.Nombre AS Categoria,
+           s.Estado,
+           s.CupoMaximo AS Capacidad,
+           s.Precio,
+           insc.TotalInscritos,
+           ev.FechaInicio,
+           ev.FechaFin,
+           CASE WHEN EXISTS (
+                SELECT 1 FROM Inscripcion i
+                WHERE i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada', N'SinCupos')
+                  AND (
+                        (@UsuarioId IS NOT NULL AND i.UsuarioId = @UsuarioId)
+                     OR (@ProfesionalInscriptorId IS NOT NULL AND i.ProfesionalInscriptorId = @ProfesionalInscriptorId)
+                  ))
+                THEN 1 ELSE 0 END AS EsInscrito,
+           CASE WHEN @UsuarioId IS NOT NULL AND EXISTS (
+                SELECT 1 FROM Seguidor sg
+                WHERE sg.ProfesionalId = s.ProfesionalId AND sg.UsuarioId = @UsuarioId)
+                THEN 1 ELSE 0 END AS EsSeguido,
+           (SELECT COUNT(*) FROM Seguidor sg WHERE sg.ProfesionalId = s.ProfesionalId) AS TotalSeguidos
+    FROM   Sala s
+    JOIN   Profesional p ON p.ProfesionalId = s.ProfesionalId AND p.Estado = N'ACTIVO'
+    LEFT JOIN Categoria c ON c.CategoriaId = s.CategoriaId
+    OUTER APPLY (
+        SELECT COUNT(*) AS TotalInscritos
+        FROM   Inscripcion i
+        WHERE  i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada')
+    ) insc
+    OUTER APPLY (
+        SELECT TOP 1 e.FechaInicio, e.FechaFin, e.Nombre
+        FROM   Evento e
+        WHERE  e.SalaId = s.SalaId AND e.Estado = N'Abierto' AND e.FechaFin >= GETDATE()
+        ORDER  BY e.FechaInicio ASC
+    ) ev
+    WHERE  s.Estado = N'Abierta' AND s.Tipo = N'Publica'
+      AND  ev.FechaInicio IS NOT NULL
+      AND  CAST(ev.FechaInicio AS DATE) = CAST(GETDATE() AS DATE)
+    ORDER  BY ev.FechaInicio ASC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_ObtenerSalasPublicasPaginadas
+    @CategoriaId             INT = NULL,
+    @Pagina                  INT = 1,
+    @TamanoPagina            INT = 10,
+    @UsuarioId               INT = NULL,
+    @ProfesionalInscriptorId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT s.SalaId,
+           s.ProfesionalId,
+           COALESCE(ev.Nombre, s.Nombre) AS Titulo,
+           p.NombreCompleto AS NombreProfesional,
+           c.Nombre AS Categoria,
+           s.Estado,
+           s.CupoMaximo AS Capacidad,
+           s.Precio,
+           insc.TotalInscritos,
+           ev.FechaInicio,
+           ev.FechaFin,
+           CASE WHEN EXISTS (
+                SELECT 1 FROM Inscripcion i
+                WHERE i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada', N'SinCupos')
+                  AND (
+                        (@UsuarioId IS NOT NULL AND i.UsuarioId = @UsuarioId)
+                     OR (@ProfesionalInscriptorId IS NOT NULL AND i.ProfesionalInscriptorId = @ProfesionalInscriptorId)
+                  ))
+                THEN 1 ELSE 0 END AS EsInscrito,
+           CASE WHEN @UsuarioId IS NOT NULL AND EXISTS (
+                SELECT 1 FROM Seguidor sg
+                WHERE sg.ProfesionalId = s.ProfesionalId AND sg.UsuarioId = @UsuarioId)
+                THEN 1 ELSE 0 END AS EsSeguido,
+           (SELECT COUNT(*) FROM Seguidor sg WHERE sg.ProfesionalId = s.ProfesionalId) AS TotalSeguidos
+    FROM   Sala s
+    JOIN   Profesional p ON p.ProfesionalId = s.ProfesionalId AND p.Estado = N'ACTIVO'
+    LEFT JOIN Categoria c ON c.CategoriaId = s.CategoriaId
+    OUTER APPLY (
+        SELECT COUNT(*) AS TotalInscritos
+        FROM   Inscripcion i
+        WHERE  i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada')
+    ) insc
+    OUTER APPLY (
+        SELECT TOP 1 e.FechaInicio, e.FechaFin, e.Nombre
+        FROM   Evento e
+        WHERE  e.SalaId = s.SalaId AND e.Estado = N'Abierto' AND e.FechaFin >= GETDATE()
+        ORDER  BY e.FechaInicio ASC
+    ) ev
+    WHERE  s.Estado = N'Abierta' AND s.Tipo = N'Publica'
+      AND  ev.FechaInicio IS NOT NULL
+      AND  (@CategoriaId IS NULL OR s.CategoriaId = @CategoriaId)
+    ORDER  BY insc.TotalInscritos DESC, ev.FechaInicio ASC
+    OFFSET (@Pagina - 1) * @TamanoPagina ROWS
+    FETCH  NEXT @TamanoPagina ROWS ONLY;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_ObtenerEventosSemanaUsuario
+    @UsuarioId               INT = NULL,
+    @ProfesionalInscriptorId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET DATEFIRST 1;
+    DECLARE @InicioSemana DATE = DATEADD(DAY, 1 - DATEPART(WEEKDAY, GETDATE()), CAST(GETDATE() AS DATE));
+    DECLARE @FinSemana    DATE = DATEADD(DAY, 6, @InicioSemana);
+
+    SELECT s.SalaId,
+           s.ProfesionalId,
+           COALESCE(ev.Nombre, s.Nombre) AS Titulo,
+           p.NombreCompleto AS NombreProfesional,
+           c.Nombre AS Categoria,
+           s.Estado,
+           s.CupoMaximo AS Capacidad,
+           s.Precio,
+           insc.TotalInscritos,
+           ev.FechaInicio,
+           ev.FechaFin,
+           CASE WHEN EXISTS (
+                SELECT 1 FROM Inscripcion i
+                WHERE i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada', N'SinCupos')
+                  AND (
+                        (@UsuarioId IS NOT NULL AND i.UsuarioId = @UsuarioId)
+                     OR (@ProfesionalInscriptorId IS NOT NULL AND i.ProfesionalInscriptorId = @ProfesionalInscriptorId)
+                  ))
+                THEN 1 ELSE 0 END AS EsInscrito,
+           CASE WHEN @UsuarioId IS NOT NULL AND EXISTS (
+                SELECT 1 FROM Seguidor sg
+                WHERE sg.ProfesionalId = s.ProfesionalId AND sg.UsuarioId = @UsuarioId)
+                THEN 1 ELSE 0 END AS EsSeguido,
+           (SELECT COUNT(*) FROM Seguidor sg WHERE sg.ProfesionalId = s.ProfesionalId) AS TotalSeguidos
+    FROM   Sala s
+    JOIN   Profesional p ON p.ProfesionalId = s.ProfesionalId AND p.Estado = N'ACTIVO'
+    LEFT JOIN Categoria c ON c.CategoriaId = s.CategoriaId
+    OUTER APPLY (
+        SELECT COUNT(*) AS TotalInscritos
+        FROM   Inscripcion i
+        WHERE  i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada')
+    ) insc
+    OUTER APPLY (
+        SELECT TOP 1 e.FechaInicio, e.FechaFin, e.Nombre
+        FROM   Evento e
+        WHERE  e.SalaId = s.SalaId AND e.Estado = N'Abierto' AND e.FechaFin >= GETDATE()
+        ORDER  BY e.FechaInicio ASC
+    ) ev
+    WHERE  s.Estado = N'Abierta' AND s.Tipo = N'Publica'
+      AND  ev.FechaInicio IS NOT NULL
+      AND  CAST(ev.FechaInicio AS DATE) BETWEEN @InicioSemana AND @FinSemana
+    ORDER  BY ev.FechaInicio ASC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_ObtenerTodosEventosVigentes
+    @UsuarioId               INT = NULL,
+    @ProfesionalInscriptorId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT s.SalaId,
+           s.ProfesionalId,
+           COALESCE(ev.Nombre, s.Nombre) AS Titulo,
+           p.NombreCompleto AS NombreProfesional,
+           c.Nombre AS Categoria,
+           s.Estado,
+           s.CupoMaximo AS Capacidad,
+           s.Precio,
+           insc.TotalInscritos,
+           ev.FechaInicio,
+           ev.FechaFin,
+           CASE WHEN EXISTS (
+                SELECT 1 FROM Inscripcion i
+                WHERE i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada', N'SinCupos')
+                  AND (
+                        (@UsuarioId IS NOT NULL AND i.UsuarioId = @UsuarioId)
+                     OR (@ProfesionalInscriptorId IS NOT NULL AND i.ProfesionalInscriptorId = @ProfesionalInscriptorId)
+                  ))
+                THEN 1 ELSE 0 END AS EsInscrito,
+           CASE WHEN @UsuarioId IS NOT NULL AND EXISTS (
+                SELECT 1 FROM Seguidor sg
+                WHERE sg.ProfesionalId = s.ProfesionalId AND sg.UsuarioId = @UsuarioId)
+                THEN 1 ELSE 0 END AS EsSeguido,
+           (SELECT COUNT(*) FROM Seguidor sg WHERE sg.ProfesionalId = s.ProfesionalId) AS TotalSeguidos
+    FROM   Sala s
+    JOIN   Profesional p ON p.ProfesionalId = s.ProfesionalId AND p.Estado = N'ACTIVO'
+    LEFT JOIN Categoria c ON c.CategoriaId = s.CategoriaId
+    OUTER APPLY (
+        SELECT COUNT(*) AS TotalInscritos
+        FROM   Inscripcion i
+        WHERE  i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada')
+    ) insc
+    OUTER APPLY (
+        SELECT TOP 1 e.FechaInicio, e.FechaFin, e.Nombre
+        FROM   Evento e
+        WHERE  e.SalaId = s.SalaId AND e.Estado = N'Abierto' AND e.FechaFin >= GETDATE()
+        ORDER  BY e.FechaInicio ASC
+    ) ev
+    WHERE  s.Estado = N'Abierta' AND s.Tipo = N'Publica'
+      AND  ev.FechaInicio IS NOT NULL
+    ORDER  BY ev.FechaInicio ASC;
+END
+GO
+
+-- Detalle modal (Eventos/Detalle)
+CREATE OR ALTER PROCEDURE sp_ObtenerSalaDetalleUsuario
+    @SalaId                  INT,
+    @UsuarioId               INT = 0,
+    @ProfesionalInscriptorId INT = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT s.SalaId,
+           s.ProfesionalId,
+           COALESCE(ev.Nombre, s.Nombre) AS Titulo,
+           ISNULL(ev.Descripcion, s.Descripcion) AS Descripcion,
+           p.NombreCompleto AS NombreProfesional,
+           p.Ocupacion AS OcupacionOrador,
+           p.FotoPerfil AS FotoOrador,
+           c.Nombre AS Categoria,
+           s.Estado,
+           s.CupoMaximo AS Capacidad,
+           s.Precio,
+           insc.TotalInscritos,
+           ev.FechaInicio,
+           ev.FechaFin,
+           CASE WHEN EXISTS (
+                SELECT 1 FROM Inscripcion i
+                WHERE i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada', N'SinCupos')
+                  AND (
+                        (@UsuarioId > 0 AND i.UsuarioId = @UsuarioId)
+                     OR (@ProfesionalInscriptorId > 0 AND i.ProfesionalInscriptorId = @ProfesionalInscriptorId)
+                  ))
+                THEN 1 ELSE 0 END AS EsInscrito,
+           CASE WHEN @UsuarioId > 0 AND EXISTS (
+                SELECT 1 FROM Seguidor sg
+                WHERE sg.ProfesionalId = s.ProfesionalId AND sg.UsuarioId = @UsuarioId)
+                THEN 1 ELSE 0 END AS EsSeguido,
+           (SELECT COUNT(*) FROM Seguidor sg WHERE sg.ProfesionalId = s.ProfesionalId) AS TotalSeguidos,
+           STUFF((
+               SELECT N', ' + e2.Nombre
+               FROM   ProfesionalEspecialidad pe
+               JOIN   Especialidad e2 ON e2.EspecialidadId = pe.EspecialidadId
+               WHERE  pe.ProfesionalId = p.ProfesionalId
+               FOR XML PATH(''), TYPE
+           ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS EspecialidadesTexto
+    FROM   Sala s
+    JOIN   Profesional p ON p.ProfesionalId = s.ProfesionalId
+    LEFT JOIN Categoria c ON c.CategoriaId = s.CategoriaId
+    OUTER APPLY (
+        SELECT COUNT(*) AS TotalInscritos
+        FROM   Inscripcion i
+        WHERE  i.SalaId = s.SalaId AND i.Estado NOT IN (N'Cancelada')
+    ) insc
+    OUTER APPLY (
+        SELECT TOP 1 e.FechaInicio, e.FechaFin, e.Nombre, e.Descripcion
+        FROM   Evento e
+        WHERE  e.SalaId = s.SalaId AND e.Estado = N'Abierto'
+        ORDER  BY e.FechaInicio ASC
+    ) ev
+    WHERE  s.SalaId = @SalaId AND s.Estado = N'Abierta';
+END
+GO
+
+PRINT N'EsInscrito actualizado para usuario y profesional.';
+GO

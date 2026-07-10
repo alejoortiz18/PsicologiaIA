@@ -1,0 +1,145 @@
+@model RegistroUsuarioViewModel
+@{
+    ViewData["Title"] = "Registro de usuario";
+    Layout = "~/Views/Shared/_LayoutPublico.cshtml";
+}
+
+@section Styles {
+<link rel="stylesheet" href="~/css/catalogo-pais-ciudad.css" asp-append-version="true" />
+<style>
+body { background: var(--color-surface); }
+.public-nav, footer { display: none; }
+</style>
+}
+
+<div class="auth-layout">
+
+    <div class="auth-panel auth-panel--left" aria-hidden="true">
+        <div class="auth-illustration">
+            <div class="auth-illustration__tag">👤 Registro de usuario</div>
+            <h1 class="auth-illustration__title">
+                Comienza tu<br>camino hacia el<br><em>bienestar</em>
+            </h1>
+            <p class="auth-illustration__text">
+                El registro es gratuito. Podrás explorar salas, asistir a conferencias y agendar sesiones privadas con profesionales certificados.
+            </p>
+            <div style="background:rgba(82,183,136,.15);border:1px solid rgba(82,183,136,.3);border-radius:var(--radius-lg);padding:var(--sp-5);margin-top:var(--sp-6);">
+                <div style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);">
+                    <span style="font-size:1.5rem;">🔒</span>
+                    <strong style="color:white;font-size:.9375rem;">Tu privacidad es primero</strong>
+                </div>
+                <p style="color:rgba(255,255,255,.7);font-size:.875rem;line-height:1.65;">
+                    Puedes usar un alias para mantener tu anonimato en la plataforma. Tus datos personales están protegidos bajo la Ley 1581 de 2012.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-panel auth-panel--right" style="align-items:flex-start;padding-top:var(--sp-10);">
+        <div class="auth-form" style="max-width:480px;width:100%;">
+
+            <a asp-controller="Registro" asp-action="SeleccionPerfil" class="auth-form__logo">
+                <div class="auth-form__logo-icon">🍀</div>
+                <span class="auth-form__logo-name">Trébol</span>
+            </a>
+
+            <h2 class="auth-form__title">Crear cuenta</h2>
+            <p class="auth-form__subtitle">Completa el formulario para crear tu cuenta de usuario.</p>
+
+            <form asp-controller="Registro" asp-action="RegistroUsuario" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="form-error" style="margin-bottom:var(--sp-4);"></div>
+
+                <div class="form-section">
+                    <div class="form-section__title">Información personal</div>
+
+                    <div class="form-group">
+                        <label asp-for="NombreCompleto" class="form-label">
+                            Nombre completo <span class="required" aria-hidden="true">*</span>
+                        </label>
+                        <input asp-for="NombreCompleto" class="form-control"
+                               placeholder="Ej: María García López"
+                               autocomplete="name" aria-required="true" />
+                        <span asp-validation-for="NombreCompleto" class="form-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Correo" class="form-label">
+                            Correo electrónico <span class="required" aria-hidden="true">*</span>
+                        </label>
+                        <input asp-for="Correo" class="form-control" type="email"
+                               placeholder="usuario@correo.com"
+                               autocomplete="email" aria-required="true" />
+                        <div class="form-hint">Úsalo para activar tu cuenta y acceder.</div>
+                        <span asp-validation-for="Correo" class="form-error"></span>
+                    </div>
+
+                    <div class="form-row form-row-2">
+                        <div class="form-group">
+                            <label asp-for="NumeroDocumento" class="form-label">
+                                N.° de identificación <span class="required" aria-hidden="true">*</span>
+                            </label>
+                            <input asp-for="NumeroDocumento" class="form-control"
+                                   placeholder="Ej: 1234567890"
+                                   autocomplete="off" aria-required="true" />
+                            <span asp-validation-for="NumeroDocumento" class="form-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Celular" class="form-label">
+                                Número de celular <span class="required" aria-hidden="true">*</span>
+                            </label>
+                            <input asp-for="Celular" class="form-control" type="tel"
+                                   placeholder="Ej: 3001234567"
+                                   autocomplete="tel" aria-required="true" />
+                            <span asp-validation-for="Celular" class="form-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Alias" class="form-label">
+                            Alias / seudónimo <span class="required" aria-hidden="true">*</span>
+                        </label>
+                        <input asp-for="Alias" class="form-control"
+                               placeholder="Ej: Luna Verde"
+                               aria-required="true" />
+                        <div class="form-hint">Tu alias es el nombre visible en la plataforma cuando activas el anonimato.</div>
+                        <span asp-validation-for="Alias" class="form-error"></span>
+                    </div>
+
+                    <partial name="_SelectPaisCiudad" model="new Trebol.Web.ViewModels.Common.SelectPaisCiudadVm { PaisId = Model.PaisId, CiudadId = Model.CiudadId }" />
+                    <span asp-validation-for="PaisId" class="form-error"></span>
+                    <span asp-validation-for="CiudadId" class="form-error"></span>
+                </div>
+
+                <div style="background:var(--color-surface-alt);border-radius:var(--radius-lg);padding:var(--sp-5);margin-bottom:var(--sp-5);border:1px solid var(--color-border-light);">
+                    <div style="display:flex;gap:var(--sp-3);align-items:flex-start;">
+                        <span style="font-size:1.25rem;">📧</span>
+                        <div>
+                            <div style="font-weight:600;font-size:.9rem;margin-bottom:4px;color:var(--color-text-primary);">Activación por correo</div>
+                            <p style="font-size:.8125rem;color:var(--color-text-muted);line-height:1.6;margin:0;">
+                                Después de registrarte, recibirás un enlace para crear tu contraseña. El enlace es válido por <strong>1 hora</strong>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">
+                    <span class="btn-text">Registrarme</span>
+                </button>
+            </form>
+
+            <div class="auth-footer-link" style="margin-top:var(--sp-5);">
+                ¿Ya tienes cuenta? <a asp-controller="Login" asp-action="Index">Iniciar sesión</a>
+            </div>
+            <div class="auth-footer-link" style="margin-top:12px;">
+                <a asp-controller="Registro" asp-action="SeleccionPerfil" style="color:var(--color-text-muted);font-size:.8125rem;">← Volver a selección de perfil</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/catalogo-pais-ciudad.js" asp-append-version="true"></script>
+}

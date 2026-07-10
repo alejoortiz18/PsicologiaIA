@@ -1,0 +1,64 @@
+@model IReadOnlyList<Trebol.Model.DTOs.Publico.EventoPublicoDto>
+@{
+    var colegas = Model ?? [];
+    var hoyColegas = colegas.Where(e => e.FechaInicio?.Date == DateTime.Today).ToList();
+    var semanaColegas = colegas.Where(e =>
+        e.FechaInicio.HasValue
+        && e.FechaInicio.Value.Date > DateTime.Today
+        && e.FechaInicio.Value.Date <= DateTime.Today.AddDays(7)).ToList();
+    var proximosColegas = colegas
+        .Where(e => !hoyColegas.Contains(e) && !semanaColegas.Contains(e))
+        .ToList();
+}
+<div style="background:var(--color-surface);border:1px solid var(--color-border-light);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-sm);">
+    @if (!colegas.Any())
+    {
+        <div style="padding:var(--sp-8);text-align:center;color:var(--color-text-muted);">
+            No hay eventos públicos de otros profesionales en este momento.
+        </div>
+    }
+    else
+    {
+        @if (hoyColegas.Any())
+        {
+            <div style="padding:var(--sp-2) var(--sp-5);background:rgba(229,57,53,.06);border-bottom:1px solid rgba(229,57,53,.15);">
+                <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-danger);">🔴 Hoy — @DateTime.Today.ToString("d MMMM yyyy")</span>
+            </div>
+            @foreach (var ev in hoyColegas)
+            {
+                @await Html.PartialAsync("_EventoPublicoItem", ev)
+            }
+        }
+        @if (semanaColegas.Any())
+        {
+            <div style="padding:var(--sp-2) var(--sp-5);background:rgba(82,183,136,.06);border-top:1px solid var(--color-border-light);border-bottom:1px solid rgba(82,183,136,.2);">
+                <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#2D6A4F;">📅 Esta semana</span>
+            </div>
+            @foreach (var ev in semanaColegas)
+            {
+                @await Html.PartialAsync("_EventoPublicoItem", ev)
+            }
+        }
+        @if (proximosColegas.Any())
+        {
+            <div style="padding:var(--sp-2) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);border-bottom:1px solid var(--color-border-light);">
+                <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-muted);">🗓 Próximamente</span>
+            </div>
+            @foreach (var ev in proximosColegas)
+            {
+                @await Html.PartialAsync("_EventoPublicoItem", ev)
+            }
+        }
+    }
+    <div style="padding:var(--sp-4) var(--sp-5);background:var(--color-surface-alt);border-top:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-3);">
+        <span style="font-size:.8rem;color:var(--color-text-muted);">@(colegas.Count) evento(s) de colegas</span>
+        @if (User.IsInRole("Usuario"))
+        {
+            <a asp-controller="Eventos" asp-action="Index" class="btn btn-ghost btn-sm">Ver todos →</a>
+        }
+        else
+        {
+            <a asp-controller="Directorio" asp-action="Medicos" class="btn btn-ghost btn-sm">Ver directorio →</a>
+        }
+    </div>
+</div>

@@ -1,0 +1,73 @@
+@model IEnumerable<Trebol.Model.DTOs.Sala.SalaDto>
+@{
+    ViewData["Title"] = "Mis Salas";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-6);">
+    <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin:0;">🎬 Mis salas</h1>
+    <button type="button" class="btn btn-primary" data-open-nueva-sala>+ Nueva sala</button>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card" style="padding:var(--sp-12);text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎬</div>
+        <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">No tienes salas creadas</div>
+        <button type="button" class="btn btn-primary" data-open-nueva-sala style="margin-top:var(--sp-4);">Crear sala</button>
+    </div>
+}
+else
+{
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--sp-5);">
+        @foreach (var sala in Model)
+        {
+            <div class="card" style="overflow:hidden;">
+                @if (!string.IsNullOrEmpty(sala.ImagenUrl))
+                {
+                    <img src="@sala.ImagenUrl" style="width:100%;height:160px;object-fit:cover;" alt="sala" />
+                }
+                else
+                {
+                    <div style="height:100px;background:linear-gradient(135deg,var(--color-primary),var(--color-primary-light));display:flex;align-items:center;justify-content:center;font-size:2.5rem;">🎬</div>
+                }
+                <div style="padding:var(--sp-5);">
+                    <div style="font-weight:700;color:var(--color-text-primary);margin-bottom:6px;">@sala.Titulo</div>
+                    <div style="font-size:.8rem;color:var(--color-text-muted);margin-bottom:var(--sp-3);">@sala.Descripcion</div>
+                    <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-4);">
+                        <span class="badge badge-primary">@sala.Tipo</span>
+                        <span class="badge @(sala.Estado.ToString() == "Abierta" ? "badge-success" : "badge-muted")">@sala.Estado</span>
+                        @if (!string.IsNullOrEmpty(sala.Categoria)) { <span class="badge badge-muted">@sala.Categoria</span> }
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-size:.8rem;color:var(--color-text-muted);">👥 @sala.TotalInscritos / @sala.Capacidad</span>
+                        <div style="display:flex;gap:var(--sp-2);">
+                            <a asp-action="Detalle" asp-route-id="@sala.SalaId" class="btn btn-ghost btn-sm">Ver</a>
+                            @if (sala.Estado.ToString() == "Abierta")
+                            {
+                                <a asp-action="Editar" asp-route-id="@sala.SalaId" class="btn btn-primary btn-sm">Editar</a>
+                                <button class="btn btn-secondary btn-sm" onclick="cerrarSala(@sala.SalaId)">Cerrar</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+<script>
+function cerrarSala(salaId) {
+    if (!confirm('¿Deseas cerrar esta sala?')) return;
+    fetch('/Salas/Cerrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value ?? '' },
+        body: `salaId=${salaId}`
+    })
+    .then(r => r.json())
+    .then(d => { alert(d.mensaje); if (d.exito) location.reload(); });
+}
+</script>
+@Html.AntiForgeryToken()
+}

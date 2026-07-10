@@ -1,0 +1,86 @@
+@model Trebol.Model.DTOs.Dashboard.MisEventosUsuarioVm
+@{
+    ViewData["Title"] = "Mis eventos";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var tieneVigentes = Model.EventosVigentes.Any();
+    var tieneCerrados = Model.EventosCerrados.Any();
+    var tieneAlguno = tieneVigentes || tieneCerrados;
+}
+
+<div class="page-header mb-6">
+    <h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;">🎪 Mis eventos</h1>
+    <p class="text-meta" style="margin-top:4px;">Tus inscripciones vigentes y el historial de eventos finalizados.</p>
+</div>
+
+@if (!tieneAlguno)
+{
+    <div class="card" style="padding:var(--sp-12);text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--sp-4);">🎪</div>
+        <div style="font-weight:600;color:var(--color-text-primary);margin-bottom:8px;">No estás inscrito en ningún evento</div>
+        <div style="color:var(--color-text-muted);font-size:.875rem;">Explora las salas disponibles y únete a conferencias.</div>
+        <div style="margin-top:var(--sp-6);">
+            <a asp-controller="Eventos" asp-action="Index" class="btn btn-primary">Ver eventos</a>
+        </div>
+    </div>
+}
+else
+{
+    <section class="mb-8" aria-labelledby="mis-eventos-vigentes-heading">
+        <div class="home-section-head">
+            <h2 id="mis-eventos-vigentes-heading" style="color:var(--color-primary);font-family:var(--font-display);">
+                🎫 Mis eventos inscritos
+            </h2>
+            @if (tieneVigentes)
+            {
+                <span class="text-meta">@Model.EventosVigentes.Count evento@(Model.EventosVigentes.Count == 1 ? "" : "s") vigente@(Model.EventosVigentes.Count == 1 ? "" : "s")</span>
+            }
+        </div>
+        @if (tieneVigentes)
+        {
+            <div class="rooms-grid">
+                @foreach (var sala in Model.EventosVigentes)
+                {
+                    @await Html.PartialAsync("_SalaRoomCardUsuario", sala)
+                }
+            </div>
+        }
+        else
+        {
+            <div class="card" style="padding:var(--sp-8);text-align:center;">
+                <p style="margin:0;color:var(--color-text-muted);">No tienes eventos inscritos vigentes en este momento.</p>
+            </div>
+        }
+    </section>
+
+    <section class="mb-6" aria-labelledby="mis-eventos-cerrados-heading">
+        <div class="home-section-head">
+            <h2 id="mis-eventos-cerrados-heading" style="color:var(--color-primary);font-family:var(--font-display);">
+                🗂 Eventos cerrados
+            </h2>
+            @if (tieneCerrados)
+            {
+                <span class="text-meta">@Model.EventosCerrados.Count evento@(Model.EventosCerrados.Count == 1 ? "" : "s") finalizado@(Model.EventosCerrados.Count == 1 ? "" : "s")</span>
+            }
+        </div>
+        @if (tieneCerrados)
+        {
+            <div class="rooms-grid">
+                @foreach (var sala in Model.EventosCerrados)
+                {
+                    @await Html.PartialAsync("_SalaRoomCardUsuario", sala)
+                }
+            </div>
+        }
+        else
+        {
+            <div class="card" style="padding:var(--sp-8);text-align:center;">
+                <p style="margin:0;color:var(--color-text-muted);">Aún no tienes eventos inscritos que hayan finalizado.</p>
+            </div>
+        }
+    </section>
+}
+
+@section Scripts {
+@Html.AntiForgeryToken()
+<script src="~/js/eventos-usuario.js" asp-append-version="true"></script>
+}

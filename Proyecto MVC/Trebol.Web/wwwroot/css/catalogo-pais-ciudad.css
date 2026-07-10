@@ -1,0 +1,122 @@
+/* Combobox país / ciudad — buscador dentro del panel desplegable */
+.cat-combobox {
+  position: relative;
+  width: 100%;
+}
+
+.cat-combobox__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background: var(--color-surface);
+}
+
+.cat-combobox__trigger:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: var(--color-surface-2, #f4f6f5);
+}
+
+.cat-combobox__label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+
+.cat-combobox__label.is-placeholder {
+  color: var(--color-text-muted);
+}
+
+.cat-combobox__chevron {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast, 0.15s ease);
+}
+
+.cat-combobox.is-open .cat-combobox__chevron {
+  transform: rotate(180deg);
+}
+
+.cat-combobox__panel {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(26, 60, 52, 0.12));
+  overflow: hidden;
+}
+
+.cat-combobox__panel[hidden] {
+  display: none !important;
+}
+
+.cat-combobox__search-wrap {
+  padding: var(--sp-2);
+  border-bottom: 1px solid var(--color-border-light, #e8ecea);
+  background: var(--color-surface-2, #f8faf9);
+}
+
+.cat-combobox__search {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.875rem;
+  outline: none;
+  background: var(--color-surface);
+}
+
+.cat-combobox__search:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.15);
+}
+
+.cat-combobox__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--sp-1) 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.cat-combobox__option {
+  padding: 10px 14px;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.cat-combobox__option:hover,
+.cat-combobox__option.is-focused {
+  background: rgba(82, 183, 136, 0.1);
+}
+
+.cat-combobox__option.is-selected {
+  background: rgba(82, 183, 136, 0.16);
+  font-weight: 600;
+}
+
+.cat-combobox__empty {
+  padding: 12px 14px;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.cat-combobox__loading {
+  padding: 14px;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}

@@ -1,0 +1,48 @@
+/** Conferencia asistente — espera ponente + novedad */
+.conf-espera-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  background: rgba(10, 14, 23, 0.88);
+  backdrop-filter: blur(4px);
+  text-align: center;
+  padding: var(--sp-6);
+}
+
+.conf-espera-overlay[hidden] { display: none !important; }
+
+.conf-espera-overlay__title {
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.conf-espera-overlay__subtitle {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.875rem;
+  margin: 0;
+  max-width: 28rem;
+  line-height: 1.5;
+}
+
+.conf-espera-countdown {
+  font-variant-numeric: tabular-nums;
+  font-family: monospace;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #FFD54F;
+  letter-spacing: 0.06em;
+  margin: var(--sp-2) 0;
+}
+
+.conf-espera-overlay__hint {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+}

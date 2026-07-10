@@ -1,0 +1,30 @@
+@model Trebol.Model.DTOs.PerfilOrador.PerfilOradorPublicoVm
+@{
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    ViewData["EsPerfilPublico"] = true;
+    ViewData["Title"] = "Perfil del orador";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/perfil-orador.css" asp-append-version="true" />
+    @await RenderSectionAsync("PerfilStyles", required: false)
+}
+
+<div class="perfil-orador-publico">
+    @if (Model.EsVistaPreviaPropia)
+    {
+        <div class="alert alert-info mb-4" role="status" style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4);flex-wrap:wrap;">
+            <span>Estás viendo tu perfil como lo ven otros usuarios.</span>
+            <a asp-controller="PerfilProfesional" asp-action="Index" class="btn btn-secondary btn-sm">← Volver a mi perfil</a>
+        </div>
+    }
+    @await Html.PartialAsync("_PerfilOradorEncabezado", Model)
+    @await Html.PartialAsync("_PerfilOradorTabs", Model)
+    @RenderBody()
+</div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    @await Html.PartialAsync("~/Views/Directorio/_DirectorioScripts.cshtml")
+    @await RenderSectionAsync("PerfilScripts", required: false)
+}

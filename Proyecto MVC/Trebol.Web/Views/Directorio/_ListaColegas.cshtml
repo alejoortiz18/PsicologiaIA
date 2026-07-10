@@ -1,0 +1,5 @@
+@model IEnumerable<Trebol.Model.DTOs.Directorio.ProfesionalDirectorioDto>
+@{
+    ViewData["EsListaColegas"] = true;
+}
+@await Html.PartialAsync("_ListaProfesionales", Model)

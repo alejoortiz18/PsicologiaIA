@@ -1,0 +1,69 @@
+@model Trebol.Web.ViewModels.Common.SelectPaisCiudadVm
+@using System.Text.Json
+@{
+    var paises = ViewBag.Paises as IEnumerable<Trebol.Model.Entities.TrebolEntities.Pais> ?? [];
+    var ciudades = ViewBag.Ciudades as IEnumerable<Trebol.Model.Entities.TrebolEntities.Ciudad> ?? [];
+    var paisId = Model?.PaisId;
+    var ciudadId = Model?.CiudadId;
+    var ciudadesUrl = ViewBag.CiudadesUrl as string ?? "/Catalogo/Ciudades";
+    var paisNombre = paises.FirstOrDefault(p => p.PaisId == paisId)?.Nombre ?? "";
+    var ciudadNombre = ciudades.FirstOrDefault(c => c.CiudadId == ciudadId)?.Nombre ?? "";
+    var paisesJson = JsonSerializer.Serialize(paises.Select(p => new { id = p.PaisId, nombre = p.Nombre }));
+    var ciudadesJson = JsonSerializer.Serialize(ciudades.Select(c => new { id = c.CiudadId, nombre = c.Nombre }));
+}
+
+<div class="form-row form-row-2 js-catalogo-ubicacion" data-ciudades-url="@ciudadesUrl">
+    <div class="form-group">
+        <label class="form-label" id="label-pais-combobox">
+            País <span class="required" aria-hidden="true">*</span>
+        </label>
+        <div class="cat-combobox" data-role="pais-combobox"
+             data-selected-id="@(paisId?.ToString() ?? "")" data-selected-label="@paisNombre">
+            <script type="application/json" data-role="items-json">@Html.Raw(paisesJson)</script>
+            <input type="hidden" name="PaisId" data-role="value" value="@(paisId?.ToString() ?? "")" />
+            <button type="button" class="cat-combobox__trigger form-control" aria-haspopup="listbox"
+                    aria-expanded="false" aria-labelledby="label-pais-combobox" id="registro-pais-trigger">
+                <span class="cat-combobox__label @(string.IsNullOrEmpty(paisNombre) ? "is-placeholder" : "")" data-role="label">
+                    @(string.IsNullOrEmpty(paisNombre) ? "Seleccionar..." : paisNombre)
+                </span>
+                <span class="cat-combobox__chevron" aria-hidden="true">▼</span>
+            </button>
+            <div class="cat-combobox__panel" data-role="panel" hidden>
+                <div class="cat-combobox__search-wrap">
+                    <input type="search" class="cat-combobox__search" data-role="search"
+                           placeholder="Buscar país..." autocomplete="off" aria-label="Buscar país" />
+                </div>
+                <ul class="cat-combobox__list" data-role="list" role="listbox" aria-labelledby="label-pais-combobox"></ul>
+            </div>
+        </div>
+        <span class="field-validation-valid form-error" data-valmsg-for="PaisId" data-valmsg-replace="true"></span>
+    </div>
+    <div class="form-group">
+        <label class="form-label" id="label-ciudad-combobox">
+            Ciudad <span class="required" aria-hidden="true">*</span>
+        </label>
+        <div class="cat-combobox" data-role="ciudad-combobox"
+             data-selected-id="@(ciudadId?.ToString() ?? "")" data-selected-label="@ciudadNombre"
+             data-placeholder="@(paisId is null ? "Selecciona un país primero" : "Seleccionar...")">
+            <script type="application/json" data-role="items-json">@Html.Raw(ciudadesJson)</script>
+            <input type="hidden" name="CiudadId" data-role="value" value="@(ciudadId?.ToString() ?? "")" />
+            <button type="button" class="cat-combobox__trigger form-control" aria-haspopup="listbox"
+                    aria-expanded="false" aria-labelledby="label-ciudad-combobox" id="registro-ciudad-trigger"
+                    @(paisId is null ? "disabled" : null)>
+                <span class="cat-combobox__label @(string.IsNullOrEmpty(ciudadNombre) ? "is-placeholder" : "")" data-role="label">
+                    @(string.IsNullOrEmpty(ciudadNombre) ? (paisId is null ? "Selecciona un país primero" : "Seleccionar...") : ciudadNombre)
+                </span>
+                <span class="cat-combobox__chevron" aria-hidden="true">▼</span>
+            </button>
+            <div class="cat-combobox__panel" data-role="panel" hidden>
+                <div class="cat-combobox__search-wrap">
+                    <input type="search" class="cat-combobox__search" data-role="search"
+                           placeholder="Buscar ciudad..." autocomplete="off" aria-label="Buscar ciudad"
+                           @(paisId is null ? "disabled" : null) />
+                </div>
+                <ul class="cat-combobox__list" data-role="list" role="listbox" aria-labelledby="label-ciudad-combobox"></ul>
+            </div>
+        </div>
+        <span class="field-validation-valid form-error" data-valmsg-for="CiudadId" data-valmsg-replace="true"></span>
+    </div>
+</div>

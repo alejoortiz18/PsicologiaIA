@@ -1,0 +1,38 @@
+<div id="detail-modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title" aria-hidden="true">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <div>
+                <div class="modal-title" id="detail-modal-title">—</div>
+                <div class="modal-subtitle" id="detail-modal-subtitle">—</div>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="detail-modal" aria-label="Cerrar detalle">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="sala-detalle-grid">
+                <div>
+                    <p id="detail-modal-desc" style="margin-bottom:var(--sp-4);color:var(--color-text-secondary);"></p>
+                    <div class="separator"></div>
+                    <div id="detail-modal-info" style="display:flex;flex-direction:column;gap:var(--sp-3);"></div>
+                </div>
+                <div>
+                    <div class="sala-detalle-orador">
+                        <div class="avatar avatar-xl" id="detail-modal-avatar" style="margin:0 auto var(--sp-3);">—</div>
+                        <div style="font-weight:700;color:var(--color-primary);margin-bottom:4px;" id="detail-modal-orador">—</div>
+                        <div class="text-meta" style="margin-bottom:var(--sp-3);" id="detail-modal-orador-role">—</div>
+                        <div class="tag-list" id="detail-modal-tags" style="justify-content:center;margin-bottom:var(--sp-4);"></div>
+                        <button type="button" class="btn btn-secondary btn-sm w-full" id="detail-modal-msg-orador"
+                                data-pm-name="" data-pm-avatar="" data-pm-profesional-id="" data-pm-bg="var(--color-primary)">
+                            💬 Mensaje
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" style="flex-wrap:wrap;gap:var(--sp-3);">
+            <a href="#" class="btn btn-secondary" id="detail-modal-perfil-link">Ver perfil del orador</a>
+            <button type="button" class="btn btn-primary btn-ingresar-evento" id="detail-modal-ingresar-btn"
+                    style="display:none;" data-sala-id="" data-fecha-inicio="" data-fecha-fin="" data-url="">Ingresar</button>
+            <button type="button" class="btn btn-primary btn-reg-sala" id="detail-modal-reg-btn" data-sala-id="">Inscribirse y pagar</button>
+        </div>
+    </div>
+</div>

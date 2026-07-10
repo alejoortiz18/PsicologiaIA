@@ -1,0 +1,55 @@
+@{
+    ViewData["Title"] = "Pago de Cita";
+    Layout = "~/Views/Shared/_LayoutInterno.cshtml";
+    var citaId = (int)(ViewBag.CitaId ?? 0);
+}
+
+<h1 style="font-family:var(--font-display);color:var(--color-primary);font-size:1.5rem;margin-bottom:var(--sp-6);">Pago de cita #@citaId</h1>
+
+<div style="max-width:420px;">
+    <div class="card">
+        <div style="padding:var(--sp-6);">
+            <p style="color:var(--color-text-muted);margin-bottom:var(--sp-5);">Selecciona el método de pago para confirmar tu cita.</p>
+
+            <div id="metodosContainer" style="display:flex;flex-direction:column;gap:var(--sp-3);">
+                <button class="btn btn-primary btn-lg" onclick="pagar('PSE')">🏦 PSE — Pago en línea</button>
+                <button class="btn btn-secondary btn-lg" onclick="pagar('Tarjeta')">💳 Tarjeta de crédito / débito</button>
+                <button class="btn btn-ghost btn-lg" onclick="pagar('Nequi')">📱 Nequi / Daviplata</button>
+            </div>
+
+            <div id="resultadoPago" style="display:none;margin-top:var(--sp-5);">
+                <div id="alertaPago" class="card" style="padding:var(--sp-4);text-align:center;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function pagar(metodoPago) {
+    document.getElementById('metodosContainer').style.display = 'none';
+    fetch('/PagoCita/Procesar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]')?.value ?? ''
+        },
+        body: `citaId=@citaId&metodoPago=${encodeURIComponent(metodoPago)}`
+    })
+    .then(r => r.json())
+    .then(d => {
+        const alerta = document.getElementById('alertaPago');
+        alerta.textContent = d.mensaje;
+        alerta.style.background = d.exito ? 'rgba(82,183,136,.12)' : 'rgba(239,68,68,.1)';
+        alerta.style.color = d.exito ? 'var(--color-primary)' : 'var(--color-danger)';
+        document.getElementById('resultadoPago').style.display = 'block';
+        if (d.exito) {
+            setTimeout(() => window.location.href = '/Citas/Index', 2000);
+        } else {
+            document.getElementById('metodosContainer').style.display = 'flex';
+        }
+    });
+}
+</script>
+@Html.AntiForgeryToken()
+}

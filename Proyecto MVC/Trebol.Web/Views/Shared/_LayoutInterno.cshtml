@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>@ViewData["Title"] — Trébol</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/trebol.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+</head>
+<body data-es-usuario="@(User.IsInRole("Usuario") ? "true" : "false")"
+      data-es-profesional="@(User.IsInRole("Profesional") ? "true" : "false")">
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-layout">
+
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <aside class="sidebar" role="navigation" aria-label="Menú principal">
+        <div class="sidebar__header">
+            <div class="sidebar__logo" aria-hidden="true">🍀</div>
+            <span class="sidebar__brand-name">Trébol</span>
+        </div>
+
+        @await Html.PartialAsync("_MenuLateral")
+
+        @{
+            var nombreUsuario = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+                ?? User.Identity?.Name
+                ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                ?? "Usuario";
+            var inicialesUsuario = string.Join("", nombreUsuario.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Take(2).Select(p => char.ToUpperInvariant(p[0])));
+            if (string.IsNullOrEmpty(inicialesUsuario)) inicialesUsuario = "U";
+            var rolEtiqueta = User.IsInRole("Admin") ? "Administrador"
+                : User.IsInRole("Profesional") ? "Profesional"
+                : "Usuario";
+        }
+        <div class="sidebar__footer">
+            <div class="sidebar__user-menu" id="user-menu">
+                <div class="sidebar__user">
+                    <div class="sidebar__user-avatar" id="sidebar-avatar">@inicialesUsuario</div>
+                    <div class="sidebar__user-meta">
+                        <div class="sidebar__user-name" id="sidebar-name" title="@nombreUsuario">@nombreUsuario</div>
+                        <div class="sidebar__user-role">@rolEtiqueta</div>
+                    </div>
+                    <button type="button" class="sidebar__user-dots" id="user-dots-btn"
+                            aria-label="Opciones de usuario" aria-expanded="false" aria-haspopup="true">⋯</button>
+                </div>
+                <div class="sidebar__user-dropdown" id="user-dropdown" role="menu">
+                    <form asp-controller="Login" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" role="menuitem">
+                            <span aria-hidden="true">🚪</span> Cerrar sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══════════ MAIN WRAPPER ═══════════ -->
+    <div class="main-wrapper">
+
+        <!-- Topbar -->
+        <header class="topbar" role="banner">
+            <button class="btn btn-ghost btn-icon" id="sidebar-toggle" aria-label="Abrir menú" style="display:none;">☰</button>
+            @if (ViewData["EsPerfilPublico"] as bool? == true)
+            {
+                <button type="button" class="btn btn-ghost btn-sm perfil-orador-back" onclick="history.back()" aria-label="Volver">← Volver</button>
+            }
+            <span class="topbar__title">@(ViewData["Title"] ?? "Trébol")</span>
+            <div class="topbar__spacer"></div>
+            <div class="topbar__actions">
+                @if (IsSectionDefined("TopbarActions"))
+                {
+                    @await RenderSectionAsync("TopbarActions", required: false)
+                }
+                else if (User.IsInRole("Profesional"))
+                {
+                    @await Html.PartialAsync("_TopbarAccionesProfesional")
+                }
+                else if (User.IsInRole("Usuario"))
+                {
+                    @await Html.PartialAsync("_TopbarAccionesUsuario")
+                }
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="main-content@(ViewData["FullBleed"] is true ? " main-content--bleed" : "")" role="main">
+            @if (TempData["Mensaje"] != null)
+            {
+                <div style="background:var(--color-success-pale);border:1px solid var(--color-accent);color:var(--color-success);padding:12px 16px;border-radius:var(--radius-md);font-size:.875rem;font-weight:600;margin-bottom:var(--sp-5);">
+                    ✅ @TempData["Mensaje"]
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div style="background:var(--color-danger-pale);border:1px solid var(--color-danger);color:var(--color-danger);padding:12px 16px;border-radius:var(--radius-md);font-size:.875rem;font-weight:600;margin-bottom:var(--sp-5);">
+                    ❌ @TempData["Error"]
+                </div>
+            }
+            @RenderBody()
+        </main>
+
+    </div><!-- /main-wrapper -->
+
+</div><!-- /app-layout -->
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+@if (User.IsInRole("Usuario") || User.IsInRole("Profesional"))
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="~/js/mensajeria-hub.js" asp-append-version="true"></script>
+}
+<script src="~/js/trebol.js" asp-append-version="true"></script>
+<script>
+    // Sidebar toggle (mobile)
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebarToggle) {
+        sidebarToggle.style.display = 'flex';
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible');
+        });
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+        });
+    }
+    // User menu dropdown
+    const dotsBtn = document.getElementById('user-dots-btn');
+    const dropdown = document.getElementById('user-dropdown');
+    if (dotsBtn && dropdown) {
+        dotsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const open = dropdown.classList.toggle('open');
+            dotsBtn.setAttribute('aria-expanded', open);
+        });
+        dropdown.addEventListener('click', (e) => e.stopPropagation());
+        document.addEventListener('click', () => {
+            dropdown.classList.remove('open');
+            dotsBtn?.setAttribute('aria-expanded', 'false');
+        });
+    }
+</script>
+@if (User.IsInRole("Usuario"))
+{
+    @Html.AntiForgeryToken()
+    @await Html.PartialAsync("_ModalNovedadUsuario")
+    <script src="~/js/novedad-usuario.js" asp-append-version="true"></script>
+}
+@if (User.IsInRole("Usuario") || User.IsInRole("Profesional"))
+{
+    @await Html.PartialAsync("_ModalesEventosUsuario")
+    @await Html.PartialAsync("_ModalesIngresoEvento")
+    <script src="~/js/evento-ingreso.js" asp-append-version="true"></script>
+}
+@if (User.IsInRole("Usuario") || User.IsInRole("Profesional"))
+{
+    @await Html.PartialAsync("_ModalDetalleCita")
+    <script src="~/js/cita-detalle-modal.js" asp-append-version="true"></script>
+}
+@if (User.IsInRole("Profesional"))
+{
+    @Html.AntiForgeryToken()
+    @await Html.PartialAsync("~/Views/Salas/_ModalNuevaSalaProfesional.cshtml")
+    <script src="~/js/nueva-sala-modal.js" asp-append-version="true"></script>
+}
+@RenderSection("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,116 @@
+/* Sala de cita — usuario (sala-usuario.html) */
+
+.cita-layout--usuario .cita-header__info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.cita-header__session-name {
+  color: white;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cita-header__badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(200, 30, 74, 0.2);
+  border: 1px solid rgba(200, 30, 74, 0.4);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.8125rem;
+  color: #FF6B8A;
+  flex-shrink: 0;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FF6B8A;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.cita-panel-body--stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.cita-textarea[readonly] {
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
+.anon-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--color-accent);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+}
+
+@media (max-width: 768px) {
+  .cita-layout--usuario {
+    grid-template-columns: 1fr;
+    grid-template-rows: 64px 1fr 280px;
+  }
+
+  .cita-layout--usuario .cita-side-panel {
+    grid-column: 1;
+  }
+}

@@ -172,17 +172,26 @@ El menú lateral es fijo, visible en todas las vistas internas tras el inicio de
 |---|---|
 | Inicio (Home) | Dashboard principal del usuario |
 | Profesionales > Especialistas | Listado de especialistas |
-| Profesionales > Psicólogos | Listado de psicólogos |
+| Profesionales > Psicólogos | Listado de psicólogos certificados COLPSIC |
 | Profesionales > Mis mentores | Profesionales que el usuario sigue |
-| Mis citas | Citas programadas del usuario |
+| Mis citas | Citas privadas programadas del usuario |
+| Mensajes | Conversaciones con profesionales |
 | Mi perfil | Información personal del usuario |
-| Calendario | Visualización de citas agendadas |
+| Calendario | Visualización de citas y eventos agendados |
 
-### Opciones exclusivas del Profesional
+### Opciones disponibles para el Profesional
 
 | Ítem de menú | Descripción |
 |---|---|
+| Inicio (Home) | Dashboard principal del profesional |
+| Profesionales > Especialistas | Listado de especialistas |
+| Profesionales > Psicólogos | Listado de psicólogos |
+| Profesionales > Mis colegas | Profesionales vinculados para colaboración |
 | Mis eventos | Salas y sesiones creadas por el profesional |
+| Citas | Gestión de citas privadas con pacientes |
+| Mensajes | Conversaciones con usuarios y colegas |
+| Mi perfil | Información profesional y ajustes |
+| Calendario | Disponibilidad y agenda configurada |
 
 ---
 
@@ -218,10 +227,31 @@ Vista principal luego del inicio de sesión para el perfil Usuario.
 | Botón "Registrarse" | Inicia el proceso de inscripción |
 | Botón "Enviar mensaje" | Envía mensaje privado al profesional |
 
+## 5b. Vista Home — Perfil Profesional
+
+Vista principal luego del inicio de sesión para el perfil Profesional.
+
+**Tarjetas de resumen (4 indicadores):**
+
+| Indicador | Descripción |
+|---|---|
+| Citas hoy | Número de citas programadas para hoy |
+| Mis eventos hoy | Eventos (salas) que se realizan hoy |
+| Citas próximas | Total de citas próximas agendadas |
+| Seguidores | Número de usuarios que siguen al profesional |
+
+**Tabla de citas del día:**
+- Paciente (avatar + alias), Tipo, Hora, Estado (badge), Acciones: **Ingresar** (si es hoy y está confirmada), Confirmar (si está pendiente), Cancelar.
+
+**Sección de eventos de hoy:**
+- Eventos propios activos del día, con botón **Ingresar al evento**.
+
+**Sección de eventos de colegas:**
+- Eventos creados por colegas vinculados, agrupados por: Hoy / Esta semana / Próximamente.
+- Filtro por categoría.
+
 ---
-
-## 6. Vista Detalle de Sala (Modal "Ver más")
-
+## 6. Vista Detalle de Sala (Modal “Ver más”)
 Al hacer clic en "Ver más" se abre un **modal** con:
 - Información completa de la sala
 - Información del evento (fechas `DD MMM YYYY`, horarios en formato 12H)
@@ -277,127 +307,254 @@ Galería de tarjetas con:
 
 ---
 
-## 8. Vista Mis Eventos
+## 8. Vista Mis Eventos (mis-eventos) — Profesional
 
-- Muestra únicamente los eventos creados por el usuario actualmente autenticado.
+Gestión completa de las salas creadas por el profesional.
 
----
+**Tarjetas KPI (4 indicadores):**
 
-## 9. Vista Perfil — Usuario
-
-| Elemento | Descripción |
+| Indicador | Descripción |
 |---|---|
-| Formulario de datos personales | Nombre, correo, alias y demás datos del perfil |
-| Tab eventos | Eventos públicos en los que se ha registrado |
-| Tab próximas citas | Citas privadas agendadas próximamente |
+| Total salas | Historial completo de salas creadas |
+| Salas abiertas | Salas activas actualmente |
+| Total inscritos | Suma de inscritos en todas las salas |
+| Ingresos del mes | Ingresos generados en el mes en curso |
+
+**Sección “Eventos de hoy”:**
+- Si el profesional tiene eventos que se realizan hoy, se destacan en una tarjeta prominente con botón **▶ Ingresar al evento**.
+
+**Tabla de eventos:**
+
+| Columna | Descripción |
+|---|---|
+| Nombre | Nombre de la sala |
+| Estado | Badge: Abierta / Próxima / Cerrada |
+| Inscritos | Número actual de inscritos |
+| Cupo máx. | Capacidad total |
+| Precio | Monto de inscripción o “Entrada libre” |
+| Fecha | `DD MMM YYYY · H[MM]AM/PM` |
+| Acciones | Ingresar (si hoy), Ver detalle, Cerrar/Abrir sala |
+
+- Filtro por nombre y por estado.
+- Las filas de eventos que se realizan hoy se resaltan con fondo de acento y badge **HOY**.
+- El botón **Cerrar sala / Abrir sala** alterna el estado con confirmación en modal.
 
 ---
 
-## 10. Vista Perfil — Profesional
+## 9. Vista Perfil — Usuario (perfil-usuario)
+
+**Cabecera de perfil:** avatar editable, nombre, alias, fecha de registro.
+
+**Campos editables:**
+- Alias (seudónimo)
+- Número de celular
+
+**Campos de solo lectura:**
+- Nombre completo
+- Email
+- Número de documento
+- Tipo de cuenta (Usuario)
+
+**Tabs:**
+
+### Tab 1 — Eventos inscritos
+Tabla con: Nombre del evento, Fecha `DD MMM YYYY`, Hora, Orador, Estado (badge), Precio. Paginación de 10 por página.
+
+### Tab 2 — Próximas citas
+Tabla con: Profesional, Fecha `DD MMM YYYY`, Hora, Tipo, Estado (badge), Acciones (Mensaje).
+
+---
+
+## 10. Vista Perfil — Profesional (perfil-profesional)
+
+**Cabecera:** avatar editable, nombre, badge de verificación (✓ Verificada), estadísticas (Seguidores, Salas, Citas próximas).
+
+Organizado en **5 tabs**:
 
 ### Tab 1 — Información Personal
 
-Formulario personalizable con los siguientes campos:
+Formulario personalizable:
 
 | Campo | ¿Editable? |
 |---|---|
 | Nombre | No |
 | Email | No |
-| Número de documento | No |
+| Número de documento | No (enmascarado: \*\*\*\*1234) |
+| Número de tarjeta profesional | No (enmascarado) |
 | País | Sí |
 | Ciudad (vinculada al país) | Sí |
 | Ocupación | Sí |
 | Celular | Sí |
 | Género | Sí |
 | Fecha de nacimiento | Sí |
-| Sesión activa | Solo visualización |
+| Años de experiencia | Sí |
+| Tarifa por hora | Sí |
+| Idiomas | Sí |
+| Especialidades | Sí |
 | Sobre mí | Sí |
 | Cómo trabajo | Sí |
-| Universidad de egreso | Sí |
-| Año de egreso | Sí |
-| Años de experiencia | Sí |
 | Foto de perfil | Sí |
-| Número de tarjeta profesional | No |
 
 > La ciudad se filtra dinámicamente según el país seleccionado.
 
-**Sección de estudios** (Pregrado y Posgrado):
-- Nombre del título
-- Descripción
-- Universidad
-- Año de egreso
+**Sección de formación académica** (Licenciatura / Postgrado / Certificación):
+- Tipo de estudio, Título, Institución, Año de egreso.
+- Se pueden agregar o eliminar entradas dinámicamente.
 
 **Restricción:** El perfil profesional no puede tener dos sesiones activas simultáneamente.
 
-### Tab 2 — Salas y Eventos
+### Tab 2 — Salas y Eventos (perfil-pro-salas)
 
-- Tarjetas de las salas creadas con sus eventos
-- Número de usuarios inscritos a cada sala
-- Detalle de cada evento
+- Tarjetas de salas con estados (Abierta / Próxima / Cerrada).
+- Filtro por nombre y estado.
+- Estadísticas: Total salas, Abiertas, Cerradas, Próximas.
+- Acciones por sala: Gestionar (modal de detalle/edición), Copiar link, Duplicar (solo cerradas), Eliminar (solo cerradas).
+- Botón **+ Nueva sala** que abre modal con formulario de creación.
 
-### Tab 3 — Calendario
+### Tab 3 — Calendario (perfil-pro-calendario)
 
-- Visualización de horarios disponibles y ocupados
-- Horarios configurados por el profesional como no disponibles
+- Cuadrícula mensual con estados por día: Disponible / Ocupado / Bloqueado.
+- Acciones masivas: marcar días seleccionados como Disponible / Ocupado / Bloqueado.
+- Horario semanal configurable (Lun–Dom) con rango Desde/Hasta por día y opción Activo/Inactivo.
+- Modal por día: editar estado + confirmar.
 
-### Tab 4 — Citas
+### Tab 4 — Citas (perfil-pro-citas)
 
-- Próximas citas privadas con pacientes
-- Próximos eventos públicos agendados
+Organizado en 2 sub-tabs (Próximas / Historial):
+
+| Columna | Descripción |
+|---|---|
+| Paciente | Nombre + avatar |
+| Tipo | Asesoría / Seguimiento / Primera consulta |
+| Fecha | `DD MMM YYYY` |
+| Hora | Formato 12H |
+| Duración | En minutos u horas |
+| Estado | Badge: Confirmada / Pendiente / Completada / Cancelada |
+| Acciones | Ingresar (hoy), Confirmar (pendiente), Cancelar, Ver nota |
+
+- Filtro por paciente, estado y tipo.
+- Botón **+ Nueva cita** con modal de creación (paciente, tipo, modalidad [video/presencial], fecha, hora, duración, notas).
+- Tab **Historial**: muestra citas completadas con duración y enlace **Ver nota** a las notas clínicas.
+
+### Tab 5 — Indicadores (perfil-pro-kpi)
+
+Panel de analíticas con selector de período (Todo / Este año / Este mes):
+
+| Indicador | Descripción |
+|---|---|
+| Total de consultas | Número acumulado con variación porcentual |
+| Clientes atendidos | Pacientes únicos con variación porcentual |
+| Ingresos totales | Suma con variación porcentual |
+| Saldo por pagar | Monto pendiente de transferencia con fecha estimada |
+| Salas creadas | Total con desglose por estado (mini gráfico) |
+| Eventos organizados | Total con variación porcentual |
+
+Incluve gráfico de tendencia de ingresos (últimos 6 meses) y tabla de resumen por indicador.
 
 ---
 
-## 11. Vista de Citas — Usuario
+## 11. Vista de Sala de Cita — Usuario (sala-usuario)
 
 | Elemento | Descripción |
 |---|---|
 | Pantalla principal | Vista de cámara del profesional |
-| Controles | Activar/desactivar cámara, activar/desactivar audio, enviar mensaje |
-| Historial de sesión | Fecha `DD MMM YYYY`, hora `H[MM]AM/PM`, estado (recibida/cancelada/movida), duración |
-| Recomendaciones | Notas creadas por el profesional para esta sesión |
-| Comentario privado del usuario | El usuario puede registrar notas visibles solo para sí mismo |
-| Opción de anonimato | En asesorías, el usuario elige mostrar nombre real o alias |
+| Controles | Cámara, micrófono, chat (botón circular) |
+| Información de la cita | Fecha `DD MMM YYYY`, hora, estado (✓ Confirmada), duración |
+| Timer de sesión | Contador HH:MM:SS |
+| Control de alias | Toggle para mostrar alias o nombre real al profesional |
+| Recomendaciones | Campo de solo lectura con las notas del profesional |
+| Nota privada | Textarea editable; solo visible para el usuario |
+
+**Notas:** El usuario no tiene botón para finalizar la sesión. En asesorías, el paciente es anónimo para el profesional.
 
 ---
 
-## 12. Vista de Citas — Profesional
+## 12. Vista de Sala de Cita — Profesional (sala-profesional)
 
 | Elemento | Descripción |
 |---|---|
-| Indicador de usuario en línea | Visible cuando el usuario se conecta |
-| Control de cámara | Abrir/cerrar |
-| Control de audio | Abrir/cerrar |
-| Contador de duración | Inicia cuando comienza la cita |
-| Recomendaciones | El profesional puede crear, editar notas; el sistema registra fecha y hora |
-| Historial clínico | Disponible si es cita de seguimiento (no en asesorías puntuales) |
-| Botón cerrar sesión | Con confirmación en **modal** |
-| Botón mover cita | Abre calendario con únicamente los espacios disponibles del profesional |
+| Pantalla principal | Vista de cámara del paciente |
+| Indicador de estado | Nombre del paciente + estado de conexión (🟢 En línea) |
+| Controles | Cámara, micrófono, chat, mover cita, finalizar sesión |
+| Timer de sesión | Contador HH:MM:SS que inicia con la cita |
+| Panel clínico — Tab Sesión | Fecha, hora, tipo, paciente, duración. Nota de anonimato si es Asesoría |
+| Panel clínico — Tab Recomend. | Textarea con notas del profesional para el paciente; se guarda con fecha y hora |
+| Botón finalizar sesión | Abre modal de confirmación → redirige a citas-profesional |
+| Botón mover cita | Abre formulario con nueva fecha/hora y motivo |
+
+**Nota:** En citas de tipo **Asesoría**, el sistema indica que la identidad del paciente es anónima y el historial clínico no aplica.
+
+## 12b. Vista de Conferencia en Vivo — Profesional (sala-conferencia-profesional)
+
+| Elemento | Descripción |
+|---|---|
+| Video principal | Cámara del ponente con animación de transmisión |
+| Estado de sala | Chip “EN VIVO” + contador de asistentes + fecha/hora |
+| Chip de estado del chat | Muestra si las preguntas están habilitadas o deshabilitadas |
+| Timer | Contador de duración de la conferencia |
+| Controles | Cámara, Micrófono, Compartir pantalla, Toggle Preguntas, Asistentes, Finalizar |
+
+**Panel lateral (3 tabs):**
+
+| Tab | Contenido |
+|---|---|
+| Preguntas | Lista de preguntas con alias del autor (visible solo para ponente). Control para habilitar/deshabilitar preguntas en tiempo real. |
+| Asistentes | Lista de conectados con rol (Ponente / Profesional / Usuario). Botón de mensaje privado por asistente. |
+| Info | Detalles del evento (fecha, hora, categoría, precio, capacidad). Reglas de privacidad de la sala. |
+
+**Botón Finalizar:** modal de confirmación con conteo de asistentes que serán desconectados.
+
+## 12c. Vista de Conferencia en Vivo — Usuario (sala-conferencia-usuario)
+
+| Elemento | Descripción |
+|---|---|
+| Video principal | Transmisión del ponente |
+| Chip de alias | `🎭 Tu alias: [alias]` (solo lectura) |
+| Botón Salir | Único control disponible para el usuario |
+
+**Panel lateral (2 tabs):**
+
+| Tab | Contenido |
+|---|---|
+| Preguntas | Estado del chat (habilitado / deshabilitado por el ponente). Si habilitado: textarea para enviar pregunta anónima. |
+| Info | Detalles del evento, privacidad en sala, botón para enviar mensaje privado al ponente. |
+
+**Privacidad:** Los usuarios no ven quién escribió otras preguntas. Solo el ponente ve el alias del remitente.
 
 ---
 
-## 13. Proceso de Inscripción y Pago
+## 13. Proceso de Inscripción y Pago (inscripcion-pago)
 
-### 13.1 Estados del proceso
+Flujo en **3 pasos** (wizard):
 
-| Estado | Descripción |
-|---|---|
-| Pendiente de pago | Orden de pago generada, sin procesar |
-| Pago aprobado | Pago exitoso confirmado por la pasarela |
-| Pago rechazado | La pasarela rechazó la transacción |
-| Inscripción confirmada | Cupo asignado, registro completado |
-| Sin cupos | No hay disponibilidad en el momento de la inscripción |
-| Reembolso pendiente | Pago realizado pero sin cupos disponibles |
-| Inscripción cancelada | El usuario canceló antes de completar el proceso |
+### Paso 1 — Confirmación
 
-### 13.2 Métodos de pago aceptados
+- Detalle del evento: título, orador, fecha `DD MMM YYYY`, hora, cupos disponibles, categoría, descripción.
+- Resumen del pedido: nombre de la sala, precio, IVA, total.
+- Botón: **Confirmar y pagar** (pasa al paso 2).
+- Aviso: el cupo queda reservado durante 15 minutos mientras se procesa el pago.
 
-- Tarjeta crédito
+### Paso 2 — Pago
+
+Métodos disponibles:
+- Tarjeta de crédito (Visa, Mastercard, Amex)
 - Tarjeta débito
-- PSE
+- PSE (débito en línea)
 - Transferencia bancaria
-- Otros medios habilitados por la pasarela
 
-### 13.3 Confirmación al usuario
+Formulario de tarjeta con auto-formato (número agrupado en bloques de 4, vencimiento MM/AA, nombre en mayúsculas).
+
+### Paso 3 — Resultado
+
+Tres posibles estados:
+
+| Estado | Descripción | Acción disponible |
+|---|---|---|
+| Inscripción exitosa | Código de inscripción generado + confirmación por correo | Ver mis eventos / Volver al inicio |
+| Pago rechazado | La pasarela rechazó la transacción | Reintentar con otro método |
+| Sin cupos | No hay disponibilidad al confirmar el pago | Buscar otras salas (inicia reembolso) |
+
+### 13.1 Confirmación al usuario
 
 Tras inscripción exitosa, el sistema envía correo con:
 - Nombre del evento
@@ -408,7 +565,7 @@ Tras inscripción exitosa, el sistema envía correo con:
 - Valor pagado
 - Recomendaciones previas al evento
 
-### 13.4 Registro administrativo
+### 13.2 Registro administrativo
 
 El sistema guarda trazabilidad de:
 - Usuario inscrito
@@ -419,17 +576,112 @@ El sistema guarda trazabilidad de:
 
 ---
 
-## 14. Reglas Generales del Sistema
+## 14. Pago de Cita Privada (pago-cita)
 
-| Regla | Descripción |
+Formulario de pago de una sola página con dos paneles:
+
+**Panel de pago (izquierda):**
+
+| Pestaña | Contenido |
 |---|---|
-| Unicidad | No se permite registro con correo, número de documento o tarjeta profesional ya registrados |
-| Cookies de sesión | Configuradas según el perfil (Usuario / Profesional) |
-| Inscripción a sala paga | Requiere pago previo para completar el registro |
-| Pasarela de pago | Integración requerida para todas las transacciones |
-| Visibilidad de salas | Solo se muestran salas con eventos abiertos y vigentes |
-| Sobreventa | El sistema valida cupos antes y después del pago para prevenir sobreventa |
-| Token de inscripción | Se genera automáticamente tras pago exitoso |
+| Tarjeta | Formulario de tarjeta con vista previa interactiva en tiempo real (número, titular, vencimiento). Auto-formato del número de tarjeta. |
+| PSE | Selección de banco (cuadrícula de tiles) + número de documento. |
+| Nequi | Ingreso de número de teléfono + QR de demo. |
+
+**Resumen de la cita (derecha, fijo):**
+- Datos del profesional (nombre, especialidad, badge verificado).
+- Fecha `DD MMM YYYY`, hora, duración, tipo de cita.
+- Desglose de precio: sesión + tarifa plataforma = total.
+- Enlace a términos de servicio.
+
+**Flujo de pago:**
+1. El usuario completa el método de pago seleccionado.
+2. Hace clic en **Pagar ahora**.
+3. Pantalla de procesamiento (~2 segundos).
+4. Overlay de éxito → redirige al calendario del profesional con cita confirmada.
+
+---
+
+## 15. Calendario del Usuario (calendario-usuario)
+
+Vista personal del usuario con sus citas y eventos agendados.
+
+**Vistas:** Semanal | Diaria.
+
+| Tipo de evento | Color |
+|---|---|
+| Cita confirmada | Verde |
+| Cita pendiente | Amarillo |
+| Evento inscrito | Morado |
+
+- Línea de hora actual (roja) con auto-scroll a la hora en curso.
+- Clic en evento → modal con detalle (tipo, estado, profesional/orador, fecha, hora, acciones según el tipo).
+- Navegación: Hoy, ← Anterior, Siguiente →.
+
+---
+
+## 16. Mensajería
+
+### 16.1 Mensajería del Usuario (mensajes-usuario)
+
+- Diseño de dos paneles: lista de conversaciones (izquierda) + chat activo (derecha).
+- Solo puede intercambiar mensajes con **profesionales** (restricción visible en el aviso del panel).
+- Cada conversación muestra: avatar del profesional, nombre, preview del último mensaje, hora, badge de no leídos.
+- Los mensajes propios aparecen a la derecha (burbuja verde); los del profesional a la izquierda (burbuja gris).
+
+### 16.2 Mensajería del Profesional (mensajes-profesional)
+
+- Misma estructura de dos paneles.
+- Puede intercambiar mensajes con **usuarios y otros profesionales**.
+- Las conversaciones muestran el rol del contacto (etiqueta: Usuario / Profesional).
+
+**Reglas comunes:**
+- Privacidad: los mensajes son visibles solo para remitente y destinatario.
+- Aviso de privacidad visible en el área del chat.
+- Búsqueda de conversaciones por nombre o último mensaje.
+- Textarea con auto-resize y botón de envío.
+
+---
+
+## 17. Directorios de Profesionales
+
+### 17.1 Especialistas (especialistas.html)
+
+- Grid de tarjetas de profesionales con filtros: búsqueda por nombre/especialidad, ciudad, orden (Popularidad / Calificación / Nombre A-Z / Tarifa).
+- Contadores: Total especialistas, Verificados, Que sigues.
+- Paginación con elipsis inteligente.
+- Por tarjeta: botón **Seguir / Siguiendo** (toggle con actualización en tiempo real) y botón **Mensaje**.
+
+### 17.2 Psicólogos (psicologos.html)
+
+Misma estructura que Especialistas con filtro adicional por subespecialidad (Psicología clínica, Infantil, Neuropsicología, Pareja, Positiva, Coaching).
+
+### 17.3 Mis Mentores — Usuario (mis-mentores.html)
+
+- Listado de profesionales que el usuario sigue.
+- Muestra la fecha desde la que sigue a cada profesional.
+- Filtro por tipo (Psicólogo / Especialista) y orden.
+- Dejar de seguir requiere confirmación en modal.
+- Estado vacío con CTA para explorar el directorio.
+
+### 17.4 Mis Colegas — Profesional (mis-colegas.html)
+
+- Listado de profesionales vinculados para colaboración.
+- Estadísticas: Colegas vinculados, Pacientes compartidos, Derivaciones activas.
+- Por tarjeta: nombre, rol, especialidades, estado en línea (verde/naranja/gris), número de pacientes compartidos, derivaciones activas.
+- Acciones: **Ver pacientes** (modal), **Mensaje**, **Ver perfil**, **Desvincular** (modal de confirmación).
+
+---
+
+## 18. Bandeja de Notificaciones — Administrador (bandeja-notificaciones)
+
+> Ver sección 5.3 del Documento Técnico de Roles para el flujo completo de aprobación.
+
+- Interfaz tipo cliente de correo (panel izquierdo: carpetas + panel derecho: lista + visor).
+- Carpetas: Recibidos, Registros profesionales, Leídos.
+- Tipos de mensaje: Registro profesional, Sistema.
+- Búsqueda por asunto, remitente o nombre del profesional.
+- Acciones: Aprobar profesional, Rechazar (con campo de motivo), Marcar todo como leído.
 
 ---
 

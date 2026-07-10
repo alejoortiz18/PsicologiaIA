@@ -1,0 +1,72 @@
+@* Modal crear sala — profesional (prototipo perfil-pro-salas) *@
+<div id="nueva-sala-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="nueva-sala-title" aria-hidden="true">
+    <div class="modal" style="max-width:560px;">
+        <div class="modal-header">
+            <div class="modal-icon primary" aria-hidden="true">🎪</div>
+            <div>
+                <div class="modal-title" id="nueva-sala-title">Crear nueva sala</div>
+            </div>
+            <button type="button" class="modal-close" data-close-modal="nueva-sala" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="modal-body">
+            <form id="nueva-sala-form" novalidate>
+                <div id="nueva-sala-errores" class="form-error" style="display:none;margin-bottom:var(--sp-4);" role="alert"></div>
+                <div style="display:flex;flex-direction:column;gap:var(--sp-4);">
+                    <div class="form-group">
+                        <label class="form-label" for="nueva-sala-titulo">Nombre de la sala <span class="required" aria-hidden="true">*</span></label>
+                        <input type="text" id="nueva-sala-titulo" name="Titulo" class="form-control" maxlength="300"
+                               placeholder="Ej: Técnicas de mindfulness para el trabajo" required />
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);">
+                        <div class="form-group">
+                            <label class="form-label" for="nueva-sala-fecha">Fecha de inicio <span class="required" aria-hidden="true">*</span></label>
+                            <input type="date" id="nueva-sala-fecha" name="Fecha" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="nueva-sala-hora">Hora de inicio <span class="required" aria-hidden="true">*</span></label>
+                            <input type="time" id="nueva-sala-hora" name="Hora" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="nueva-sala-duracion">Duración <span class="required" aria-hidden="true">*</span></label>
+                            <select id="nueva-sala-duracion" name="DuracionMinutos" class="form-control" required>
+                                <option value="30">30 minutos</option>
+                                <option value="45">45 minutos</option>
+                                <option value="60">1 hora</option>
+                                <option value="90">1 hora 30 min</option>
+                                <option value="120" selected>2 horas</option>
+                                <option value="180">3 horas</option>
+                                <option value="240">4 horas</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="nueva-sala-capacidad">Capacidad máxima <span class="required" aria-hidden="true">*</span></label>
+                            <input type="number" id="nueva-sala-capacidad" name="Capacidad" class="form-control" value="100" min="1" max="5000" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="nueva-sala-tipo">Tipo</label>
+                            <select id="nueva-sala-tipo" name="Tipo" class="form-control">
+                                <option value="1">Pública</option>
+                                <option value="2">Privada</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="nueva-sala-precio">Tarifa (COP)</label>
+                            <input type="number" id="nueva-sala-precio" name="Precio" class="form-control" value="0" min="0" step="1000" placeholder="0 = entrada libre" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="nueva-sala-descripcion">Descripción</label>
+                        <textarea id="nueva-sala-descripcion" name="Descripcion" class="form-control" rows="3"
+                                  placeholder="Describe el tema y metodología de la sesión..."></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close-modal="nueva-sala">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="nueva-sala-submit">
+                <span class="btn-text">Crear sala</span>
+            </button>
+        </div>
+    </div>
+</div>

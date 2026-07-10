@@ -9,15 +9,21 @@
 ## Índice
 
 1. [Filosofía de Diseño](#1-filosofía-de-diseño)
+   - 1.1 [Texto, idioma y codificación (es-CO)](#11-texto-idioma-y-codificación-es-co)
 2. [Ciclos y Apetito (Shape Up)](#2-ciclos-y-apetito-shape-up)
 3. [Componentes — Tablas](#3-componentes--tablas)
 4. [Componentes — Modales y Mensajes](#4-componentes--modales-y-mensajes)
 5. [Componentes — Formularios](#5-componentes--formularios)
+   - 5.5 Formularios de múltiples pasos (Wizard)
 6. [Componentes — Navegación](#6-componentes--navegación)
+   - 6.3 Tabs (prof-tabs-bar — estándar del sistema)
 7. [Componentes — Botones y Acciones](#7-componentes--botones-y-acciones)
 8. [Feedback al Usuario](#8-feedback-al-usuario)
 9. [Tipografía y Colores](#9-tipografía-y-colores)
 10. [Layout y Responsividad](#10-layout-y-responsividad)
+    - 10.4 Layout de dos paneles (mensajería)
+    - 10.5 Componente de calendario (3 vistas)
+    - 10.6 Componente de sala de cita / conferencia
 11. [Animaciones y Transiciones](#11-animaciones-y-transiciones)
 12. [Accesibilidad](#12-accesibilidad)
 13. [Rendimiento Frontend](#13-rendimiento-frontend)
@@ -42,6 +48,51 @@ El frontend no comienza con wireframes de alta fidelidad ni con listas infinitas
 | **Resuelto** | No se entrega trabajo sin que las decisiones de UX críticas estén tomadas |
 | **Consistencia primero** | La interfaz se ve y se siente igual en toda la aplicación |
 | **El usuario nunca se queda sin respuesta** | Toda acción produce feedback visible |
+| **Texto correcto en español (Colombia)** | Sin caracteres corruptos; tildes y ñ bien codificadas en todo el ciclo de desarrollo |
+
+### 1.1 Texto, idioma y codificación (es-CO)
+
+Regla transversal para **todo el ciclo de desarrollo** (vistas, constantes, correos, mensajes de API, documentación de UI, pruebas E2E y commits): el texto visible para el usuario debe estar en **español de Colombia (`es-CO`)** y guardarse siempre en **UTF-8**.
+
+#### Idioma y ortografía
+
+- Usar vocabulario y convenciones de **español de Colombia** (no mezclar con otro español salvo acuerdo explícito del producto).
+- Escribir tildes y caracteres propios del español de forma correcta: **á, é, í, ó, ú, ñ, ü**, signos **¿** y **¡** cuando correspondan.
+- Ejemplos correctos: *configuración*, *contraseña*, *identificación*, *¿Olvidaste tu contraseña?*, *¡Registro exitoso!*
+- Evitar anglicismos innecesarios en la UI cuando exista un término claro en español (salvo nombres de producto acordados, p. ej. *Trébol*).
+
+#### Prohibido: caracteres corruptos (mojibake)
+
+No debe aparecer en la aplicación, correos, BD ni documentación copiada al repo texto con secuencias típicas de **codificación incorrecta**, por ejemplo:
+
+| ❌ Incorrecto (corrupto) | ✅ Debe decirse |
+|--------------------------|-----------------|
+| `configuraciÃ³n` | configuración |
+| `contraseÃ±a` | contraseña |
+| `Ã©xito` | éxito |
+| `Â¿` / `Â¡` | ¿ / ¡ |
+| `â€™` / `â€œ` | comillas tipográficas o ASCII `'` `"` según contexto |
+
+Estos errores suelen originarse por: archivo guardado en ANSI/Windows-1252, copiar desde Word/PDF sin UTF-8, o mezclar bytes UTF-8 leídos como Latin-1. **No se aceptan en revisión ni en producción.**
+
+#### Reglas técnicas en el repositorio
+
+| Ámbito | Regla |
+|--------|--------|
+| **Archivos fuente** | `.cshtml`, `.cs`, `.js`, `.css`, `.json`, `.md`, `.sql` con texto en español: **UTF-8** (configurar el editor/IDE en UTF-8). |
+| **Razor / HTML** | Preferir el carácter Unicode en el fuente (`ó`, `ñ`) en lugar de entidades HTML (`&oacute;`) salvo en plantillas de correo donde el cliente lo exija. |
+| **API y constantes** | Mensajes de `RegistroConstant`, validaciones, toasts y modales: revisar que no lleguen cadenas ya corruptas desde BD o seeds. |
+| **Correos** | Mismo estándar de tildes; plantilla en UTF-8 y `charset=UTF-8` en el HTML del correo. |
+| **Pruebas y capturas** | Playwright y revisiones manuales deben comprobar que labels y mensajes no muestran `Ã` ni secuencias similares. |
+| **Commits y PR** | Si un diff introduce mojibake, se corrige antes de merge. |
+
+#### Verificación rápida antes de entregar
+
+1. Buscar en los archivos tocados patrones sospechosos: `Ã`, `Â`, `â€`, `ï¿½`.
+2. Abrir la pantalla en el navegador y leer títulos, errores y botones (no solo el código).
+3. Si el texto se pegó desde otro documento, reescribirlo en el IDE o validar codificación del archivo.
+
+> **Responsabilidad:** Aplica a desarrolladores, revisores de código, IA/asistentes y quien redacte copy. Es parte de la calidad de la UI, no un detalle opcional.
 
 ### Jerarquía de prioridades de diseño
 
@@ -319,8 +370,26 @@ Próxima cita *
 | `03PM` (cero inicial) | `3PM` |
 | `8 de octubre de 2026 a las 3PM` | `8 Oct 2026 3PM` |
 
-### 5.5 Formularios largos
+### 5.5 Formularios de múltiples pasos (Wizard)
 
+Para flujos que requieren más de un paso secuencial (ej: inscripción, pago):
+
+**Estructura obligatoria:**
+```
+[Paso 1: Confirmación] ─●─ [Paso 2: Pago] ─●─ [Paso 3: Resultado]
+```
+
+**Reglas:**
+- Máximo **3 pasos** por wizard. Si se necesitan más, rediseñar el flujo.
+- El indicador de pasos es visible en todo momento (barra superior con conectores).
+- El paso actual está resaltado; los completados con indicador de check.
+- Cada paso tiene un **botón “Volver”** que regresa al paso anterior sin perder datos.
+- El botón de avance es el **único botón primario** del paso.
+- Los pasos completados permanecen accesibles (el usuario puede volver).
+- El paso de resultado tiene **3 estados obligatorios**: éxito, rechazado/error, sin disponibilidad.
+- El tiempo de procesamiento simulado o real se comunica con un spinner en el botón o en pantalla.
+
+---
 - Si un formulario tiene más de **6 campos**, se divide en **secciones con encabezado**
 - Si supera **12 campos** o tiene flujo de pasos, se usa un **wizard multistep** con indicador de progreso
 - El indicador de progreso muestra: *"Paso 2 de 4"* + barra o dots
@@ -344,9 +413,34 @@ Próxima cita *
 
 ### 6.3 Tabs
 
-- Máximo **6 tabs** visibles horizontalmente
-- El tab activo tiene indicador visual claro (borde inferior o fondo)
-- Los tabs no tienen scroll horizontal — si no caben, se usa un selector `select` o menú desplegable
+- Máximo **6 tabs** visibles horizontalmente.
+- El tab activo tiene indicador visual claro: **borde inferior de 3px en color acento**.
+- Los tabs no tienen scroll horizontal — si no caben, se usa un contenedor con `overflow-x: auto` y `scrollbar: none`.
+
+#### Estilo estándar de tabs (prof-tabs-bar)
+
+En toda la aplicación se usa el componente `prof-tabs-bar` como estándar para navegación por tabs:
+
+```html
+<nav class="prof-tabs-bar" aria-label="[Descripción de la sección]">
+  <ul class="prof-tabs-bar__list" role="tablist">
+    <li><a href="..." class="prof-tab-link active" aria-current="page">
+      <span class="tab-icon">[emoji]</span>[Label]
+    </a></li>
+    <li><a href="..." class="prof-tab-link">
+      <span class="tab-icon">[emoji]</span>[Label]
+      <span class="tab-badge">[n]</span> <!-- opcional: contador -->
+    </a></li>
+  </ul>
+</nav>
+```
+
+**Reglas del componente:**
+- Fondo blanco (`color-surface`), bordes redondeados (`radius-xl`), sombra suave.
+- Tab activo: color primario + borde inferior de 3px en color acento.
+- Badges de conteo: fondo pale cuando inactivo, fondo primario cuando activo.
+- Para tabs que navegan entre páginas: usar `<a href>`. Para tabs que cambian contenido en la misma página: usar `<button>` con `role="tab"`.
+- Iconos via `<span class="tab-icon">`: opacidad 0.75 en inactivo, 1 en activo.
 
 ---
 
@@ -418,6 +512,7 @@ Próxima cita *
 - **Tamaño mínimo de texto** en la aplicación: **12px**
 - Nunca usar menos de 12px para texto legible
 - Fuente principal: definida en el sistema de diseño del proyecto
+- **Idioma del copy:** español Colombia (`es-CO`); ver [§ 1.1 Texto, idioma y codificación](#11-texto-idioma-y-codificación-es-co)
 
 ### 9.2 Sistema de colores semánticos
 
@@ -468,10 +563,63 @@ Usar **tokens semánticos**, nunca valores hexadecimales directos en componentes
 - El contenido principal tiene padding horizontal de **24px** en desktop, **16px** en mobile
 - Cards y contenedores tienen `border-radius` consistente definido en el design system
 
+### 10.4 Layout de dos paneles (mensajería)
+
+Para vistas de tipo cliente de correo o mensajería:
+
+```
+[■ Lista de conversaciones (360px) ] [ Chat activo (flex: 1) ]
+```
+
+- Panel izquierdo: **ancho fijo** (~360px), scroll interno en la lista.
+- Panel derecho: ocupa el resto del espacio con `flex: 1`.
+- En mobile (≤ 768px): solo se muestra un panel a la vez; la selección de conversación navega al panel de chat.
+- Las conversaciones muestran: avatar, nombre, etiqueta de rol, preview del último mensaje, hora y badge de no leídos.
+
+### 10.5 Componente de calendario (3 vistas)
+
+El componente de calendario del sistema expone **3 vistas**:
+
+| Vista | Descripción |
+|---|---|
+| Mensual | Cuadrícula 7×6 de días con estados de color |
+| Semanal | Columnas por día con franjas horarias (64px/hora), eventos posicionados absolutamente |
+| Diaria | Una columna con todos los slots del día |
+
+**Reglas del calendario:**
+- La vista activa se selecciona mediante **pills de selección** (Mensual / Semanal / Diaria).
+- La línea de hora actual es **roja** con punto indicador. Auto-scroll a la hora actual al cargar.
+- Los estados de celda se distinguen únicamente por color (no solo por color — también patrón o texto para accesibilidad).
+- El botón **“Hoy”** navega a la fecha actual en cualquier vista.
+- Los eventos clickeables abren un **modal de detalle** (no navegan a otra página).
+- Los slots ocupados no son clickeables y muestran patrón rayado o icono de candado.
+
+**Estados estándar de celdas de calendario:**
+
+| Estado | Color | Descripción |
+|---|---|---|
+| Disponible | Verde | Slot reservable |
+| Ocupado | Gris rayado | Ya tiene cita o evento |
+| Bloqueado | Gris sólido | No disponible por el profesional |
+| Fuera de horario | Rayas diagonales | Fuera del horario laboral |
+| Pasado | Atenuado | Fecha ya transcurrida |
+| Mi reserva | Color acento / rosa | Reserva del usuario actual |
+
+### 10.6 Componente de sala de cita / conferencia
+
+**Sala de cita privada (1:1):**
+- Layout: área de video (60-70% del ancho) + panel lateral fijo (~340px).
+- Controles flotantes sobre el video (círculos con iconos).
+- Panel lateral con **tabs** para organizar información (Sesión / Recomendaciones).
+- Timer de sesión siempre visible en el header.
+
+**Sala de conferencia en vivo:**
+- Misma estructura con panel lateral de **3 tabs**: Preguntas / Asistentes / Info.
+- Chip de estado visible en el header (“EN VIVO”, “Preguntas habilitadas”).
+- El toggle de preguntas produce feedback visual inmediato (chip cambia de color + toast).
 ---
 
 ## 11. Animaciones y Transiciones
-
 > *"Animation should convey meaning, not just look pretty."*
 
 ### 11.1 Duraciones estándar
@@ -578,6 +726,8 @@ Los siguientes patrones están **explícitamente prohibidos** por ser rabbit hol
 | Hardcodear colores hexadecimales | Usar tokens semánticos |
 | Lógica de negocio en componentes UI | Separar en servicios/hooks |
 | Copiar componentes en lugar de reutilizarlos | Crear componente compartido |
+| Texto con mojibake (`Ã³`, `Ã±`, `Â¿`, etc.) | Corregir codificación UTF-8 y tildes en español Colombia |
+| Copiar strings desde Word/PDF sin revisar encoding | Escribir o pegar en IDE UTF-8 y validar en navegador |
 
 ---
 
@@ -605,6 +755,8 @@ Antes de considerar una pantalla o feature frontend como **terminada**, debe pas
 - [ ] Sin scroll horizontal en ningún breakpoint
 - [ ] Espaciado consistente (múltiplos de 4px)
 - [ ] Jerarquía tipográfica correcta
+- [ ] Texto en **español Colombia** con tildes y ñ correctas (sin `Ã`, `Â`, `â€` ni secuencias corruptas)
+- [ ] Archivos con copy en español guardados en **UTF-8**
 
 ### 15.3 Accesibilidad
 
@@ -647,4 +799,33 @@ Antes de entregar, preguntar:
 
 ---
 
-*Documento creado bajo metodología [Shape Up — Basecamp](https://basecamp.com/shapeup) | Versión 1.0 | Mayo 2026*
+*Documento creado bajo metodología [Shape Up — Basecamp](https://basecamp.com/shapeup) | Versión 1.1 | Mayo 2026*
+
+---
+
+## Email Templates — CTA Button Style (Norma)
+
+Todas las plantillas de correo del sistema que incluyen un botón de llamada a la acción deben seguir un patrón único y comprobable para garantizar contraste, legibilidad y consistencia en clientes de correo.
+
+Reglas obligatorias:
+
+- Color de fondo del botón: `#000000` (negro)
+- Color de texto: `#FFFFFF` (blanco) con `!important` para evitar overrides por clientes de correo
+- Tipografía: `font-family: 'Segoe UI', Arial, sans-serif; font-size: 1.1rem; font-weight: 700`
+- Padding: `18px 56px`, `border-radius: 50px`
+- Border: `2px solid #FFFFFF`
+- Box-shadow: `0 6px 20px rgba(0,0,0,.8)` (opcional, mejora legibilidad en algunos clientes)
+- Usar `display:inline-block` y `text-decoration:none`
+
+Ejemplo de inline style que se debe usar en plantillas HTML de correo:
+
+```
+style="display:inline-block;background:#000000;color:#FFFFFF !important;font-size:1.1rem;font-weight:700;font-family:'Segoe UI',Arial,sans-serif;text-decoration:none;padding:18px 56px;border-radius:50px;letter-spacing:.5px;box-shadow:0 6px 20px rgba(0,0,0,.8);border:2px solid #FFFFFF;-webkit-appearance:none;-moz-appearance:none;appearance:none;"
+```
+
+Implementación recomendada:
+
+- Centralizar estilo en un helper o plantilla base para correos y aplicar en todas las funciones que generan HTML de correo.
+- Añadir pruebas visuales (Playwright) para cada plantilla principal que incluya CTA.
+- Documentar nuevas plantillas de correo en el repositorio y referenciar esta norma.
+

@@ -1,0 +1,24 @@
+<div class="notif-wrapper" id="notif-wrapper">
+    <button type="button" class="btn btn-ghost btn-icon notif-bell" id="notif-btn"
+            aria-label="Notificaciones" aria-expanded="false" aria-haspopup="true">
+        🔔<span class="notif-badge" id="notif-badge">0</span>
+    </button>
+    <div class="notif-panel" id="notif-panel" role="dialog" aria-label="Panel de notificaciones">
+        <div class="notif-panel__head">
+            <span style="font-weight:700;font-size:.9rem;">Notificaciones</span>
+            <button type="button" class="btn btn-ghost btn-sm notif-mark-all">Marcar leídas</button>
+        </div>
+        <div class="notif-tabs" role="tablist">
+            <button type="button" class="notif-tab active" role="tab" data-tab="msg" aria-selected="true">
+                💬 Mensajes <span class="ntc" data-ntc="msg">0</span>
+            </button>
+            <button type="button" class="notif-tab" role="tab" data-tab="sys" aria-selected="false">
+                ⚙️ Sistema <span class="ntc" data-ntc="sys">0</span>
+            </button>
+        </div>
+        <div class="notif-list" id="notif-list" role="list"></div>
+        <div class="notif-panel__foot">
+            <a asp-controller="Mensajeria" asp-action="Index">Ver todas las notificaciones →</a>
+        </div>
+    </div>
+</div>
